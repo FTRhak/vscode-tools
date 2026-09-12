@@ -70,6 +70,11 @@ export function angularCommandGenerateDirective(
               let command = 'echo "Error Command"';
 
               if (message.type === "ng") {
+                command =
+                  `ng generate directive ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".directive" : ""}` +
+                  (message.standalone ? " --standalone=false" : "") +
+                  (message.skip_tests ? " --skipTests" : "") +
+                  (message.skip_import_module ? " --skipImport" : "");
               } else if (message.type === "nx") {
                 command =
                   `nx g @nx/angular:directive ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".directive" : ""}` +

@@ -5,6 +5,7 @@ export { InlineTemplateElement } from './inline_template.element';
 export { NameElement } from './name.element';
 export { PathElement } from './path.element';
 export { PrefixElement } from './prefix.element';
+export { RoutingElement } from './routing.element';
 export { SkipImportModuleElement } from './skip_import_module.element';
 export { SkipSelectorElement } from './skip_selector.element';
 export { SkipTestsElement } from './skip_tests.element';

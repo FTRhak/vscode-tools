@@ -5,15 +5,13 @@ import * as vscode from "vscode";
 import {
   InFolderElement,
   NameElement,
-  SkipImportModuleElement,
-  SkipTestsElement,
-  StandaloneElement,
+  RoutingElement,
   SufixElement,
   TypeElement,
 } from "../form_elements";
 import { PathElement } from "../form_elements/path.element";
 
-export function angularCommandGeneratePipe(
+export function angularCommandGenerateModule(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
@@ -21,7 +19,7 @@ export function angularCommandGeneratePipe(
   // Command to create a new Angular component (placeholder implementation)
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularPipe",
+      "vscode-angular.createAngularModule",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -39,8 +37,8 @@ export function angularCommandGeneratePipe(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularPipe", // internal ID
-          "Angular Generate Pipe", // tab title
+          "formPageGenerateAngularModule", // internal ID
+          "Angular Generate Module", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -54,7 +52,7 @@ export function angularCommandGeneratePipe(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-pipe") {
+            if (message.command === "angular-create-module") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
@@ -63,22 +61,20 @@ export function angularCommandGeneratePipe(
               let in_folder = !!message.in_folder;
               const sufix = !!message.sufix;
 
-              vscode.window.showInformationMessage(`Generating Pipe: ${name}`);
+              vscode.window.showInformationMessage(
+                `Generating Module: ${name}`,
+              );
 
               let command = 'echo "Error Command"';
 
               if (message.type === "ng") {
                 command =
-                  `ng generate pipe ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".pipe" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_import_module ? " --skipImport" : "");
+                  `ng generate module ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".module" : ""}` +
+                  (message.routing ? " --routing" : "");
               } else if (message.type === "nx") {
                 command =
-                  `nx g @nx/angular:pipe ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".pipe" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_import_module ? " --skipImport" : "");
+                  `nx g @nx/angular:module ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".module" : ""}` +
+                  (message.routing ? " --routing" : "");
               }
 
               const terminal = vscode.window.createTerminal(
@@ -115,22 +111,20 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate pipe</title>
+  <title>Generate module</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate pipe for:</h2>
+  <h2>Generate module for:</h2>
   <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-pipe">
+    <input type="hidden" name="command" value="angular-create-module">
     
     ${PathElement(pathUrl)}
     ${TypeElement()}
-    ${NameElement("", "pipe")}
+    ${NameElement("", "module")}
     ${InFolderElement(true)}
-    ${SufixElement(true, "pipe")}
-    ${StandaloneElement()}
-    ${SkipTestsElement()}
-    ${SkipImportModuleElement()}
+    ${SufixElement(true, "module")}
+    ${RoutingElement()}
     
     <button type="submit" id="submitBtn" class="btn">Generate</button>
   </form>

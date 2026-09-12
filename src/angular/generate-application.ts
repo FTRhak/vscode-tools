@@ -69,6 +69,11 @@ export function angularCommandGenerateApplication(
               let command = 'echo "Error Command"';
 
               if (message.type === "ng") {
+                command =
+                  `ng generate application ${path}/${in_folder ? name + "/" : ""}` +
+                  (message.skip_tests ? " --skipTests" : "") +
+                  (message.style ? ` --style=${message.style}` : "") +
+                  (message.prefix ? ` --prefix=${message.prefix}` : "");
               } else if (message.type === "nx") {
                 command =
                   `nx g @nx/angular:application ${path}/${in_folder ? name + "/" : ""}` +

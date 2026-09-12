@@ -73,6 +73,17 @@ export function angularCommandGenerateComponent(
               let command = 'echo "Error Command"';
 
               if (message.type === "ng") {
+                command =
+                  `ng generate component ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".component" : ""}` +
+                  (message.standalone ? " --standalone=false" : "") +
+                  (message.inline_style ? " --inlineStyle" : "") +
+                  (message.inline_template ? " --inlineTemplate" : "") +
+                  (message.skip_tests ? " --skipTests" : "") +
+                  (message.skip_selector ? " --skipSelector" : "") +
+                  (message.skip_import_module ? " --skipImport" : "") +
+                  (message.change_detection
+                    ? ` --changeDetection=${message.change_detection}`
+                    : "");
               } else if (message.type === "nx") {
                 command =
                   `nx g @nx/angular:component ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".component" : ""}` +
