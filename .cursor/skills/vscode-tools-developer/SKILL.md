@@ -71,28 +71,9 @@ Application is different: only `${path}/${in_folder ? (name + '/') : ''}` plus `
 
 ## Form elements
 
-Compose webview HTML from factories. Do not inline raw inputs unless adding a new primitive.
+Compose webview HTML from factories in `src/form_elements`. Do not inline raw inputs unless adding a new primitive. Do not read those files for composition — use the **form-elements** skill (catalog, signatures, FormData names, which generators render which fields).
 
-| Factory | `name` | Base |
-|---------|--------|------|
-| `PathElement(path)` | `path` (readonly) | custom |
-| `TypeElement()` | `type` (`ng` \| `nx`) | Select |
-| `NameElement('', kind)` | `name` | custom |
-| `PrefixElement()` | `prefix` (default `app`) | Text |
-| `StylesElement()` | `style` (`css` \| `scss` \| `less`) | Select |
-| `InFolderElement(true)` | `in_folder` | Boolean |
-| `SufixElement(true, kind)` | `sufix` (spelling is intentional) | Boolean |
-| `StandaloneElement()` | `standalone` | Boolean |
-| `InlineStyleElement()` | `inline_style` | Boolean |
-| `InlineTemplateElement()` | `inline_template` | Boolean |
-| `SkipTestsElement()` | `skip_tests` | Boolean |
-| `SkipImportModuleElement()` | `skip_import_module` | Boolean |
-| `SkipSelectorElement()` | `skip_selector` | Boolean |
-| `ChangeDetectionElement()` | `change_detection` (`""` \| `OnPush`) | Select |
-
-`SkipSelectorElement` is exported and the component CLI reads `message.skip_selector`, but the component form does **not** render it. If you add skip-selector UX, include `${SkipSelectorElement()}` in that form.
-
-New boolean/text/select fields: wrap a base element, export from `index.ts`.
+New boolean/text/select fields: wrap a base element, export from `index.ts`, and update the form-elements skill.
 
 ## Menus
 
