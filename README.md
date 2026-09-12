@@ -1,2 +1,1 @@
-# vscode-tools
-vscode tools extension
+Shematic Extension
