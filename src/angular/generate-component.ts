@@ -1,92 +1,123 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 
-import { ChangeDetectionElement, InFolderElement, InlineStyleElement, InlineTemplateElement, NameElement, PathElement, SkipImportModuleElement, SkipTestsElement, StandaloneElement, SufixElement, TypeElement } from '../form_elements/index';
+import {
+  ChangeDetectionElement,
+  InFolderElement,
+  InlineStyleElement,
+  InlineTemplateElement,
+  NameElement,
+  PathElement,
+  SkipImportModuleElement,
+  SkipTestsElement,
+  StandaloneElement,
+  SufixElement,
+  TypeElement,
+} from "../form_elements/index";
 
-export function angularCommandGenerateComponent(context: vscode.ExtensionContext): vscode.Disposable[] {
-    let commands: vscode.Disposable[] = [];
+export function angularCommandGenerateComponent(
+  context: vscode.ExtensionContext,
+): vscode.Disposable[] {
+  let commands: vscode.Disposable[] = [];
 
-    // Command to create a new Angular component (placeholder implementation)
-    commands.push(
-        vscode.commands.registerCommand(
-            'vscode-angular.createAngularComponent',
-            (resource: vscode.Uri) => {
-                let absolutePath = resource.fsPath;
-                const stats = fs.statSync(absolutePath);
-                if (!stats.isDirectory()) {
-                    absolutePath = path.dirname(absolutePath);
-                }
-                const workspaceFolder = vscode.workspace.getWorkspaceFolder(resource);
-                let relativePath = absolutePath;
+  // Command to create a new Angular component (placeholder implementation)
+  commands.push(
+    vscode.commands.registerCommand(
+      "vscode-angular.createAngularComponent",
+      (resource: vscode.Uri) => {
+        let absolutePath = resource.fsPath;
+        const stats = fs.statSync(absolutePath);
+        if (!stats.isDirectory()) {
+          absolutePath = path.dirname(absolutePath);
+        }
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(resource);
+        let relativePath = absolutePath;
 
-                if (workspaceFolder) {
-                    relativePath = path.relative(workspaceFolder.uri.fsPath, absolutePath);
-                }
+        if (workspaceFolder) {
+          relativePath = path.relative(
+            workspaceFolder.uri.fsPath,
+            absolutePath,
+          );
+        }
 
-                const panel = vscode.window.createWebviewPanel(
-                    'formPageGenerateAngularComponent',                // internal ID
-                    'Angular Generate Component',             // tab title
-                    vscode.ViewColumn.One,     // show in first column
-                    { enableScripts: true }    // allow JS in the webview
-                );
+        const panel = vscode.window.createWebviewPanel(
+          "formPageGenerateAngularComponent", // internal ID
+          "Angular Generate Component", // tab title
+          vscode.ViewColumn.One, // show in first column
+          { enableScripts: true }, // allow JS in the webview
+        );
 
-                // HTML content for the form
-                panel.webview.html = getWebviewContent(panel, context.extensionUri, relativePath);
+        // HTML content for the form
+        panel.webview.html = getWebviewContent(
+          panel,
+          context.extensionUri,
+          relativePath,
+        );
 
-                panel.webview.onDidReceiveMessage(
-                    message => {
-                        if (message.command === 'angular-create-component') {
-                            let path = message.path;
-                            let name = message.name.split(/(?=[A-Z])/).join('_').toLowerCase();;
-                            let in_folder = !!message.in_folder;
-                            const sufix = !!message.sufix;
+        panel.webview.onDidReceiveMessage(
+          (message) => {
+            if (message.command === "angular-create-component") {
+              let path = message.path;
+              let name = message.name
+                .split(/(?=[A-Z])/)
+                .join("_")
+                .toLowerCase();
+              let in_folder = !!message.in_folder;
+              const sufix = !!message.sufix;
 
-                            vscode.window.showInformationMessage(
-                                `Generating Component: ${name}`
-                            );
+              vscode.window.showInformationMessage(
+                `Generating Component: ${name}`,
+              );
 
+              let command = 'echo "Error Command"';
 
-                            let command = 'echo "Error Command"';
+              if (message.type === "ng") {
+              } else if (message.type === "nx") {
+                command =
+                  `nx g @nx/angular:component ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".component" : ""}` +
+                  (message.standalone ? " --standalone=false" : "") +
+                  (message.inline_style ? " --inlineStyle" : "") +
+                  (message.inline_template ? " --inlineTemplate" : "") +
+                  (message.skip_tests ? " --skipTests" : "") +
+                  (message.skip_selector ? " --skipSelector" : "") +
+                  (message.skip_import_module ? " --skipImport" : "") +
+                  (message.change_detection
+                    ? ` --changeDetection=${message.change_detection}`
+                    : "");
+              }
 
-                            if (message.type === 'ng') {
-
-                            } else if (message.type === 'nx') {
-                                command = `nx g @nx/angular:component ${path}/${in_folder ? (name + '/') : ''}${name}${sufix ? '.component' : ''}`
-                                    + (message.standalone ? ' --standalone=false' : '')
-                                    + (message.inline_style ? ' --inlineStyle' : '')
-                                    + (message.inline_template ? ' --inlineTemplate' : '')
-                                    + (message.skip_tests ? ' --skipTests' : '')
-                                    + (message.skip_selector ? ' --skipSelector' : '')
-                                    + (message.skip_import_module ? ' --skipImport' : '')
-                                    + (message.change_detection ? ` --changeDetection=${message.change_detection}` : '')
-                            }
-
-
-                            const terminal = vscode.window.createTerminal("Generation Terminal");
-                            terminal.sendText(command);
-                            terminal.show();
-                        }
-
-                    },
-                    undefined,
-                    context.subscriptions
-                );
-
-
+              const terminal = vscode.window.createTerminal(
+                "Generation Terminal",
+              );
+              terminal.sendText(command);
+              terminal.show();
             }
-        )
-    );
+          },
+          undefined,
+          context.subscriptions,
+        );
+      },
+    ),
+  );
 
-    return commands;
+  return commands;
 }
 
-function getWebviewContent(panel: any, extensionUri: vscode.Uri, pathUrl: string): string {
-    const stylePath = vscode.Uri.joinPath(extensionUri, 'dist', 'media', 'styles.css');
-    const styleUri = panel.webview.asWebviewUri(stylePath);
+function getWebviewContent(
+  panel: any,
+  extensionUri: vscode.Uri,
+  pathUrl: string,
+): string {
+  const stylePath = vscode.Uri.joinPath(
+    extensionUri,
+    "dist",
+    "media",
+    "styles.css",
+  );
+  const styleUri = panel.webview.asWebviewUri(stylePath);
 
-
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -99,9 +130,9 @@ function getWebviewContent(panel: any, extensionUri: vscode.Uri, pathUrl: string
     <input type="hidden" name="command" value="angular-create-component">
     ${PathElement(pathUrl)}
     ${TypeElement()}
-    ${NameElement('', 'component')}
+    ${NameElement("", "component")}
     ${InFolderElement(true)}
-    ${SufixElement(true, 'component')}
+    ${SufixElement(true, "component")}
     ${StandaloneElement()}
     ${InlineStyleElement()}
     ${InlineTemplateElement()}
