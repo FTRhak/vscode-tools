@@ -2,10 +2,17 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 
-import { PathElement } from "../form_elements/path.element";
 import {
+  AddTypeToClassNameElement,
+  ExportElement,
+  FileTypeElement,
   InFolderElement,
+  ModuleElement,
   NameElement,
+  PathElement,
+  PrefixElement,
+  ProjectElement,
+  SelectorElement,
   SkipImportModuleElement,
   SkipTestsElement,
   StandaloneElement,
@@ -68,19 +75,25 @@ export function angularCommandGenerateDirective(
               );
 
               let command = 'echo "Error Command"';
+              const flags =
+                (!message.add_type_to_class_name
+                  ? " --addTypeToClassName=false"
+                  : "") +
+                (message.export ? " --export" : "") +
+                (message.standalone ? " --standalone=false" : "") +
+                (message.skip_tests ? " --skipTests" : "") +
+                (message.skip_import_module ? " --skipImport" : "") +
+                (message.prefix ? ` --prefix=${message.prefix}` : "") +
+                (message.project ? ` --project=${message.project}` : "") +
+                (message.selector ? ` --selector=${message.selector}` : "") +
+                (message.file_type ? ` --type=${message.file_type}` : "") +
+                (message.module ? ` --module=${message.module}` : "");
+              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".directive" : ""}`;
 
               if (message.type === "ng") {
-                command =
-                  `ng generate directive ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".directive" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_import_module ? " --skipImport" : "");
+                command = `ng generate directive ${target}` + flags;
               } else if (message.type === "nx") {
-                command =
-                  `nx g @nx/angular:directive ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".directive" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_import_module ? " --skipImport" : "");
+                command = `nx g @nx/angular:directive ${target}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -124,16 +137,22 @@ function getWebviewContent(
   <h2>Generate directive for:</h2>
   <form id="myForm">
     <input type="hidden" name="command" value="angular-create-directive">
-    
     ${PathElement(pathUrl)}
-        ${TypeElement()}
-        ${NameElement("", "directive")}
-        ${InFolderElement(true)}
-        ${SufixElement(true, "directive")}
-        ${StandaloneElement()}
-        ${SkipTestsElement()}
-        ${SkipImportModuleElement()}
-    
+    ${TypeElement()}
+    ${NameElement("", "directive")}
+    ${ProjectElement()}
+    ${PrefixElement("")}
+    ${SelectorElement()}
+    ${FileTypeElement()}
+    ${AddTypeToClassNameElement(true)}
+    ${InFolderElement(true)}
+    ${SufixElement(true, "directive")}
+    ${StandaloneElement()}
+    ${SkipTestsElement()}
+    ${SkipImportModuleElement()}
+    ${ModuleElement()}
+    ${ExportElement()}
+
     <button type="submit" id="submitBtn" class="btn">Generate</button>
   </form>
 

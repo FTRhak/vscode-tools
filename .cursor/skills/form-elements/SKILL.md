@@ -103,11 +103,11 @@ ${RoutingElement()}
 | `path` | yes | yes | yes | yes | yes |
 | `type` | yes | yes | yes | yes | yes |
 | `name` | yes | yes | yes | yes | yes |
-| `prefix` | yes | yes (`""`) | | | |
-| `project` | | yes | | | |
-| `selector` | | yes | | | |
-| `file_type` | | yes | | | |
-| `add_type_to_class_name` | | yes (`true`) | | | |
+| `prefix` | yes | yes (`""`) | yes (`""`) | | |
+| `project` | | yes | yes | | |
+| `selector` | | yes | yes | | |
+| `file_type` | | yes | yes | | |
+| `add_type_to_class_name` | | yes (`true`) | yes (`true`) | | |
 | `style` | yes | yes (`includeDefault`) | | | |
 | `in_folder` | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) |
 | `sufix` | | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) |
@@ -119,8 +119,8 @@ ${RoutingElement()}
 | `skip_tests` | yes | yes | yes | yes | |
 | `skip_import_module` | | yes | yes | yes | |
 | `skip_selector` | | yes | | | |
-| `module` | | yes | | | |
-| `export` | | yes | | | |
+| `module` | | yes | yes | | |
+| `export` | | yes | yes | | |
 | `export_default` | | yes | | | |
 | `change_detection` | | yes | | | |
 | `view_encapsulation` | | yes | | | |
