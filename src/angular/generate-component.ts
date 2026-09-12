@@ -3,17 +3,30 @@ import * as path from "path";
 import * as fs from "fs";
 
 import {
+  AddTypeToClassNameElement,
   ChangeDetectionElement,
+  DisplayBlockElement,
+  ExportDefaultElement,
+  ExportElement,
+  FileTypeElement,
   InFolderElement,
   InlineStyleElement,
   InlineTemplateElement,
+  ModuleElement,
   NameElement,
+  NgHtmlElement,
   PathElement,
+  PrefixElement,
+  ProjectElement,
+  SelectorElement,
   SkipImportModuleElement,
+  SkipSelectorElement,
   SkipTestsElement,
   StandaloneElement,
+  StylesElement,
   SufixElement,
   TypeElement,
+  ViewEncapsulationElement,
 } from "../form_elements/index";
 
 export function angularCommandGenerateComponent(
@@ -71,31 +84,38 @@ export function angularCommandGenerateComponent(
               );
 
               let command = 'echo "Error Command"';
+              const flags =
+                (!message.add_type_to_class_name
+                  ? " --addTypeToClassName=false"
+                  : "") +
+                (message.display_block ? " --displayBlock" : "") +
+                (message.export ? " --export" : "") +
+                (message.export_default ? " --exportDefault" : "") +
+                (message.standalone ? " --standalone=false" : "") +
+                (message.inline_style ? " --inlineStyle" : "") +
+                (message.inline_template ? " --inlineTemplate" : "") +
+                (message.ng_html ? " --ngHtml" : "") +
+                (message.skip_tests ? " --skipTests" : "") +
+                (message.skip_selector ? " --skipSelector" : "") +
+                (message.skip_import_module ? " --skipImport" : "") +
+                (message.prefix ? ` --prefix=${message.prefix}` : "") +
+                (message.project ? ` --project=${message.project}` : "") +
+                (message.selector ? ` --selector=${message.selector}` : "") +
+                (message.style ? ` --style=${message.style}` : "") +
+                (message.file_type ? ` --type=${message.file_type}` : "") +
+                (message.module ? ` --module=${message.module}` : "") +
+                (message.change_detection
+                  ? ` --changeDetection=${message.change_detection}`
+                  : "") +
+                (message.view_encapsulation
+                  ? ` --viewEncapsulation=${message.view_encapsulation}`
+                  : "");
+              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".component" : ""}`;
 
               if (message.type === "ng") {
-                command =
-                  `ng generate component ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".component" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
-                  (message.inline_style ? " --inlineStyle" : "") +
-                  (message.inline_template ? " --inlineTemplate" : "") +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_selector ? " --skipSelector" : "") +
-                  (message.skip_import_module ? " --skipImport" : "") +
-                  (message.change_detection
-                    ? ` --changeDetection=${message.change_detection}`
-                    : "");
+                command = `ng generate component ${target}` + flags;
               } else if (message.type === "nx") {
-                command =
-                  `nx g @nx/angular:component ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".component" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
-                  (message.inline_style ? " --inlineStyle" : "") +
-                  (message.inline_template ? " --inlineTemplate" : "") +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_selector ? " --skipSelector" : "") +
-                  (message.skip_import_module ? " --skipImport" : "") +
-                  (message.change_detection
-                    ? ` --changeDetection=${message.change_detection}`
-                    : "");
+                command = `nx g @nx/angular:component ${target}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -142,14 +162,27 @@ function getWebviewContent(
     ${PathElement(pathUrl)}
     ${TypeElement()}
     ${NameElement("", "component")}
+    ${ProjectElement()}
+    ${PrefixElement("")}
+    ${SelectorElement()}
+    ${FileTypeElement()}
+    ${AddTypeToClassNameElement(true)}
     ${InFolderElement(true)}
     ${SufixElement(true, "component")}
     ${StandaloneElement()}
     ${InlineStyleElement()}
     ${InlineTemplateElement()}
+    ${StylesElement(true)}
+    ${DisplayBlockElement()}
+    ${NgHtmlElement()}
     ${SkipTestsElement()}
     ${SkipImportModuleElement()}
+    ${SkipSelectorElement()}
+    ${ModuleElement()}
+    ${ExportElement()}
+    ${ExportDefaultElement()}
     ${ChangeDetectionElement()}
+    ${ViewEncapsulationElement()}
 
     <button type="submit" id="submitBtn" class="btn">Generate</button>
   </form>

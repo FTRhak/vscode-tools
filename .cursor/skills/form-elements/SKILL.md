@@ -19,6 +19,7 @@ Do **not** open `src/form_elements/*.ts` for composition. This file is the catal
 - `NameElement` ignores `value`; the input has no `value` attribute.
 - Spelling `sufix` is intentional. Do not rename to `suffix`.
 - Standalone inversion lives in the generator CLI, not the factory: checked `standalone` → `--standalone=false`.
+- Add-type-to-class-name inversion lives in the generator CLI: factory default checked; absent `add_type_to_class_name` → `--addTypeToClassName=false`.
 
 ## Base primitives (`src/form_elements/base_elements/`)
 
@@ -38,16 +39,26 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `TypeElement` | `(value = '')` | `type` | first option `ng` (arg unused) | select | `ng` \| `nx` |
 | `NameElement` | `(value = '', label)` | `name` | empty; `value` unused | text `minlength=1` `maxlength=64` | `Name of ${label}` |
 | `PrefixElement` | `(value = 'app')` | `prefix` | `'app'` | text | Prefix |
-| `StylesElement` | `()` | `style` | first option `css` | select | `css` \| `scss` \| `less` |
+| `ProjectElement` | `(value = '')` | `project` | `''` | text | Project |
+| `SelectorElement` | `(value = '')` | `selector` | `''` | text | Selector |
+| `FileTypeElement` | `(value = '')` | `file_type` | `''` | text | File Type (`--type`) |
+| `AddTypeToClassNameElement` | `(checked = true)` | `add_type_to_class_name` | `true` | checkbox | Add Type to Class Name |
+| `StylesElement` | `(includeDefault = false)` | `style` | first option `css` (or `""` Default if `includeDefault`) | select | optional Default \| `css` \| `scss` \| `sass` \| `less` \| `none` |
 | `InFolderElement` | `(checked = true)` | `in_folder` | `true` | checkbox | Create in folder |
 | `SufixElement` | `(checked = false, label)` | `sufix` | `false` | checkbox | `Include Sufix '${label}'` |
 | `StandaloneElement` | `(checked = false)` | `standalone` | `false` | checkbox | Standalone |
 | `InlineStyleElement` | `(checked = false)` | `inline_style` | `false` | checkbox | Inline Style |
 | `InlineTemplateElement` | `(checked = false)` | `inline_template` | `false` | checkbox | Inline Template |
+| `DisplayBlockElement` | `(checked = false)` | `display_block` | `false` | checkbox | Display Block |
+| `NgHtmlElement` | `(checked = false)` | `ng_html` | `false` | checkbox | Ng HTML |
 | `SkipTestsElement` | `(checked = false)` | `skip_tests` | `false` | checkbox | Skip Tests |
 | `SkipImportModuleElement` | `(checked = false)` | `skip_import_module` | `false` | checkbox | Skip Import Module |
 | `SkipSelectorElement` | `(checked = false)` | `skip_selector` | `false` | checkbox | Skip Selector |
-| `ChangeDetectionElement` | `()` | `change_detection` | `""` (Default) | select | `""` Default \| `OnPush` |
+| `ModuleElement` | `(value = '')` | `module` | `''` | text | Module |
+| `ExportElement` | `(checked = false)` | `export` | `false` | checkbox | Export |
+| `ExportDefaultElement` | `(checked = false)` | `export_default` | `false` | checkbox | Export Default |
+| `ChangeDetectionElement` | `()` | `change_detection` | `""` (Default) | select | `""` Default \| `Eager` \| `OnPush` |
+| `ViewEncapsulationElement` | `()` | `view_encapsulation` | `""` (Default) | select | `""` Default \| `Emulated` \| `None` \| `ShadowDom` |
 | `RoutingElement` | `(checked = false)` | `routing` | `false` | checkbox | Routing |
 
 Custom HTML (not a base wrap): `PathElement`, `NameElement`.
@@ -61,16 +72,27 @@ ${PathElement(pathUrl)}
 ${TypeElement()}
 ${NameElement("", "<kind>")}
 ${PrefixElement()}
+${ProjectElement()}
+${SelectorElement()}
+${FileTypeElement()}
+${AddTypeToClassNameElement(true)}
 ${StylesElement()}
+${StylesElement(true)}
 ${InFolderElement(true)}
 ${SufixElement(true, "<kind>")}
 ${StandaloneElement()}
 ${InlineStyleElement()}
 ${InlineTemplateElement()}
+${DisplayBlockElement()}
+${NgHtmlElement()}
 ${SkipTestsElement()}
 ${SkipImportModuleElement()}
 ${SkipSelectorElement()}
+${ModuleElement()}
+${ExportElement()}
+${ExportDefaultElement()}
 ${ChangeDetectionElement()}
+${ViewEncapsulationElement()}
 ${RoutingElement()}
 ```
 
@@ -81,17 +103,27 @@ ${RoutingElement()}
 | `path` | yes | yes | yes | yes | yes |
 | `type` | yes | yes | yes | yes | yes |
 | `name` | yes | yes | yes | yes | yes |
-| `prefix` | yes | | | | |
-| `style` | yes | | | | |
+| `prefix` | yes | yes (`""`) | | | |
+| `project` | | yes | | | |
+| `selector` | | yes | | | |
+| `file_type` | | yes | | | |
+| `add_type_to_class_name` | | yes (`true`) | | | |
+| `style` | yes | yes (`includeDefault`) | | | |
 | `in_folder` | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) |
 | `sufix` | | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) |
 | `standalone` | | yes | yes | yes | |
 | `inline_style` | | yes | | | |
 | `inline_template` | | yes | | | |
+| `display_block` | | yes | | | |
+| `ng_html` | | yes | | | |
 | `skip_tests` | yes | yes | yes | yes | |
 | `skip_import_module` | | yes | yes | yes | |
-| `skip_selector` | | CLI reads it; **form does not render** | | | |
+| `skip_selector` | | yes | | | |
+| `module` | | yes | | | |
+| `export` | | yes | | | |
+| `export_default` | | yes | | | |
 | `change_detection` | | yes | | | |
+| `view_encapsulation` | | yes | | | |
 | `routing` | | | | | yes |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
@@ -102,15 +134,25 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 |----------|------------|
 | `path`, `name`, `in_folder`, `sufix` | path shape `${path}/${in_folder ? name+'/' : ''}${name}${sufix ? '.<kind>' : ''}` (application omits `name`+suffix in the path) |
 | `type` | `nx` implemented; `ng` branch exists per generator — do not assume `ng` works end-to-end |
-| `prefix` | `--prefix=${prefix}` |
-| `style` | `--style=${style}` |
+| `prefix` nonempty | `--prefix=${prefix}` |
+| `project` nonempty | `--project=${project}` |
+| `selector` nonempty | `--selector=${selector}` |
+| `file_type` nonempty | `--type=${file_type}` |
+| `add_type_to_class_name` absent | `--addTypeToClassName=false` |
+| `style` nonempty | `--style=${style}` |
 | `standalone` checked | `--standalone=false` |
 | `inline_style` | `--inlineStyle` |
 | `inline_template` | `--inlineTemplate` |
+| `display_block` | `--displayBlock` |
+| `ng_html` | `--ngHtml` |
 | `skip_tests` | `--skipTests` |
 | `skip_import_module` | `--skipImport` |
 | `skip_selector` | `--skipSelector` |
+| `module` nonempty | `--module=${module}` |
+| `export` | `--export` |
+| `export_default` | `--exportDefault` |
 | `change_detection` nonempty | `--changeDetection=${value}` |
+| `view_encapsulation` nonempty | `--viewEncapsulation=${value}` |
 | `routing` | `--routing` |
 
 Name sent to CLI: `message.name.split(/(?=[A-Z])/).join('_').toLowerCase()`.
