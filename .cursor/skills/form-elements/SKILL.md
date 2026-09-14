@@ -100,34 +100,34 @@ ${RoutingElement()}
 
 ## Which generators render which fields
 
-| Field | application | component | directive | pipe | module | service |
-|-------|-------------|-----------|-----------|------|--------|---------|
-| `path` | yes | yes | yes | yes | yes | yes |
-| `type` | yes | yes | yes | yes | yes | yes |
-| `name` | yes | yes | yes | yes | yes | yes |
-| `prefix` | yes | yes (`""`) | yes (`""`) | | | |
-| `project` | | yes | yes | | | yes |
-| `selector` | | yes | yes | | | |
-| `file_type` | | yes | yes | | | yes |
-| `add_type_to_class_name` | | yes (`true`) | yes (`true`) | | | yes (`true`) |
-| `style` | yes | yes (`includeDefault`) | | | | |
-| `in_folder` | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) |
-| `injectable` | | | | | | yes |
-| `sufix` | | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) |
-| `standalone` | | yes | yes | yes | | |
-| `inline_style` | | yes | | | | |
-| `inline_template` | | yes | | | | |
-| `display_block` | | yes | | | | |
-| `ng_html` | | yes | | | | |
-| `skip_tests` | yes | yes | yes | yes | | yes |
-| `skip_import_module` | | yes | yes | yes | | |
-| `skip_selector` | | yes | | | | |
-| `module` | | yes | yes | | | |
-| `export` | | yes | yes | | | |
-| `export_default` | | yes | | | | |
-| `change_detection` | | yes | | | | |
-| `view_encapsulation` | | yes | | | | |
-| `routing` | | | | | yes | |
+| Field | application | class | component | directive | pipe | module | service |
+|-------|-------------|-------|-----------|-----------|------|--------|---------|
+| `path` | yes | yes | yes | yes | yes | yes | yes |
+| `type` | yes | yes | yes | yes | yes | yes | yes |
+| `name` | yes | yes | yes | yes | yes | yes | yes |
+| `prefix` | yes | | yes (`""`) | yes (`""`) | | | |
+| `project` | | yes | yes | yes | | | yes |
+| `selector` | | | yes | yes | | | |
+| `file_type` | | yes | yes | yes | | | yes |
+| `add_type_to_class_name` | | | yes (`true`) | yes (`true`) | | | yes (`true`) |
+| `style` | yes | | yes (`includeDefault`) | | | | |
+| `in_folder` | | yes (`false`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) |
+| `injectable` | | | | | | | yes |
+| `sufix` | | yes (`false`, class) | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) |
+| `standalone` | | | yes | yes | yes | | |
+| `inline_style` | | | yes | | | | |
+| `inline_template` | | | yes | | | | |
+| `display_block` | | | yes | | | | |
+| `ng_html` | | | yes | | | | |
+| `skip_tests` | yes | yes | yes | yes | yes | | yes |
+| `skip_import_module` | | | yes | yes | yes | | |
+| `skip_selector` | | | yes | | | | |
+| `module` | | | yes | yes | | | |
+| `export` | | | yes | yes | | | |
+| `export_default` | | | yes | | | | |
+| `change_detection` | | | yes | | | | |
+| `view_encapsulation` | | | yes | | | | |
+| `routing` | | | | | | yes | |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
 

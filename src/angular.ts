@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { angularCommandGenerateApplication } from './angular/generate-application';
+import { angularCommandGenerateClass } from './angular/generate-class';
 import { angularCommandGenerateComponent } from './angular/generate-component';
 import { angularCommandGenerateDirective } from './angular/generate-directive';
 import { angularCommandGenerateModule } from './angular/generate-module';
@@ -14,6 +15,7 @@ export function angularCommands(context: vscode.ExtensionContext): vscode.Dispos
     // https://nx.dev/docs/technologies/angular/generators#application
     commands = commands.concat(
         ...angularCommandGenerateApplication(context),
+        ...angularCommandGenerateClass(context),
         ...angularCommandGenerateComponent(context),
         ...angularCommandGenerateDirective(context),
         ...angularCommandGenerateModule(context),

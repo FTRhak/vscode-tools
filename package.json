@@ -27,6 +27,10 @@
         "title": "Generate Application"
       },
       {
+        "command": "vscode-angular.createAngularClass",
+        "title": "Generate Class"
+      },
+      {
         "command": "vscode-angular.createAngularComponent",
         "title": "Generate Component"
       },
@@ -81,6 +85,10 @@
       "schematicsAngularSubmenu": [
         {
           "command": "vscode-angular.createAngularApplication",
+          "group": "angular"
+        },
+        {
+          "command": "vscode-angular.createAngularClass",
           "group": "angular"
         },
         {
