@@ -67,6 +67,10 @@
         "title": "Generate Pipe"
       },
       {
+        "command": "vscode-angular.createAngularResolver",
+        "title": "Generate Resolver"
+      },
+      {
         "command": "vscode-angular.createAngularService",
         "title": "Generate Service"
       }
@@ -145,6 +149,10 @@
         },
         {
           "command": "vscode-angular.createAngularPipe",
+          "group": "angular"
+        },
+        {
+          "command": "vscode-angular.createAngularResolver",
           "group": "angular"
         },
         {

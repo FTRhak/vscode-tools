@@ -119,43 +119,43 @@ ${TypeSeparatorElement()}
 
 ## Which generators render which fields
 
-| Field | application | class | component | config | directive | pipe | module | service | environment | interceptor | guard | library |
-|-------|-------------|-------|-----------|--------|-----------|------|--------|---------|-------------|-------------|-------|---------|
-| `path` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| `type` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| `config_type` | | | | yes | | | | | | | | |
-| `name` | yes | yes | yes | | yes | yes | yes | yes | | yes | yes | yes |
-| `prefix` | yes | | yes (`""`) | | yes (`""`) | | | | | | | yes (`"lib"`) |
-| `entry_file` | | | | | | | | | | | | yes (`"public-api"`) |
-| `project` | | yes | yes | yes | yes | | | yes | yes | yes | yes | |
-| `selector` | | | yes | | yes | | | | | | | |
-| `functional` | | | | | | | | | | yes (`true`) | yes (`true`) | |
-| `implements_*` | | | | | | | | | | | yes (`CanActivate`) | |
-| `file_type` | | yes | yes | | yes | | | yes | | | | |
-| `add_type_to_class_name` | | | yes (`true`) | | yes (`true`) | | | yes (`true`) | | | | |
-| `style` | yes | | yes (`includeDefault`) | | | | | | | | | |
-| `in_folder` | | yes (`false`) | yes (`true`) | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | | yes (`false`) | yes (`false`) | |
-| `injectable` | | | | | | | | yes | | | | |
-| `sufix` | | yes (`false`, class) | yes (`true`, component) | | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | | yes (`true`, interceptor) | yes (`true`, guard) | |
-| `standalone` | | | yes | | yes | yes | | | | | | yes |
-| `inline_style` | | | yes | | | | | | | | | |
-| `inline_template` | | | yes | | | | | | | | | |
-| `display_block` | | | yes | | | | | | | | | |
-| `ng_html` | | | yes | | | | | | | | | |
-| `skip_tests` | yes | yes | yes | | yes | yes | | yes | | yes | yes | |
-| `skip_install` | | | | | | | | | | | | yes |
-| `skip_package_json` | | | | | | | | | | | | yes |
-| `skip_ts_config` | | | | | | | | | | | | yes |
-| `skip_import_module` | | | yes | | yes | yes | | | | | | |
-| `skip_selector` | | | yes | | | | | | | | | |
-| `module` | | | yes | | yes | | | | | | | |
-| `export` | | | yes | | yes | | | | | | | |
-| `export_default` | | | yes | | | | | | | | | |
-| `change_detection` | | | yes | | | | | | | | | |
-| `view_encapsulation` | | | yes | | | | | | | | | |
-| `routing` | | | | | | | yes | | | | | |
-| `test_runner` | | | | | | | | | | | | yes |
-| `type_separator` | | | | | | | | | | yes | yes | |
+| Field | application | class | component | config | directive | pipe | module | service | environment | interceptor | guard | library | resolver |
+|-------|-------------|-------|-----------|--------|-----------|------|--------|---------|-------------|-------------|-------|---------|----------|
+| `path` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `type` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `config_type` | | | | yes | | | | | | | | | |
+| `name` | yes | yes | yes | | yes | yes | yes | yes | | yes | yes | yes | yes |
+| `prefix` | yes | | yes (`""`) | | yes (`""`) | | | | | | | yes (`"lib"`) | |
+| `entry_file` | | | | | | | | | | | | yes (`"public-api"`) | |
+| `project` | | yes | yes | yes | yes | | | yes | yes | yes | yes | | yes |
+| `selector` | | | yes | | yes | | | | | | | | |
+| `functional` | | | | | | | | | | yes (`true`) | yes (`true`) | | yes (`true`) |
+| `implements_*` | | | | | | | | | | | yes (`CanActivate`) | | |
+| `file_type` | | yes | yes | | yes | | | yes | | | | | |
+| `add_type_to_class_name` | | | yes (`true`) | | yes (`true`) | | | yes (`true`) | | | | | |
+| `style` | yes | | yes (`includeDefault`) | | | | | | | | | | |
+| `in_folder` | | yes (`false`) | yes (`true`) | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | | yes (`false`) | yes (`false`) | | yes (`false`) |
+| `injectable` | | | | | | | | yes | | | | | |
+| `sufix` | | yes (`false`, class) | yes (`true`, component) | | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | | yes (`true`, interceptor) | yes (`true`, guard) | | yes (`true`, resolver) |
+| `standalone` | | | yes | | yes | yes | | | | | | yes | |
+| `inline_style` | | | yes | | | | | | | | | | |
+| `inline_template` | | | yes | | | | | | | | | | |
+| `display_block` | | | yes | | | | | | | | | | |
+| `ng_html` | | | yes | | | | | | | | | | |
+| `skip_tests` | yes | yes | yes | | yes | yes | | yes | | yes | yes | | yes |
+| `skip_install` | | | | | | | | | | | | yes | |
+| `skip_package_json` | | | | | | | | | | | | yes | |
+| `skip_ts_config` | | | | | | | | | | | | yes | |
+| `skip_import_module` | | | yes | | yes | yes | | | | | | | |
+| `skip_selector` | | | yes | | | | | | | | | | |
+| `module` | | | yes | | yes | | | | | | | | |
+| `export` | | | yes | | yes | | | | | | | | |
+| `export_default` | | | yes | | | | | | | | | | |
+| `change_detection` | | | yes | | | | | | | | | | |
+| `view_encapsulation` | | | yes | | | | | | | | | | |
+| `routing` | | | | | | | yes | | | | | | |
+| `test_runner` | | | | | | | | | | | | yes | |
+| `type_separator` | | | | | | | | | | yes | yes | | yes |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
 

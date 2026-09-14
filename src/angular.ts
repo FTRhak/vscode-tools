@@ -11,6 +11,7 @@ import { angularCommandGenerateInterceptor } from './angular/generate-intercepto
 import { angularCommandGenerateLibrary } from './angular/generate-library';
 import { angularCommandGenerateModule } from './angular/generate-module';
 import { angularCommandGeneratePipe } from './angular/generate-pipe';
+import { angularCommandGenerateResolver } from './angular/generate-resolver';
 import { angularCommandGenerateService } from './angular/generate-service';
 
 export function angularCommands(context: vscode.ExtensionContext): vscode.Disposable[] {
@@ -30,6 +31,7 @@ export function angularCommands(context: vscode.ExtensionContext): vscode.Dispos
         ...angularCommandGenerateLibrary(context),
         ...angularCommandGenerateModule(context),
         ...angularCommandGeneratePipe(context),
+        ...angularCommandGenerateResolver(context),
         ...angularCommandGenerateService(context)
     );
 
