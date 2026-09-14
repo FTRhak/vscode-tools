@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { angularCommandGenerateApplication } from './angular/generate-application';
 import { angularCommandGenerateClass } from './angular/generate-class';
 import { angularCommandGenerateComponent } from './angular/generate-component';
+import { angularCommandGenerateConfig } from './angular/generate-config';
 import { angularCommandGenerateDirective } from './angular/generate-directive';
 import { angularCommandGenerateEnvironment } from './angular/generate-environment';
 import { angularCommandGenerateInterceptor } from './angular/generate-interceptor';
@@ -20,6 +21,7 @@ export function angularCommands(context: vscode.ExtensionContext): vscode.Dispos
         ...angularCommandGenerateApplication(context),
         ...angularCommandGenerateClass(context),
         ...angularCommandGenerateComponent(context),
+        ...angularCommandGenerateConfig(context),
         ...angularCommandGenerateDirective(context),
         ...angularCommandGenerateEnvironment(context),
         ...angularCommandGenerateInterceptor(context),

@@ -1,5 +1,6 @@
 export { AddTypeToClassNameElement } from './add_type_to_class_name.element';
 export { ChangeDetectionElement } from './change_detection.element';
+export { ConfigTypeElement } from './config_type.element';
 export { DisplayBlockElement } from './display_block.element';
 export { EntryFileElement } from './entry_file.element';
 export { ExportDefaultElement } from './export_default.element';

@@ -38,6 +38,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 |---------|-----------|-----------------|---------|---------|-----------------|
 | `PathElement` | `(value = '')` | `path` | `''` | text, **readonly** | Path |
 | `TypeElement` | `(value = '')` | `type` | first option `ng` (arg unused) | select | `ng` \| `nx` |
+| `ConfigTypeElement` | `()` | `config_type` | first option `browserslist` | select | `browserslist` \| `karma` \| `vitest` |
 | `NameElement` | `(value = '', label)` | `name` | empty; `value` unused | text `minlength=1` `maxlength=64` | `Name of ${label}` |
 | `PrefixElement` | `(value = 'app')` | `prefix` | `'app'` | text | Prefix |
 | `EntryFileElement` | `(value = 'public-api')` | `entry_file` | `'public-api'` | text | Entry File |
@@ -79,6 +80,7 @@ Call with the args generators already use. `NameElement` second arg is the kind 
 ```
 ${PathElement(pathUrl)}
 ${TypeElement()}
+${ConfigTypeElement()}
 ${NameElement("", "<kind>")}
 ${PrefixElement()}
 ${EntryFileElement()}
@@ -115,39 +117,42 @@ ${TypeSeparatorElement()}
 
 ## Which generators render which fields
 
-| Field | application | class | component | directive | pipe | module | service | environment | library |
-|-------|-------------|-------|-----------|-----------|------|--------|---------|-------------|-------------|
-| `path` | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| `type` | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| `name` | yes | yes | yes | yes | yes | yes | yes | | yes |
-| `prefix` | yes | | yes (`""`) | yes (`""`) | | | | | yes (`"lib"`) |
-| `entry_file` | | | | | | | | | yes (`"public-api"`) |
-| `project` | | yes | yes | yes | | | yes | yes | |
-| `selector` | | | yes | yes | | | | | |
-| `file_type` | | yes | yes | yes | | | yes | | |
-| `add_type_to_class_name` | | | yes (`true`) | yes (`true`) | | | yes (`true`) | | |
-| `style` | yes | | yes (`includeDefault`) | | | | | | |
-| `in_folder` | | yes (`false`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | | |
-| `injectable` | | | | | | | yes | | |
-| `sufix` | | yes (`false`, class) | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | | |
-| `standalone` | | | yes | yes | yes | | | | yes |
-| `inline_style` | | | yes | | | | | | |
-| `inline_template` | | | yes | | | | | | |
-| `display_block` | | | yes | | | | | | |
-| `ng_html` | | | yes | | | | | | |
-| `skip_tests` | yes | yes | yes | yes | yes | | yes | | |
-| `skip_install` | | | | | | | | | yes |
-| `skip_package_json` | | | | | | | | | yes |
-| `skip_ts_config` | | | | | | | | | yes |
-| `skip_import_module` | | | yes | yes | yes | | | | |
-| `skip_selector` | | | yes | | | | | | |
-| `module` | | | yes | yes | | | | | |
-| `export` | | | yes | yes | | | | | |
-| `export_default` | | | yes | | | | | | |
-| `change_detection` | | | yes | | | | | | |
-| `view_encapsulation` | | | yes | | | | | | |
-| `routing` | | | | | | yes | | | |
-| `test_runner` | | | | | | | | | yes |
+| Field | application | class | component | config | directive | pipe | module | service | environment | interceptor | library |
+|-------|-------------|-------|-----------|--------|-----------|------|--------|---------|-------------|-------------|---------|
+| `path` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `type` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `config_type` | | | | yes | | | | | | | |
+| `name` | yes | yes | yes | | yes | yes | yes | yes | | yes | yes |
+| `prefix` | yes | | yes (`""`) | | yes (`""`) | | | | | | yes (`"lib"`) |
+| `entry_file` | | | | | | | | | | | yes (`"public-api"`) |
+| `project` | | yes | yes | yes | yes | | | yes | yes | yes | |
+| `selector` | | | yes | | yes | | | | | | |
+| `functional` | | | | | | | | | | yes (`true`) | |
+| `file_type` | | yes | yes | | yes | | | yes | | | |
+| `add_type_to_class_name` | | | yes (`true`) | | yes (`true`) | | | yes (`true`) | | | |
+| `style` | yes | | yes (`includeDefault`) | | | | | | | | |
+| `in_folder` | | yes (`false`) | yes (`true`) | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | | yes (`false`) | |
+| `injectable` | | | | | | | | yes | | | |
+| `sufix` | | yes (`false`, class) | yes (`true`, component) | | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | | yes (`true`, interceptor) | |
+| `standalone` | | | yes | | yes | yes | | | | | yes |
+| `inline_style` | | | yes | | | | | | | | |
+| `inline_template` | | | yes | | | | | | | | |
+| `display_block` | | | yes | | | | | | | | |
+| `ng_html` | | | yes | | | | | | | | |
+| `skip_tests` | yes | yes | yes | | yes | yes | | yes | | yes | |
+| `skip_install` | | | | | | | | | | | yes |
+| `skip_package_json` | | | | | | | | | | | yes |
+| `skip_ts_config` | | | | | | | | | | | yes |
+| `skip_import_module` | | | yes | | yes | yes | | | | | |
+| `skip_selector` | | | yes | | | | | | | | |
+| `module` | | | yes | | yes | | | | | | |
+| `export` | | | yes | | yes | | | | | | |
+| `export_default` | | | yes | | | | | | | | |
+| `change_detection` | | | yes | | | | | | | | |
+| `view_encapsulation` | | | yes | | | | | | | | |
+| `routing` | | | | | | | yes | | | | |
+| `test_runner` | | | | | | | | | | | yes |
+| `type_separator` | | | | | | | | | | yes | |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
 
@@ -157,6 +162,7 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 |----------|------------|
 | `path`, `name`, `in_folder`, `sufix` | path shape `${path}/${in_folder ? name+'/' : ''}${name}${sufix ? '.<kind>' : ''}` (application omits `name`+suffix in the path) |
 | `type` | `nx` implemented; `ng` branch exists per generator — do not assume `ng` works end-to-end |
+| `config_type` | positional argument after `config` (`browserslist` \| `karma` \| `vitest`) |
 | `prefix` nonempty | `--prefix=${prefix}` |
 | `entry_file` nonempty | `--entryFile=${entry_file}` |
 | `path` nonempty (library) | `--projectRoot=${path}` |

@@ -80,7 +80,7 @@ New boolean/text/select fields: wrap a base element, export from `index.ts`, and
 ```
 explorer/context
   └── schematicsSubmenu ("Schematics Tools")
-        ├── schematicsAngularSubmenu — application, class, component, directive, environment, interceptor, library, pipe, module, service
+        ├── schematicsAngularSubmenu — application, class, component, config, directive, environment, interceptor, library, pipe, module, service
         └── schematicsReactSubmenu — placeholders openFileInfo, openInTerminal
 ```
 
