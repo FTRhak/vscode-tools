@@ -20,6 +20,7 @@ Do **not** open `src/form_elements/*.ts` for composition. This file is the catal
 - Spelling `sufix` is intentional. Do not rename to `suffix`.
 - Standalone inversion lives in the generator CLI, not the factory: checked `standalone` → `--standalone=false`.
 - Add-type-to-class-name inversion lives in the generator CLI: factory default checked; absent `add_type_to_class_name` → `--addTypeToClassName=false`.
+- Functional inversion lives in the generator CLI: factory default checked; absent `functional` → `--functional=false`.
 
 ## Base primitives (`src/form_elements/base_elements/`)
 
@@ -43,6 +44,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `ProjectElement` | `(value = '')` | `project` | `''` | text | Project |
 | `SelectorElement` | `(value = '')` | `selector` | `''` | text | Selector |
 | `FileTypeElement` | `(value = '')` | `file_type` | `''` | text | File Type (`--type`) |
+| `FunctionalElement` | `(checked = true)` | `functional` | `true` | checkbox | Functional |
 | `AddTypeToClassNameElement` | `(checked = true)` | `add_type_to_class_name` | `true` | checkbox | Add Type to Class Name |
 | `StylesElement` | `(includeDefault = false)` | `style` | first option `css` (or `""` Default if `includeDefault`) | select | optional Default \| `css` \| `scss` \| `sass` \| `less` \| `none` |
 | `InFolderElement` | `(checked = true)` | `in_folder` | `true` | checkbox | Create in folder |
@@ -66,6 +68,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `ViewEncapsulationElement` | `()` | `view_encapsulation` | `""` (Default) | select | `""` Default \| `Emulated` \| `None` \| `ShadowDom` |
 | `RoutingElement` | `(checked = false)` | `routing` | `false` | checkbox | Routing |
 | `TestRunnerElement` | `()` | `test_runner` | first option `vitest` | select | `vitest` \| `karma` |
+| `TypeSeparatorElement` | `()` | `type_separator` | first option `-` | select | `-` \| `.` |
 
 Custom HTML (not a base wrap): `PathElement`, `NameElement`.
 
@@ -82,6 +85,7 @@ ${EntryFileElement()}
 ${ProjectElement()}
 ${SelectorElement()}
 ${FileTypeElement()}
+${FunctionalElement(true)}
 ${AddTypeToClassNameElement(true)}
 ${StylesElement()}
 ${StylesElement(true)}
@@ -106,6 +110,7 @@ ${ChangeDetectionElement()}
 ${ViewEncapsulationElement()}
 ${RoutingElement()}
 ${TestRunnerElement()}
+${TypeSeparatorElement()}
 ```
 
 ## Which generators render which fields
@@ -158,6 +163,7 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 | `project` nonempty | `--project=${project}` |
 | `selector` nonempty | `--selector=${selector}` |
 | `file_type` nonempty | `--type=${file_type}` |
+| `functional` absent | `--functional=false` |
 | `add_type_to_class_name` absent | `--addTypeToClassName=false` |
 | `style` nonempty | `--style=${style}` |
 | `standalone` checked | `--standalone=false` |
@@ -179,6 +185,7 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 | `view_encapsulation` nonempty | `--viewEncapsulation=${value}` |
 | `routing` | `--routing` |
 | `test_runner` nonempty | `--testRunner=${test_runner}` |
+| `type_separator` nonempty | `--typeSeparator=${type_separator}` |
 
 Name sent to CLI: `message.name.split(/(?=[A-Z])/).join('_').toLowerCase()`.
 
