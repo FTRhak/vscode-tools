@@ -156,37 +156,46 @@ function getWebviewContent(
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate component for:</h2>
-  <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-component">
-    ${PathElement(pathUrl)}
-    ${TypeElement()}
-    ${NameElement("", "component")}
-    ${ProjectElement()}
-    ${PrefixElement("")}
-    ${SelectorElement()}
-    ${FileTypeElement()}
-    ${AddTypeToClassNameElement(true)}
-    ${InFolderElement(true)}
-    ${SufixElement(true, "component")}
-    ${StandaloneElement()}
-    ${InlineStyleElement()}
-    ${InlineTemplateElement()}
-    ${StylesElement(true)}
-    ${DisplayBlockElement()}
-    ${NgHtmlElement()}
-    ${SkipTestsElement()}
-    ${SkipImportModuleElement()}
-    ${SkipSelectorElement()}
-    ${ModuleElement()}
-    ${ExportElement()}
-    ${ExportDefaultElement()}
-    ${ChangeDetectionElement()}
-    ${ViewEncapsulationElement()}
-
-    <button type="submit" id="submitBtn" class="btn">Generate</button>
-  </form>
-
+  <div class="container">
+    <h2>Generate component for:</h2>
+    <form id="myForm">
+      <input type="hidden" name="command" value="angular-create-component">
+      ${PathElement(pathUrl)}
+      ${TypeElement()}
+      ${NameElement("", "component")}
+      ${ProjectElement()}
+      ${PrefixElement("")}
+      ${SelectorElement()}
+      ${FileTypeElement()}
+      ${AddTypeToClassNameElement(true)}
+      ${InFolderElement(true)}
+      ${SufixElement(true, "component")}
+      ${StandaloneElement()}
+      ${ChangeDetectionElement()}
+      ${ViewEncapsulationElement()}
+      <fieldset class="form-group-card">
+        <legend class="card-title">View Options</legend>
+        ${InlineStyleElement()}
+        ${InlineTemplateElement()}
+        ${StylesElement(true)}
+        ${DisplayBlockElement()}
+        ${NgHtmlElement()}
+      </fieldset>
+      <fieldset class="form-group-card">
+        <legend class="card-title">Skip Options</legend>
+        ${SkipTestsElement()}
+        ${SkipImportModuleElement()}
+        ${SkipSelectorElement()}
+      </fieldset>
+      <fieldset class="form-group-card">
+        <legend class="card-title">Module Options</legend>
+        ${ModuleElement()}
+        ${ExportElement()}
+        ${ExportDefaultElement()}
+      </fieldset>
+      <button type="submit" id="submitBtn" class="btn">Generate</button>
+    </form>
+  </div>
   <script>
     const vscode = acquireVsCodeApi();
     document.getElementById('myForm').addEventListener('submit', (ev) => {

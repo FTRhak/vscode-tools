@@ -124,23 +124,24 @@ function getWebviewContent(
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate service for:</h2>
-  <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-service">
-    ${PathElement(pathUrl)}
-    ${TypeElement()}
-    ${NameElement("", "service")}
-    ${ProjectElement()}
-    ${FileTypeElement()}
-    ${AddTypeToClassNameElement(true)}
-    ${InFolderElement(false)}
-    ${SufixElement(true, "service")}
-    ${SkipTestsElement()}
-    ${InjectableElement()}
+  <div class="container">
+    <h2>Generate service for:</h2>
+    <form id="myForm">
+      <input type="hidden" name="command" value="angular-create-service">
+      ${PathElement(pathUrl)}
+      ${TypeElement()}
+      ${NameElement("", "service")}
+      ${ProjectElement()}
+      ${FileTypeElement()}
+      ${AddTypeToClassNameElement(true)}
+      ${InFolderElement(false)}
+      ${SufixElement(true, "service")}
+      ${SkipTestsElement()}
+      ${InjectableElement()}
 
-    <button type="submit" id="submitBtn" class="btn">Generate</button>
-  </form>
-
+      <button type="submit" id="submitBtn" class="btn">Generate</button>
+    </form>
+  </div>
   <script>
     const vscode = acquireVsCodeApi();
     document.getElementById('myForm').addEventListener('submit', (ev) => {

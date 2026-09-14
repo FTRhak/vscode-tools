@@ -134,28 +134,35 @@ function getWebviewContent(
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate directive for:</h2>
-  <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-directive">
-    ${PathElement(pathUrl)}
-    ${TypeElement()}
-    ${NameElement("", "directive")}
-    ${ProjectElement()}
-    ${PrefixElement("")}
-    ${SelectorElement()}
-    ${FileTypeElement()}
-    ${AddTypeToClassNameElement(true)}
-    ${InFolderElement(true)}
-    ${SufixElement(true, "directive")}
-    ${StandaloneElement()}
-    ${SkipTestsElement()}
-    ${SkipImportModuleElement()}
-    ${ModuleElement()}
-    ${ExportElement()}
+  <div class="container">
+    <h2>Generate directive for:</h2>
+    <form id="myForm">
+      <input type="hidden" name="command" value="angular-create-directive">
+      ${PathElement(pathUrl)}
+      ${TypeElement()}
+      ${NameElement("", "directive")}
+      ${ProjectElement()}
+      ${PrefixElement("")}
+      ${SelectorElement()}
+      ${FileTypeElement()}
+      ${AddTypeToClassNameElement(true)}
+      ${InFolderElement(true)}
+      ${SufixElement(true, "directive")}
+      ${StandaloneElement()}
+      <fieldset class="form-group-card">
+        <legend class="card-title">Skip Options</legend>
+        ${SkipTestsElement()}
+        ${SkipImportModuleElement()}
+      </fieldset>
+      <fieldset class="form-group-card">
+        <legend class="card-title">Module Options</legend>
+        ${ModuleElement()}
+        ${ExportElement()}
+      </fieldset>
 
-    <button type="submit" id="submitBtn" class="btn">Generate</button>
-  </form>
-
+      <button type="submit" id="submitBtn" class="btn">Generate</button>
+    </form>
+  </div>
   <script>
     const vscode = acquireVsCodeApi();
     document.getElementById('myForm').addEventListener('submit', (ev) => {

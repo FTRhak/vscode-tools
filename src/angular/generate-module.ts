@@ -115,19 +115,21 @@ function getWebviewContent(
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate module for:</h2>
-  <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-module">
-    
-    ${PathElement(pathUrl)}
-    ${TypeElement()}
-    ${NameElement("", "module")}
-    ${InFolderElement(true)}
-    ${SufixElement(true, "module")}
-    ${RoutingElement()}
-    
-    <button type="submit" id="submitBtn" class="btn">Generate</button>
-  </form>
+  <div class="container">
+    <h2>Generate module for:</h2>
+    <form id="myForm">
+      <input type="hidden" name="command" value="angular-create-module">
+      
+      ${PathElement(pathUrl)}
+      ${TypeElement()}
+      ${NameElement("", "module")}
+      ${InFolderElement(true)}
+      ${SufixElement(true, "module")}
+      ${RoutingElement()}
+      
+      <button type="submit" id="submitBtn" class="btn">Generate</button>
+    </form>
+  </div>
 
   <script>
     const vscode = acquireVsCodeApi();

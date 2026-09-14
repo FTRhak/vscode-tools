@@ -119,22 +119,26 @@ function getWebviewContent(
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate pipe for:</h2>
-  <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-pipe">
-    
-    ${PathElement(pathUrl)}
-    ${TypeElement()}
-    ${NameElement("", "pipe")}
-    ${InFolderElement(true)}
-    ${SufixElement(true, "pipe")}
-    ${StandaloneElement()}
-    ${SkipTestsElement()}
-    ${SkipImportModuleElement()}
-    
-    <button type="submit" id="submitBtn" class="btn">Generate</button>
-  </form>
-
+  <div class="container">
+    <h2>Generate pipe for:</h2>
+    <form id="myForm">
+      <input type="hidden" name="command" value="angular-create-pipe">
+      
+      ${PathElement(pathUrl)}
+      ${TypeElement()}
+      ${NameElement("", "pipe")}
+      ${InFolderElement(true)}
+      ${SufixElement(true, "pipe")}
+      ${StandaloneElement()}
+      <fieldset class="form-group-card">
+        <legend class="card-title">Skip Options</legend>
+        ${SkipTestsElement()}
+        ${SkipImportModuleElement()}
+      </fieldset>
+      
+      <button type="submit" id="submitBtn" class="btn">Generate</button>
+    </form>
+  </div>
   <script>
     const vscode = acquireVsCodeApi();
     document.getElementById('myForm').addEventListener('submit', (ev) => {

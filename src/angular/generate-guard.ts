@@ -132,23 +132,24 @@ function getWebviewContent(
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate guard for:</h2>
-  <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-guard">
-    ${PathElement(pathUrl)}
-    ${TypeElement()}
-    ${NameElement("", "guard")}
-    ${ProjectElement()}
-    ${TypeSeparatorElement()}
-    ${InFolderElement(false)}
-    ${SufixElement(true, "guard")}
-    ${FunctionalElement(true)}
-    ${ImplementsElement()}
-    ${SkipTestsElement()}
+  <div class="container">
+    <h2>Generate guard for:</h2>
+    <form id="myForm">
+      <input type="hidden" name="command" value="angular-create-guard">
+      ${PathElement(pathUrl)}
+      ${TypeElement()}
+      ${NameElement("", "guard")}
+      ${ProjectElement()}
+      ${TypeSeparatorElement()}
+      ${InFolderElement(false)}
+      ${SufixElement(true, "guard")}
+      ${FunctionalElement(true)}
+      ${ImplementsElement()}
+      ${SkipTestsElement()}
 
-    <button type="submit" id="submitBtn" class="btn">Generate</button>
-  </form>
-
+      <button type="submit" id="submitBtn" class="btn">Generate</button>
+    </form>
+  </div>
   <script>
     const vscode = acquireVsCodeApi();
     document.getElementById('myForm').addEventListener('submit', (ev) => {

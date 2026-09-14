@@ -4,8 +4,14 @@ html {
 }
 
 body.vscode-angular {
-    padding: 20px;
+    padding: 0px;
     color: var(--vscode-foreground);
+}
+
+.container {
+    padding: 20px;
+    margin: 0px auto;
+    max-width: 800px;
 }
 
 .vscode-angular *, .vscode-angular ::after, .vscode-angular ::before {
@@ -13,7 +19,13 @@ body.vscode-angular {
 }
 
 .form-group {
-    padding-bottom: 1rem;
+    margin-bottom: 0.25rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.form-group:hover {
+    background-color: var(--vscode-list-hoverBackground);
 }
 
 .form-group label {
@@ -31,6 +43,7 @@ body.vscode-angular {
     background-color: var(--vscode-input-background);
     background-clip: padding-box;
     border: 1px solid var(--vscode-widget-border);
+    border-color: var(--vscode-settings-dropdownBorder);
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -53,11 +66,17 @@ body.vscode-angular {
   background-position: right .75rem center;
   background-size: 16px 12px;
   border: 1px solid var(--vscode-widget-border);
+  border-color: var(--vscode-settings-dropdownBorder);
   border-radius: .25rem;
   transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+}
+
+.form-select option {
+    color: var(--vscode-input-foreground);
+    background-color: var(--vscode-minimap-background);
 }
 
 .form-checkbox {
@@ -98,6 +117,18 @@ body.vscode-angular {
     transform: translate(-0.3rem, -0.5rem) rotate(45deg);
 }
 
+.form-group-card {
+    padding: 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--vscode-settings-focusedRowBackground);;
+}
+.form-group-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+    color: inherit;
+}
+
 .form-group label.form-checkbox-label {
     display: inline-block;
     vertical-align: middle;
@@ -122,6 +153,8 @@ body.vscode-angular {
   font-size: 1rem;
   border-radius: .25rem;
   transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+
+  margin-top: 1rem;
 }
 
 .btn:hover {

@@ -118,21 +118,22 @@ function getWebviewContent(
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
-  <h2>Generate class for:</h2>
-  <form id="myForm">
-    <input type="hidden" name="command" value="angular-create-class">
-    ${PathElement(pathUrl)}
-    ${TypeElement()}
-    ${NameElement("", "class")}
-    ${ProjectElement()}
-    ${FileTypeElement()}
-    ${InFolderElement(false)}
-    ${SufixElement(false, "class")}
-    ${SkipTestsElement()}
+  <div class="container">
+    <h2>Generate class for:</h2>
+    <form id="myForm">
+      <input type="hidden" name="command" value="angular-create-class">
+      ${PathElement(pathUrl)}
+      ${TypeElement()}
+      ${NameElement("", "class")}
+      ${ProjectElement()}
+      ${FileTypeElement()}
+      ${InFolderElement(false)}
+      ${SufixElement(false, "class")}
+      ${SkipTestsElement()}
 
-    <button type="submit" id="submitBtn" class="btn">Generate</button>
-  </form>
-
+      <button type="submit" id="submitBtn" class="btn">Generate</button>
+    </form>
+  </div>
   <script>
     const vscode = acquireVsCodeApi();
     document.getElementById('myForm').addEventListener('submit', (ev) => {
