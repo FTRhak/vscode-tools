@@ -5,6 +5,7 @@ export { ExportDefaultElement } from './export_default.element';
 export { ExportElement } from './export.element';
 export { FileTypeElement } from './file_type.element';
 export { InFolderElement } from './infolder.element';
+export { InjectableElement } from './injectable.element';
 export { InlineStyleElement } from './inline_style.element';
 export { InlineTemplateElement } from './inline_template.element';
 export { ModuleElement } from './module.element';

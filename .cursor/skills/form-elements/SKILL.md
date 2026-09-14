@@ -45,6 +45,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `AddTypeToClassNameElement` | `(checked = true)` | `add_type_to_class_name` | `true` | checkbox | Add Type to Class Name |
 | `StylesElement` | `(includeDefault = false)` | `style` | first option `css` (or `""` Default if `includeDefault`) | select | optional Default \| `css` \| `scss` \| `sass` \| `less` \| `none` |
 | `InFolderElement` | `(checked = true)` | `in_folder` | `true` | checkbox | Create in folder |
+| `InjectableElement` | `(checked = false)` | `injectable` | `false` | checkbox | Injectable |
 | `SufixElement` | `(checked = false, label)` | `sufix` | `false` | checkbox | `Include Sufix '${label}'` |
 | `StandaloneElement` | `(checked = false)` | `standalone` | `false` | checkbox | Standalone |
 | `InlineStyleElement` | `(checked = false)` | `inline_style` | `false` | checkbox | Inline Style |
@@ -79,6 +80,7 @@ ${AddTypeToClassNameElement(true)}
 ${StylesElement()}
 ${StylesElement(true)}
 ${InFolderElement(true)}
+${InjectableElement()}
 ${SufixElement(true, "<kind>")}
 ${StandaloneElement()}
 ${InlineStyleElement()}
@@ -98,33 +100,34 @@ ${RoutingElement()}
 
 ## Which generators render which fields
 
-| Field | application | component | directive | pipe | module |
-|-------|-------------|-----------|-----------|------|--------|
-| `path` | yes | yes | yes | yes | yes |
-| `type` | yes | yes | yes | yes | yes |
-| `name` | yes | yes | yes | yes | yes |
-| `prefix` | yes | yes (`""`) | yes (`""`) | | |
-| `project` | | yes | yes | | |
-| `selector` | | yes | yes | | |
-| `file_type` | | yes | yes | | |
-| `add_type_to_class_name` | | yes (`true`) | yes (`true`) | | |
-| `style` | yes | yes (`includeDefault`) | | | |
-| `in_folder` | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) |
-| `sufix` | | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) |
-| `standalone` | | yes | yes | yes | |
-| `inline_style` | | yes | | | |
-| `inline_template` | | yes | | | |
-| `display_block` | | yes | | | |
-| `ng_html` | | yes | | | |
-| `skip_tests` | yes | yes | yes | yes | |
-| `skip_import_module` | | yes | yes | yes | |
-| `skip_selector` | | yes | | | |
-| `module` | | yes | yes | | |
-| `export` | | yes | yes | | |
-| `export_default` | | yes | | | |
-| `change_detection` | | yes | | | |
-| `view_encapsulation` | | yes | | | |
-| `routing` | | | | | yes |
+| Field | application | component | directive | pipe | module | service |
+|-------|-------------|-----------|-----------|------|--------|---------|
+| `path` | yes | yes | yes | yes | yes | yes |
+| `type` | yes | yes | yes | yes | yes | yes |
+| `name` | yes | yes | yes | yes | yes | yes |
+| `prefix` | yes | yes (`""`) | yes (`""`) | | | |
+| `project` | | yes | yes | | | yes |
+| `selector` | | yes | yes | | | |
+| `file_type` | | yes | yes | | | yes |
+| `add_type_to_class_name` | | yes (`true`) | yes (`true`) | | | yes (`true`) |
+| `style` | yes | yes (`includeDefault`) | | | | |
+| `in_folder` | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) |
+| `injectable` | | | | | | yes |
+| `sufix` | | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) |
+| `standalone` | | yes | yes | yes | | |
+| `inline_style` | | yes | | | | |
+| `inline_template` | | yes | | | | |
+| `display_block` | | yes | | | | |
+| `ng_html` | | yes | | | | |
+| `skip_tests` | yes | yes | yes | yes | | yes |
+| `skip_import_module` | | yes | yes | yes | | |
+| `skip_selector` | | yes | | | | |
+| `module` | | yes | yes | | | |
+| `export` | | yes | yes | | | |
+| `export_default` | | yes | | | | |
+| `change_detection` | | yes | | | | |
+| `view_encapsulation` | | yes | | | | |
+| `routing` | | | | | yes | |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
 
@@ -145,6 +148,7 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 | `inline_template` | `--inlineTemplate` |
 | `display_block` | `--displayBlock` |
 | `ng_html` | `--ngHtml` |
+| `injectable` | `--injectable` |
 | `skip_tests` | `--skipTests` |
 | `skip_import_module` | `--skipImport` |
 | `skip_selector` | `--skipSelector` |

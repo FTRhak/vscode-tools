@@ -5,6 +5,7 @@ import { angularCommandGenerateComponent } from './angular/generate-component';
 import { angularCommandGenerateDirective } from './angular/generate-directive';
 import { angularCommandGenerateModule } from './angular/generate-module';
 import { angularCommandGeneratePipe } from './angular/generate-pipe';
+import { angularCommandGenerateService } from './angular/generate-service';
 
 export function angularCommands(context: vscode.ExtensionContext): vscode.Disposable[] {
     let commands: vscode.Disposable[] = [];
@@ -16,7 +17,8 @@ export function angularCommands(context: vscode.ExtensionContext): vscode.Dispos
         ...angularCommandGenerateComponent(context),
         ...angularCommandGenerateDirective(context),
         ...angularCommandGenerateModule(context),
-        ...angularCommandGeneratePipe(context)
+        ...angularCommandGeneratePipe(context),
+        ...angularCommandGenerateService(context)
     );
 
     return commands;
