@@ -12,6 +12,7 @@ import {
   SkipStyleElement,
   SkipTestsElement,
   StylesElement,
+  TypeDeclarationElement,
 } from "../form_elements/index";
 import { planReactComponentGeneration } from "./component-generation";
 
@@ -80,6 +81,7 @@ export function reactCommandGenerateComponent(
               skipTests: !!message.skip_tests,
               skipStyle: !!message.skip_style,
               style: message.style || "css",
+              typeDeclaration: message.type_declaration || "type",
             });
 
             if (plan.error) {
@@ -162,6 +164,7 @@ function getWebviewContent(
       <div id="propsPathGroup" style="display:none">
         ${PropsPathElement(defaultPropsPath)}
       </div>
+      ${TypeDeclarationElement()}
       ${ExportDefaultElement()}
       ${SkipTestsElement()}
       ${SkipStyleElement()}

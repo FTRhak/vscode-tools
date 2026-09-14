@@ -35,6 +35,7 @@ export { StylesElement } from './styles.element';
 export { SufixElement } from './sufix.element';
 export { TargetElement } from './target.element';
 export { TestRunnerElement } from './test_runner.element';
+export { TypeDeclarationElement } from './type_declaration.element';
 export { TypeElement } from './type.element';
 export { TypeSeparatorElement } from './type_separator.element';
 export { ViewEncapsulationElement } from './view_encapsulation.element';

@@ -29,6 +29,7 @@ suite('React component generation', () => {
 			skipTests: false,
 			skipStyle: false,
 			style: 'css',
+			typeDeclaration: 'type',
 		});
 
 		assert.strictEqual(plan.error, undefined);
@@ -55,6 +56,7 @@ suite('React component generation', () => {
 			skipTests: true,
 			skipStyle: false,
 			style: 'css',
+			typeDeclaration: 'type',
 		});
 
 		assert.strictEqual(plan.files.length, 2);
@@ -76,6 +78,7 @@ suite('React component generation', () => {
 			skipTests: true,
 			skipStyle: false,
 			style: 'css',
+			typeDeclaration: 'type',
 		});
 
 		const propsFile = plan.files.find((file) => file.fsPath.endsWith(path.join('props', 'Card.props.ts')));
@@ -98,6 +101,7 @@ suite('React component generation', () => {
 			skipTests: false,
 			skipStyle: false,
 			style: 'css',
+			typeDeclaration: 'type',
 		});
 		assert.ok(empty.error);
 
@@ -112,6 +116,7 @@ suite('React component generation', () => {
 			skipTests: false,
 			skipStyle: false,
 			style: 'css',
+			typeDeclaration: 'type',
 		});
 		assert.ok(missingProps.error);
 	});
@@ -128,6 +133,7 @@ suite('React component generation', () => {
 			skipTests: true,
 			skipStyle: false,
 			style: 'scss',
+			typeDeclaration: 'type',
 		});
 
 		assert.ok(plan.files.some((file) => file.fsPath.endsWith('Panel.scss')));
@@ -147,6 +153,7 @@ suite('React component generation', () => {
 			skipTests: true,
 			skipStyle: true,
 			style: 'css',
+			typeDeclaration: 'type',
 		});
 		assert.strictEqual(skipped.files.length, 1);
 		assert.ok(skipped.files.every((file) => !file.fsPath.match(/\.(css|scss|sass|less)$/)));
@@ -163,8 +170,43 @@ suite('React component generation', () => {
 			skipTests: true,
 			skipStyle: false,
 			style: 'none',
+			typeDeclaration: 'type',
 		});
 		assert.strictEqual(none.files.length, 1);
 		assert.ok(none.files.every((file) => !file.fsPath.match(/\.(css|scss|sass|less)$/)));
+	});
+
+	test('declares props as an interface when type declaration is interface', () => {
+		const inline = planReactComponentGeneration({
+			workspaceRoot: path.sep === '\\' ? 'C:\\proj' : '/proj',
+			relativePath: 'src',
+			name: 'Chip',
+			inFolder: false,
+			externalProps: false,
+			propsPath: '',
+			exportDefault: false,
+			skipTests: true,
+			skipStyle: true,
+			style: 'css',
+			typeDeclaration: 'interface',
+		});
+		assert.ok(inline.files.some((file) => file.content.includes('interface ChipProps {}')));
+		assert.ok(inline.files.every((file) => !file.content.includes('type ChipProps')));
+
+		const external = planReactComponentGeneration({
+			workspaceRoot: path.sep === '\\' ? 'C:\\proj' : '/proj',
+			relativePath: 'src',
+			name: 'Chip',
+			inFolder: false,
+			externalProps: true,
+			propsPath: 'src/props',
+			exportDefault: false,
+			skipTests: true,
+			skipStyle: true,
+			style: 'css',
+			typeDeclaration: 'interface',
+		});
+		const propsFile = external.files.find((file) => file.fsPath.endsWith('Chip.props.ts'));
+		assert.ok(propsFile?.content.includes('export interface ChipProps {}'));
 	});
 });

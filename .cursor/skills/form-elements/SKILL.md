@@ -39,6 +39,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 |---------|-----------|-----------------|---------|---------|-----------------|
 | `PathElement` | `(value = '')` | `path` | `''` | text, **readonly** | Path |
 | `TypeElement` | `(value = '')` | `type` | first option `ng` (arg unused) | select | `ng` \| `nx` |
+| `TypeDeclarationElement` | `()` | `type_declaration` | first option `type` | select | `type` \| `interface` |
 | `ConfigTypeElement` | `()` | `config_type` | first option `browserslist` | select | `browserslist` \| `karma` \| `vitest` |
 | `NameElement` | `(value = '', label)` | `name` | empty; `value` unused | text `minlength=1` `maxlength=64` | `Name of ${label}` |
 | `PrefixElement` | `(value = 'app')` | `prefix` | `'app'` | text | Prefix |
@@ -87,6 +88,7 @@ Call with the args generators already use. `NameElement` second arg is the kind 
 ```
 ${PathElement(pathUrl)}
 ${TypeElement()}
+${TypeDeclarationElement()}
 ${TargetElement()}
 ${ConfigTypeElement()}
 ${NameElement("", "<kind>")}
@@ -183,6 +185,7 @@ React component writes files from templates (not nx/ng). Show `props_path` in th
 | `in_folder` | yes (`false`) |
 | `external_props` | yes (`false`) |
 | `props_path` | yes; visible when `external_props` |
+| `type_declaration` | yes (`type`) |
 | `export_default` | yes |
 | `skip_tests` | yes |
 | `skip_style` | yes (`false`) |
@@ -194,7 +197,8 @@ React FormData use:
 |----------|-----|
 | `path`, `name`, `in_folder` | `{path}/{Name}/` when `in_folder`, else `{path}/`; files are PascalCase `{Name}.tsx` / `.{style}` / `.test.tsx` |
 | `in_folder` | also writes `index.ts` barrel |
-| `external_props` | write `{props_path}/{Name}.props.ts` and import `{Name}Props`; else inline `type {Name}Props = {}` |
+| `external_props` | write `{props_path}/{Name}.props.ts` and import `{Name}Props`; else inline `{Name}Props` |
+| `type_declaration` | `type` → `type {Name}Props = {}`; `interface` → `interface {Name}Props {}` (exported in the props file) |
 | `export_default` | `export default function` and `export { default } from "./Name"` |
 | `skip_tests` | do **not** write `{Name}.test.tsx` |
 | `skip_style` | do **not** write a style file or import it |

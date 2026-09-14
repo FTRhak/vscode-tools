@@ -2,7 +2,10 @@ import * as path from "path";
 
 import { componentCssTemplate } from "./templates/componentCssTemplate";
 import { componentIndexTemplate } from "./templates/componentIndexTemplate";
-import { componentPropsTemplate } from "./templates/componentPropsTemplate";
+import {
+  componentPropsTemplate,
+  resolvePropsKind,
+} from "./templates/componentPropsTemplate";
 import { componentTestTemplate } from "./templates/componentTestTemplate";
 import { componentTsxTemplate } from "./templates/componentTsxTemplate";
 
@@ -17,6 +20,7 @@ export interface ReactComponentOptions {
   skipTests: boolean;
   skipStyle: boolean;
   style: string;
+  typeDeclaration: string;
 }
 
 export interface PlannedFile {
@@ -94,6 +98,7 @@ export function planReactComponentGeneration(
   const componentDir = options.inFolder ? path.join(baseDir, name) : baseDir;
   const tsxPath = path.join(componentDir, `${name}.tsx`);
   const propsTypeName = `${name}Props`;
+  const propsKind = resolvePropsKind(options.typeDeclaration);
 
   let propsImport: string | undefined;
   const files: PlannedFile[] = [];
@@ -115,7 +120,7 @@ export function planReactComponentGeneration(
     propsImport = toRelativeImport(tsxPath, propsFileNoExt);
     files.push({
       fsPath: propsFile,
-      content: componentPropsTemplate(propsTypeName),
+      content: componentPropsTemplate(propsTypeName, propsKind),
     });
   }
 
@@ -132,6 +137,7 @@ export function planReactComponentGeneration(
       propsImport,
       styleImport,
       exportDefault: options.exportDefault,
+      propsKind,
     }),
   });
 
