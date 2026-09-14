@@ -3,6 +3,23 @@
   "publisher": "FTRhak",
   "displayName": "vscode-tools",
   "description": "",
+  "icon": "src/assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FTRhak/vscode-tools"
+  },
+  "homepage": "https://github.com/FTRhak/vscode-tools",
+  "bugs": {
+    "url": "https://github.com/FTRhak/vscode-tools/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "vscode",
+    "tools",
+    "angular",
+    "react",
+    "schematics"
+  ],
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.107.0"
@@ -201,6 +218,7 @@
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
+    "vsix": "vsce package",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
@@ -213,6 +231,7 @@
     "@types/vscode": "^1.107.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.2",
     "copy-webpack-plugin": "^13.0.1",
     "eslint": "^9.39.1",
     "ts-loader": "^9.5.4",

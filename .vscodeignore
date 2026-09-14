@@ -3,6 +3,7 @@
 out/**
 node_modules/**
 src/**
+!src/assets/icon.png
 .gitignore
 .yarnrc
 webpack.config.js
