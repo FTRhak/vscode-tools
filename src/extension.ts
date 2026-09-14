@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { angularCommands } from './angular';
+import { reactCommands } from './react';
 
 export function activate(context: vscode.ExtensionContext) {
 	const showInfo = vscode.commands.registerCommand(
@@ -19,8 +20,9 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	const angularCommandsList = angularCommands(context);
+	const reactCommandsList = reactCommands(context);
 
-	context.subscriptions.push(showInfo, openTerminal, ...angularCommandsList);
+	context.subscriptions.push(showInfo, openTerminal, ...angularCommandsList, ...reactCommandsList);
 }
 
 

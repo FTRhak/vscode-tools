@@ -59,6 +59,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `DisplayBlockElement` | `(checked = false)` | `display_block` | `false` | checkbox | Display Block |
 | `NgHtmlElement` | `(checked = false)` | `ng_html` | `false` | checkbox | Ng HTML |
 | `SkipTestsElement` | `(checked = false)` | `skip_tests` | `false` | checkbox | Skip Tests |
+| `SkipStyleElement` | `(checked = false)` | `skip_style` | `false` | checkbox | Skip Style |
 | `SkipInstallElement` | `(checked = false)` | `skip_install` | `false` | checkbox | Skip Install |
 | `SkipPackageJsonElement` | `(checked = false)` | `skip_package_json` | `false` | checkbox | Skip Package JSON |
 | `SkipTsConfigElement` | `(checked = false)` | `skip_ts_config` | `false` | checkbox | Skip TS Config |
@@ -68,6 +69,8 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `ModuleElement` | `(value = '')` | `module` | `''` | text | Module |
 | `ExportElement` | `(checked = false)` | `export` | `false` | checkbox | Export |
 | `ExportDefaultElement` | `(checked = false)` | `export_default` | `false` | checkbox | Export Default |
+| `ExternalPropsElement` | `(checked = false)` | `external_props` | `false` | checkbox | External props declaration |
+| `PropsPathElement` | `(value = '')` | `props_path` | `''` | text, no maxlength | Props path |
 | `ChangeDetectionElement` | `()` | `change_detection` | `""` (Default) | select | `""` Default \| `Eager` \| `OnPush` |
 | `ViewEncapsulationElement` | `()` | `view_encapsulation` | `""` (Default) | select | `""` Default \| `Emulated` \| `None` \| `ShadowDom` |
 | `RoutingElement` | `(checked = false)` | `routing` | `false` | checkbox | Routing |
@@ -75,7 +78,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `TargetElement` | `(value = 'build')` | `target` | `'build'` | text | Target |
 | `TypeSeparatorElement` | `()` | `type_separator` | first option `-` | select | `-` \| `.` |
 
-Custom HTML (not a base wrap): `PathElement`, `NameElement`.
+Custom HTML (not a base wrap): `PathElement`, `NameElement`, `PropsPathElement`.
 
 ## Typical interpolations in generators
 
@@ -106,6 +109,7 @@ ${InlineTemplateElement()}
 ${DisplayBlockElement()}
 ${NgHtmlElement()}
 ${SkipTestsElement()}
+${SkipStyleElement()}
 ${SkipInstallElement()}
 ${SkipPackageJsonElement()}
 ${SkipTsConfigElement()}
@@ -115,6 +119,8 @@ ${SkipSelectorElement()}
 ${ModuleElement()}
 ${ExportElement()}
 ${ExportDefaultElement()}
+${ExternalPropsElement()}
+${PropsPathElement()}
 ${ChangeDetectionElement()}
 ${ViewEncapsulationElement()}
 ${RoutingElement()}
@@ -165,6 +171,34 @@ ${TypeSeparatorElement()}
 | `snippet` | | | | | | | | | | | | | | | yes (`true`) |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
+
+## React generators
+
+React component writes files from templates (not nx/ng). Show `props_path` in the webview only when `external_props` is checked (`#cexternal_props`). Show `style` only when `skip_style` is unchecked (`#cskip_style`).
+
+| Field | component |
+|-------|-----------|
+| `path` | yes |
+| `name` | yes (`"component"`) |
+| `in_folder` | yes (`false`) |
+| `external_props` | yes (`false`) |
+| `props_path` | yes; visible when `external_props` |
+| `export_default` | yes |
+| `skip_tests` | yes |
+| `skip_style` | yes (`false`) |
+| `style` | yes; visible when `skip_style` is off |
+
+React FormData use:
+
+| FormData | Use |
+|----------|-----|
+| `path`, `name`, `in_folder` | `{path}/{Name}/` when `in_folder`, else `{path}/`; files are PascalCase `{Name}.tsx` / `.{style}` / `.test.tsx` |
+| `in_folder` | also writes `index.ts` barrel |
+| `external_props` | write `{props_path}/{Name}.props.ts` and import `{Name}Props`; else inline `type {Name}Props = {}` |
+| `export_default` | `export default function` and `export { default } from "./Name"` |
+| `skip_tests` | do **not** write `{Name}.test.tsx` |
+| `skip_style` | do **not** write a style file or import it |
+| `style` | `css` \| `scss` \| `sass` \| `less` writes `{Name}.{style}` and `import "./{Name}.{style}"`; `none` skips style |
 
 ## CLI mapping (when the field is present)
 

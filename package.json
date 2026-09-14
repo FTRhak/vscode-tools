@@ -23,6 +23,10 @@
         "title": "__Open in Terminal__"
       },
       {
+        "command": "vscode-react.createReactComponent",
+        "title": "Generate Component"
+      },
+      {
         "command": "vscode-angular.createAngularApplication",
         "title": "Generate Application"
       },
@@ -177,6 +181,10 @@
         }
       ],
       "schematicsReactSubmenu": [
+        {
+          "command": "vscode-react.createReactComponent",
+          "group": "react"
+        },
         {
           "command": "vscode-angular.openFileInfo",
           "group": "react"
