@@ -39,6 +39,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `TypeElement` | `(value = '')` | `type` | first option `ng` (arg unused) | select | `ng` \| `nx` |
 | `NameElement` | `(value = '', label)` | `name` | empty; `value` unused | text `minlength=1` `maxlength=64` | `Name of ${label}` |
 | `PrefixElement` | `(value = 'app')` | `prefix` | `'app'` | text | Prefix |
+| `EntryFileElement` | `(value = 'public-api')` | `entry_file` | `'public-api'` | text | Entry File |
 | `ProjectElement` | `(value = '')` | `project` | `''` | text | Project |
 | `SelectorElement` | `(value = '')` | `selector` | `''` | text | Selector |
 | `FileTypeElement` | `(value = '')` | `file_type` | `''` | text | File Type (`--type`) |
@@ -53,6 +54,9 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `DisplayBlockElement` | `(checked = false)` | `display_block` | `false` | checkbox | Display Block |
 | `NgHtmlElement` | `(checked = false)` | `ng_html` | `false` | checkbox | Ng HTML |
 | `SkipTestsElement` | `(checked = false)` | `skip_tests` | `false` | checkbox | Skip Tests |
+| `SkipInstallElement` | `(checked = false)` | `skip_install` | `false` | checkbox | Skip Install |
+| `SkipPackageJsonElement` | `(checked = false)` | `skip_package_json` | `false` | checkbox | Skip Package JSON |
+| `SkipTsConfigElement` | `(checked = false)` | `skip_ts_config` | `false` | checkbox | Skip TS Config |
 | `SkipImportModuleElement` | `(checked = false)` | `skip_import_module` | `false` | checkbox | Skip Import Module |
 | `SkipSelectorElement` | `(checked = false)` | `skip_selector` | `false` | checkbox | Skip Selector |
 | `ModuleElement` | `(value = '')` | `module` | `''` | text | Module |
@@ -61,6 +65,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `ChangeDetectionElement` | `()` | `change_detection` | `""` (Default) | select | `""` Default \| `Eager` \| `OnPush` |
 | `ViewEncapsulationElement` | `()` | `view_encapsulation` | `""` (Default) | select | `""` Default \| `Emulated` \| `None` \| `ShadowDom` |
 | `RoutingElement` | `(checked = false)` | `routing` | `false` | checkbox | Routing |
+| `TestRunnerElement` | `()` | `test_runner` | first option `vitest` | select | `vitest` \| `karma` |
 
 Custom HTML (not a base wrap): `PathElement`, `NameElement`.
 
@@ -73,6 +78,7 @@ ${PathElement(pathUrl)}
 ${TypeElement()}
 ${NameElement("", "<kind>")}
 ${PrefixElement()}
+${EntryFileElement()}
 ${ProjectElement()}
 ${SelectorElement()}
 ${FileTypeElement()}
@@ -88,6 +94,9 @@ ${InlineTemplateElement()}
 ${DisplayBlockElement()}
 ${NgHtmlElement()}
 ${SkipTestsElement()}
+${SkipInstallElement()}
+${SkipPackageJsonElement()}
+${SkipTsConfigElement()}
 ${SkipImportModuleElement()}
 ${SkipSelectorElement()}
 ${ModuleElement()}
@@ -96,38 +105,44 @@ ${ExportDefaultElement()}
 ${ChangeDetectionElement()}
 ${ViewEncapsulationElement()}
 ${RoutingElement()}
+${TestRunnerElement()}
 ```
 
 ## Which generators render which fields
 
-| Field | application | class | component | directive | pipe | module | service | environment |
-|-------|-------------|-------|-----------|-----------|------|--------|---------|-------------|
-| `path` | yes | yes | yes | yes | yes | yes | yes | yes |
-| `type` | yes | yes | yes | yes | yes | yes | yes | yes |
-| `name` | yes | yes | yes | yes | yes | yes | yes | |
-| `prefix` | yes | | yes (`""`) | yes (`""`) | | | | |
-| `project` | | yes | yes | yes | | | yes | yes |
-| `selector` | | | yes | yes | | | | |
-| `file_type` | | yes | yes | yes | | | yes | |
-| `add_type_to_class_name` | | | yes (`true`) | yes (`true`) | | | yes (`true`) | |
-| `style` | yes | | yes (`includeDefault`) | | | | | |
-| `in_folder` | | yes (`false`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | |
-| `injectable` | | | | | | | yes | |
-| `sufix` | | yes (`false`, class) | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | |
-| `standalone` | | | yes | yes | yes | | | |
-| `inline_style` | | | yes | | | | | |
-| `inline_template` | | | yes | | | | | |
-| `display_block` | | | yes | | | | | |
-| `ng_html` | | | yes | | | | | |
-| `skip_tests` | yes | yes | yes | yes | yes | | yes | |
-| `skip_import_module` | | | yes | yes | yes | | | |
-| `skip_selector` | | | yes | | | | | |
-| `module` | | | yes | yes | | | | |
-| `export` | | | yes | yes | | | | |
-| `export_default` | | | yes | | | | | |
-| `change_detection` | | | yes | | | | | |
-| `view_encapsulation` | | | yes | | | | | |
-| `routing` | | | | | | yes | | |
+| Field | application | class | component | directive | pipe | module | service | environment | library |
+|-------|-------------|-------|-----------|-----------|------|--------|---------|-------------|-------------|
+| `path` | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `type` | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `name` | yes | yes | yes | yes | yes | yes | yes | | yes |
+| `prefix` | yes | | yes (`""`) | yes (`""`) | | | | | yes (`"lib"`) |
+| `entry_file` | | | | | | | | | yes (`"public-api"`) |
+| `project` | | yes | yes | yes | | | yes | yes | |
+| `selector` | | | yes | yes | | | | | |
+| `file_type` | | yes | yes | yes | | | yes | | |
+| `add_type_to_class_name` | | | yes (`true`) | yes (`true`) | | | yes (`true`) | | |
+| `style` | yes | | yes (`includeDefault`) | | | | | | |
+| `in_folder` | | yes (`false`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | | |
+| `injectable` | | | | | | | yes | | |
+| `sufix` | | yes (`false`, class) | yes (`true`, component) | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | | |
+| `standalone` | | | yes | yes | yes | | | | yes |
+| `inline_style` | | | yes | | | | | | |
+| `inline_template` | | | yes | | | | | | |
+| `display_block` | | | yes | | | | | | |
+| `ng_html` | | | yes | | | | | | |
+| `skip_tests` | yes | yes | yes | yes | yes | | yes | | |
+| `skip_install` | | | | | | | | | yes |
+| `skip_package_json` | | | | | | | | | yes |
+| `skip_ts_config` | | | | | | | | | yes |
+| `skip_import_module` | | | yes | yes | yes | | | | |
+| `skip_selector` | | | yes | | | | | | |
+| `module` | | | yes | yes | | | | | |
+| `export` | | | yes | yes | | | | | |
+| `export_default` | | | yes | | | | | | |
+| `change_detection` | | | yes | | | | | | |
+| `view_encapsulation` | | | yes | | | | | | |
+| `routing` | | | | | | yes | | | |
+| `test_runner` | | | | | | | | | yes |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
 
@@ -138,6 +153,8 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 | `path`, `name`, `in_folder`, `sufix` | path shape `${path}/${in_folder ? name+'/' : ''}${name}${sufix ? '.<kind>' : ''}` (application omits `name`+suffix in the path) |
 | `type` | `nx` implemented; `ng` branch exists per generator — do not assume `ng` works end-to-end |
 | `prefix` nonempty | `--prefix=${prefix}` |
+| `entry_file` nonempty | `--entryFile=${entry_file}` |
+| `path` nonempty (library) | `--projectRoot=${path}` |
 | `project` nonempty | `--project=${project}` |
 | `selector` nonempty | `--selector=${selector}` |
 | `file_type` nonempty | `--type=${file_type}` |
@@ -150,6 +167,9 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 | `ng_html` | `--ngHtml` |
 | `injectable` | `--injectable` |
 | `skip_tests` | `--skipTests` |
+| `skip_install` | `--skipInstall` |
+| `skip_package_json` | `--skipPackageJson` |
+| `skip_ts_config` | `--skipTsConfig` |
 | `skip_import_module` | `--skipImport` |
 | `skip_selector` | `--skipSelector` |
 | `module` nonempty | `--module=${module}` |
@@ -158,6 +178,7 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 | `change_detection` nonempty | `--changeDetection=${value}` |
 | `view_encapsulation` nonempty | `--viewEncapsulation=${value}` |
 | `routing` | `--routing` |
+| `test_runner` nonempty | `--testRunner=${test_runner}` |
 
 Name sent to CLI: `message.name.split(/(?=[A-Z])/).join('_').toLowerCase()`.
 

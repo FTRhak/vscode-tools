@@ -43,6 +43,10 @@
         "title": "Generate Environments"
       },
       {
+        "command": "vscode-angular.createAngularLibrary",
+        "title": "Generate Library"
+      },
+      {
         "command": "vscode-angular.createAngularModule",
         "title": "Generate Module"
       },
@@ -105,6 +109,10 @@
         },
         {
           "command": "vscode-angular.createAngularEnvironment",
+          "group": "angular"
+        },
+        {
+          "command": "vscode-angular.createAngularLibrary",
           "group": "angular"
         },
         {
