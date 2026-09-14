@@ -47,6 +47,10 @@
         "title": "Generate Environments"
       },
       {
+        "command": "vscode-angular.createAngularGuard",
+        "title": "Generate Guard"
+      },
+      {
         "command": "vscode-angular.createAngularInterceptor",
         "title": "Generate Interceptor"
       },
@@ -121,6 +125,10 @@
         },
         {
           "command": "vscode-angular.createAngularEnvironment",
+          "group": "angular"
+        },
+        {
+          "command": "vscode-angular.createAngularGuard",
           "group": "angular"
         },
         {

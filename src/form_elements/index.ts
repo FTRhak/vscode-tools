@@ -7,6 +7,7 @@ export { ExportDefaultElement } from './export_default.element';
 export { ExportElement } from './export.element';
 export { FileTypeElement } from './file_type.element';
 export { FunctionalElement } from './functional.element';
+export { ImplementsElement } from './implements.element';
 export { InFolderElement } from './infolder.element';
 export { InjectableElement } from './injectable.element';
 export { InlineStyleElement } from './inline_style.element';
