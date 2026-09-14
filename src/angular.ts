@@ -13,6 +13,7 @@ import { angularCommandGenerateModule } from './angular/generate-module';
 import { angularCommandGeneratePipe } from './angular/generate-pipe';
 import { angularCommandGenerateResolver } from './angular/generate-resolver';
 import { angularCommandGenerateService } from './angular/generate-service';
+import { angularCommandGenerateServiceWorker } from './angular/generate-service-worker';
 
 export function angularCommands(context: vscode.ExtensionContext): vscode.Disposable[] {
     let commands: vscode.Disposable[] = [];
@@ -32,7 +33,8 @@ export function angularCommands(context: vscode.ExtensionContext): vscode.Dispos
         ...angularCommandGenerateModule(context),
         ...angularCommandGeneratePipe(context),
         ...angularCommandGenerateResolver(context),
-        ...angularCommandGenerateService(context)
+        ...angularCommandGenerateService(context),
+        ...angularCommandGenerateServiceWorker(context)
     );
 
     return commands;

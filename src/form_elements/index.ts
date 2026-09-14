@@ -29,6 +29,7 @@ export { SkipTsConfigElement } from './skip_ts_config.element';
 export { StandaloneElement } from './standalone.element';
 export { StylesElement } from './styles.element';
 export { SufixElement } from './sufix.element';
+export { TargetElement } from './target.element';
 export { TestRunnerElement } from './test_runner.element';
 export { TypeElement } from './type.element';
 export { TypeSeparatorElement } from './type_separator.element';
