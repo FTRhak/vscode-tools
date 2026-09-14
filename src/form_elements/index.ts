@@ -26,6 +26,7 @@ export { SkipPackageJsonElement } from './skip_package_json.element';
 export { SkipSelectorElement } from './skip_selector.element';
 export { SkipTestsElement } from './skip_tests.element';
 export { SkipTsConfigElement } from './skip_ts_config.element';
+export { SnippetElement } from './snippet.element';
 export { StandaloneElement } from './standalone.element';
 export { StylesElement } from './styles.element';
 export { SufixElement } from './sufix.element';

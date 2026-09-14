@@ -21,6 +21,7 @@ Do **not** open `src/form_elements/*.ts` for composition. This file is the catal
 - Standalone inversion lives in the generator CLI, not the factory: checked `standalone` → `--standalone=false`.
 - Add-type-to-class-name inversion lives in the generator CLI: factory default checked; absent `add_type_to_class_name` → `--addTypeToClassName=false`.
 - Functional inversion lives in the generator CLI: factory default checked; absent `functional` → `--functional=false`.
+- Snippet inversion lives in the generator CLI: factory default checked; absent `snippet` → `--snippet=false`.
 
 ## Base primitives (`src/form_elements/base_elements/`)
 
@@ -61,6 +62,7 @@ Use these only when wrapping a **new** field. Prefer an existing factory from th
 | `SkipInstallElement` | `(checked = false)` | `skip_install` | `false` | checkbox | Skip Install |
 | `SkipPackageJsonElement` | `(checked = false)` | `skip_package_json` | `false` | checkbox | Skip Package JSON |
 | `SkipTsConfigElement` | `(checked = false)` | `skip_ts_config` | `false` | checkbox | Skip TS Config |
+| `SnippetElement` | `(checked = true)` | `snippet` | `true` | checkbox | Snippet |
 | `SkipImportModuleElement` | `(checked = false)` | `skip_import_module` | `false` | checkbox | Skip Import Module |
 | `SkipSelectorElement` | `(checked = false)` | `skip_selector` | `false` | checkbox | Skip Selector |
 | `ModuleElement` | `(value = '')` | `module` | `''` | text | Module |
@@ -107,6 +109,7 @@ ${SkipTestsElement()}
 ${SkipInstallElement()}
 ${SkipPackageJsonElement()}
 ${SkipTsConfigElement()}
+${SnippetElement(true)}
 ${SkipImportModuleElement()}
 ${SkipSelectorElement()}
 ${ModuleElement()}
@@ -121,44 +124,45 @@ ${TypeSeparatorElement()}
 
 ## Which generators render which fields
 
-| Field | application | class | component | config | directive | pipe | module | service | environment | interceptor | guard | library | resolver | service-worker |
-|-------|-------------|-------|-----------|--------|-----------|------|--------|---------|-------------|-------------|-------|---------|----------|----------------|
-| `path` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| `type` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
-| `config_type` | | | | yes | | | | | | | | | | |
-| `name` | yes | yes | yes | | yes | yes | yes | yes | | yes | yes | yes | yes | |
-| `prefix` | yes | | yes (`""`) | | yes (`""`) | | | | | | | yes (`"lib"`) | | |
-| `entry_file` | | | | | | | | | | | | yes (`"public-api"`) | | |
-| `project` | | yes | yes | yes | yes | | | yes | yes | yes | yes | | yes | yes |
-| `target` | | | | | | | | | | | | | | yes (`"build"`) |
-| `selector` | | | yes | | yes | | | | | | | | | |
-| `functional` | | | | | | | | | | yes (`true`) | yes (`true`) | | yes (`true`) | |
-| `implements_*` | | | | | | | | | | | yes (`CanActivate`) | | | |
-| `file_type` | | yes | yes | | yes | | | yes | | | | | | |
-| `add_type_to_class_name` | | | yes (`true`) | | yes (`true`) | | | yes (`true`) | | | | | | |
-| `style` | yes | | yes (`includeDefault`) | | | | | | | | | | | |
-| `in_folder` | | yes (`false`) | yes (`true`) | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | | yes (`false`) | yes (`false`) | | yes (`false`) | |
-| `injectable` | | | | | | | | yes | | | | | | |
-| `sufix` | | yes (`false`, class) | yes (`true`, component) | | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | | yes (`true`, interceptor) | yes (`true`, guard) | | yes (`true`, resolver) | |
-| `standalone` | | | yes | | yes | yes | | | | | | yes | | |
-| `inline_style` | | | yes | | | | | | | | | | | |
-| `inline_template` | | | yes | | | | | | | | | | | |
-| `display_block` | | | yes | | | | | | | | | | | |
-| `ng_html` | | | yes | | | | | | | | | | | |
-| `skip_tests` | yes | yes | yes | | yes | yes | | yes | | yes | yes | | yes | |
-| `skip_install` | | | | | | | | | | | | yes | | |
-| `skip_package_json` | | | | | | | | | | | | yes | | |
-| `skip_ts_config` | | | | | | | | | | | | yes | | |
-| `skip_import_module` | | | yes | | yes | yes | | | | | | | | |
-| `skip_selector` | | | yes | | | | | | | | | | | |
-| `module` | | | yes | | yes | | | | | | | | | |
-| `export` | | | yes | | yes | | | | | | | | | |
-| `export_default` | | | yes | | | | | | | | | | | |
-| `change_detection` | | | yes | | | | | | | | | | | |
-| `view_encapsulation` | | | yes | | | | | | | | | | | |
-| `routing` | | | | | | | yes | | | | | | | |
-| `test_runner` | | | | | | | | | | | | yes | | |
-| `type_separator` | | | | | | | | | | yes | yes | | yes | |
+| Field | application | class | component | config | directive | pipe | module | service | environment | interceptor | guard | library | resolver | service-worker | web-worker |
+|-------|-------------|-------|-----------|--------|-----------|------|--------|---------|-------------|-------------|-------|---------|----------|----------------|------------|
+| `path` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `type` | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes | yes |
+| `config_type` | | | | yes | | | | | | | | | | | |
+| `name` | yes | yes | yes | | yes | yes | yes | yes | | yes | yes | yes | yes | | yes |
+| `prefix` | yes | | yes (`""`) | | yes (`""`) | | | | | | | yes (`"lib"`) | | | |
+| `entry_file` | | | | | | | | | | | | yes (`"public-api"`) | | | |
+| `project` | | yes | yes | yes | yes | | | yes | yes | yes | yes | | yes | yes | yes |
+| `target` | | | | | | | | | | | | | | yes (`"build"`) | |
+| `selector` | | | yes | | yes | | | | | | | | | | |
+| `functional` | | | | | | | | | | yes (`true`) | yes (`true`) | | yes (`true`) | | |
+| `implements_*` | | | | | | | | | | | yes (`CanActivate`) | | | | |
+| `file_type` | | yes | yes | | yes | | | yes | | | | | | | |
+| `add_type_to_class_name` | | | yes (`true`) | | yes (`true`) | | | yes (`true`) | | | | | | | |
+| `style` | yes | | yes (`includeDefault`) | | | | | | | | | | | | |
+| `in_folder` | | yes (`false`) | yes (`true`) | | yes (`true`) | yes (`true`) | yes (`true`) | yes (`false`) | | yes (`false`) | yes (`false`) | | yes (`false`) | | yes (`false`) |
+| `injectable` | | | | | | | | yes | | | | | | | |
+| `sufix` | | yes (`false`, class) | yes (`true`, component) | | yes (`true`, directive) | yes (`true`, pipe) | yes (`true`, module) | yes (`true`, service) | | yes (`true`, interceptor) | yes (`true`, guard) | | yes (`true`, resolver) | | yes (`true`, worker) |
+| `standalone` | | | yes | | yes | yes | | | | | | yes | | | |
+| `inline_style` | | | yes | | | | | | | | | | | | |
+| `inline_template` | | | yes | | | | | | | | | | | | |
+| `display_block` | | | yes | | | | | | | | | | | | |
+| `ng_html` | | | yes | | | | | | | | | | | | |
+| `skip_tests` | yes | yes | yes | | yes | yes | | yes | | yes | yes | | yes | | |
+| `skip_install` | | | | | | | | | | | | yes | | | |
+| `skip_package_json` | | | | | | | | | | | | yes | | | |
+| `skip_ts_config` | | | | | | | | | | | | yes | | | |
+| `skip_import_module` | | | yes | | yes | yes | | | | | | | | | |
+| `skip_selector` | | | yes | | | | | | | | | | | | |
+| `module` | | | yes | | yes | | | | | | | | | | |
+| `export` | | | yes | | yes | | | | | | | | | | |
+| `export_default` | | | yes | | | | | | | | | | | | |
+| `change_detection` | | | yes | | | | | | | | | | | | |
+| `view_encapsulation` | | | yes | | | | | | | | | | | | |
+| `routing` | | | | | | | yes | | | | | | | | |
+| `test_runner` | | | | | | | | | | | | yes | | | |
+| `type_separator` | | | | | | | | | | yes | yes | | yes | | |
+| `snippet` | | | | | | | | | | | | | | | yes (`true`) |
 
 Application handler still reads `message.in_folder` / `message.sufix` even though those fields are not on the form.
 
@@ -176,6 +180,7 @@ Application handler still reads `message.in_folder` / `message.sufix` even thoug
 | `selector` nonempty | `--selector=${selector}` |
 | `file_type` nonempty | `--type=${file_type}` |
 | `functional` absent | `--functional=false` |
+| `snippet` absent | `--snippet=false` |
 | `implements_can_activate` / `_child` / `_deactivate` / `_match` | `--implements=` comma-joined `CanActivate`, `CanActivateChild`, `CanDeactivate`, `CanMatch` |
 | `add_type_to_class_name` absent | `--addTypeToClassName=false` |
 | `style` nonempty | `--style=${style}` |

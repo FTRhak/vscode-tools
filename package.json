@@ -77,6 +77,10 @@
       {
         "command": "vscode-angular.createAngularServiceWorker",
         "title": "Generate Service Worker"
+      },
+      {
+        "command": "vscode-angular.createAngularWebWorker",
+        "title": "Generate Web Worker"
       }
     ],
     "submenus": [
@@ -165,6 +169,10 @@
         },
         {
           "command": "vscode-angular.createAngularServiceWorker",
+          "group": "angular"
+        },
+        {
+          "command": "vscode-angular.createAngularWebWorker",
           "group": "angular"
         }
       ],

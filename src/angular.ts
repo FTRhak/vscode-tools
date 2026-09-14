@@ -14,6 +14,7 @@ import { angularCommandGeneratePipe } from './angular/generate-pipe';
 import { angularCommandGenerateResolver } from './angular/generate-resolver';
 import { angularCommandGenerateService } from './angular/generate-service';
 import { angularCommandGenerateServiceWorker } from './angular/generate-service-worker';
+import { angularCommandGenerateWebWorker } from './angular/generate-web-worker';
 
 export function angularCommands(context: vscode.ExtensionContext): vscode.Disposable[] {
     let commands: vscode.Disposable[] = [];
@@ -34,7 +35,8 @@ export function angularCommands(context: vscode.ExtensionContext): vscode.Dispos
         ...angularCommandGeneratePipe(context),
         ...angularCommandGenerateResolver(context),
         ...angularCommandGenerateService(context),
-        ...angularCommandGenerateServiceWorker(context)
+        ...angularCommandGenerateServiceWorker(context),
+        ...angularCommandGenerateWebWorker(context)
     );
 
     return commands;
