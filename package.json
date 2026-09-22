@@ -16,11 +16,12 @@
   "keywords": [
     "vscode",
     "tools",
+    "fonts",
     "angular",
     "react",
     "schematics"
   ],
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.107.0"
   },
@@ -32,12 +33,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-angular.openFileInfo",
-        "title": "__Open File Info__"
-      },
-      {
-        "command": "vscode-angular.openInTerminal",
-        "title": "__Open in Terminal__"
+        "command": "vscode-tools.fonts.openFontPreview",
+        "title": "Open Font"
       },
       {
         "command": "vscode-react.createReactComponent",
@@ -121,6 +118,10 @@
     "menus": {
       "explorer/context": [
         {
+          "command": "vscode-tools.fonts.openFontPreview",
+          "group": "navigation"
+        },
+        {
           "submenu": "schematicsSubmenu",
           "group": "navigation"
         }
@@ -200,14 +201,6 @@
       "schematicsReactSubmenu": [
         {
           "command": "vscode-react.createReactComponent",
-          "group": "react"
-        },
-        {
-          "command": "vscode-angular.openFileInfo",
-          "group": "react"
-        },
-        {
-          "command": "vscode-angular.openInTerminal",
           "group": "react"
         }
       ]

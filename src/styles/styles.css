@@ -160,3 +160,99 @@ body.vscode-angular {
 .btn:hover {
     background-color: var(--vscode-button-hoverBackground);
 }
+
+.fonts-alphabet {
+    padding: 2rem 4rem;
+}
+
+.glyph-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.glyph-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 6rem;
+    min-width: 5rem;
+    padding: 0.5rem 0.45rem;
+    border: 1px solid var(--vscode-panel-border, rgba(127, 127, 127, 0.35));
+    border-radius: 0.75rem;
+    background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    text-align: center;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+.glyph-card:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.glyph-card-break {
+    flex-basis: 100%;
+    padding-top: 0.2rem;
+}
+
+.glyph-symbol {
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    word-break: break-word;
+}
+.glyph-code {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0.8;
+    letter-spacing: 0.04em;
+}
+
+.form-font-code-to-simbol {
+    margin-bottom: 2rem;
+    border: 1px solid var(--vscode-panel-border, rgba(127, 127, 127, 0.35));
+    border-radius: 0.75rem;
+    background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.form-font-code-to-simbol,
+.form-font-code-to-simbol * {
+    box-sizing: border-box;
+}
+
+.form-font-code-to-simbol input[type="text"] {
+    padding: 0.5rem;
+    font-size: 1rem;
+    height: 3rem;
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: 0.25rem;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    width: 6rem;
+}
+
+.form-font-code-to-simbol button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: none;
+    height: 3rem;
+    border-radius: 0.25rem;
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    cursor: pointer;
+}
+
+.font-code-result {
+    font-size: 2rem;
+    text-align: center;
+    border: 1px solid var(--vscode-panel-border, rgba(127, 127, 127, 0.35));
+    border-radius: 0.75rem;
+    background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    padding: 0.75rem;
+
+    width: 3rem;
+    height: 3rem;
+}
