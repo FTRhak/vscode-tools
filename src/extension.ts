@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { angularCommands } from './angular';
-import { reactCommands } from './react';
+import { angularCommands } from './tools/angular';
+import { reactCommands } from './tools/react';
 
 export function activate(context: vscode.ExtensionContext) {
 	const showInfo = vscode.commands.registerCommand(

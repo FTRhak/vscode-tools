@@ -3,27 +3,27 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import {
-  FunctionalElement,
-  ImplementsElement,
+  AddTypeToClassNameElement,
+  FileTypeElement,
   InFolderElement,
+  InjectableElement,
   NameElement,
   PathElement,
   ProjectElement,
   SkipTestsElement,
   SufixElement,
   TypeElement,
-  TypeSeparatorElement,
-} from "../form_elements";
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateGuard(
+export function angularCommandGenerateService(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create a new Angular guard
+  // Command to create a new Angular component (placeholder implementation)
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularGuard",
+      "vscode-angular.createAngularService",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -41,8 +41,8 @@ export function angularCommandGenerateGuard(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularGuard", // internal ID
-          "Angular Generate Guard", // tab title
+          "formPageGenerateAngularService", // internal ID
+          "Angular Generate Service", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -56,7 +56,7 @@ export function angularCommandGenerateGuard(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-guard") {
+            if (message.command === "angular-create-service") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
@@ -64,34 +64,26 @@ export function angularCommandGenerateGuard(
                 .toLowerCase();
               let in_folder = !!message.in_folder;
               const sufix = !!message.sufix;
-              const implementsTypes = [
-                message.implements_can_activate && "CanActivate",
-                message.implements_can_activate_child && "CanActivateChild",
-                message.implements_can_deactivate && "CanDeactivate",
-                message.implements_can_match && "CanMatch",
-              ].filter(Boolean);
 
               vscode.window.showInformationMessage(
-                `Generating Guard: ${name}`,
+                `Generating Service: ${name}`,
               );
 
               let command = 'echo "Error Command"';
               const flags =
-                (!message.functional ? " --functional=false" : "") +
+                (!message.add_type_to_class_name
+                  ? " --addTypeToClassName=false"
+                  : "") +
+                (message.injectable ? " --injectable" : "") +
                 (message.skip_tests ? " --skipTests" : "") +
                 (message.project ? ` --project=${message.project}` : "") +
-                (message.type_separator
-                  ? ` --typeSeparator=${message.type_separator}`
-                  : "") +
-                (implementsTypes.length
-                  ? ` --implements=${implementsTypes.join(",")}`
-                  : "");
-              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".guard" : ""}`;
+                (message.file_type ? ` --type=${message.file_type}` : "");
+              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".service" : ""}`;
 
               if (message.type === "ng") {
-                command = `ng generate guard ${target}` + flags;
+                command = `ng generate service ${target}` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:guard ${target}` + flags;
+                command = `nx g @nx/angular:service ${target}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -128,24 +120,24 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate guard</title>
+  <title>Generate service</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate guard for:</h2>
+    <h2>Generate service for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-guard">
+      <input type="hidden" name="command" value="angular-create-service">
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "guard")}
+      ${NameElement("", "service")}
       ${ProjectElement()}
-      ${TypeSeparatorElement()}
+      ${FileTypeElement()}
+      ${AddTypeToClassNameElement(true)}
       ${InFolderElement(false)}
-      ${SufixElement(true, "guard")}
-      ${FunctionalElement(true)}
-      ${ImplementsElement()}
+      ${SufixElement(true, "service")}
       ${SkipTestsElement()}
+      ${InjectableElement()}
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

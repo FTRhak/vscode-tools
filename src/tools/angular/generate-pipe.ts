@@ -3,21 +3,25 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import {
+  InFolderElement,
+  NameElement,
   PathElement,
-  ProjectElement,
-  TargetElement,
+  SkipImportModuleElement,
+  SkipTestsElement,
+  StandaloneElement,
+  SufixElement,
   TypeElement,
-} from "../form_elements";
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateServiceWorker(
+export function angularCommandGeneratePipe(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to add an Angular service worker
+  // Command to create a new Angular component (placeholder implementation)
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularServiceWorker",
+      "vscode-angular.createAngularPipe",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -35,8 +39,8 @@ export function angularCommandGenerateServiceWorker(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularServiceWorker", // internal ID
-          "Angular Generate Service Worker", // tab title
+          "formPageGenerateAngularPipe", // internal ID
+          "Angular Generate Pipe", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -50,20 +54,31 @@ export function angularCommandGenerateServiceWorker(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-service-worker") {
-              vscode.window.showInformationMessage(
-                `Generating Service Worker${message.project ? `: ${message.project}` : ""}`,
-              );
+            if (message.command === "angular-create-pipe") {
+              let path = message.path;
+              let name = message.name
+                .split(/(?=[A-Z])/)
+                .join("_")
+                .toLowerCase();
+              let in_folder = !!message.in_folder;
+              const sufix = !!message.sufix;
+
+              vscode.window.showInformationMessage(`Generating Pipe: ${name}`);
 
               let command = 'echo "Error Command"';
-              const flags =
-                (message.project ? ` --project=${message.project}` : "") +
-                (message.target ? ` --target=${message.target}` : "");
 
               if (message.type === "ng") {
-                command = `ng generate service-worker` + flags;
+                command =
+                  `ng generate pipe ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".pipe" : ""}` +
+                  (message.standalone ? " --standalone=false" : "") +
+                  (message.skip_tests ? " --skipTests" : "") +
+                  (message.skip_import_module ? " --skipImport" : "");
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:service-worker` + flags;
+                command =
+                  `nx g @nx/angular:pipe ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".pipe" : ""}` +
+                  (message.standalone ? " --standalone=false" : "") +
+                  (message.skip_tests ? " --skipTests" : "") +
+                  (message.skip_import_module ? " --skipImport" : "");
               }
 
               const terminal = vscode.window.createTerminal(
@@ -100,19 +115,27 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate service worker</title>
+  <title>Generate pipe</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate service worker for:</h2>
+    <h2>Generate pipe for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-service-worker">
+      <input type="hidden" name="command" value="angular-create-pipe">
+      
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${ProjectElement()}
-      ${TargetElement()}
-
+      ${NameElement("", "pipe")}
+      ${InFolderElement(true)}
+      ${SufixElement(true, "pipe")}
+      ${StandaloneElement()}
+      <fieldset class="form-group-card">
+        <legend class="card-title">Skip Options</legend>
+        ${SkipTestsElement()}
+        ${SkipImportModuleElement()}
+      </fieldset>
+      
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>
   </div>

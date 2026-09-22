@@ -1,29 +1,34 @@
-import * as fs from "fs";
-import * as path from "path";
 import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 
 import {
-  EntryFileElement,
+  AddTypeToClassNameElement,
+  ExportElement,
+  FileTypeElement,
+  InFolderElement,
+  ModuleElement,
   NameElement,
   PathElement,
   PrefixElement,
-  SkipInstallElement,
-  SkipPackageJsonElement,
-  SkipTsConfigElement,
+  ProjectElement,
+  SelectorElement,
+  SkipImportModuleElement,
+  SkipTestsElement,
   StandaloneElement,
-  TestRunnerElement,
+  SufixElement,
   TypeElement,
-} from "../form_elements";
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateLibrary(
+export function angularCommandGenerateDirective(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create a new Angular library
+  // Command to create a new Angular component (placeholder implementation)
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularLibrary",
+      "vscode-angular.createAngularDirective",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -41,8 +46,8 @@ export function angularCommandGenerateLibrary(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularLibrary", // internal ID
-          "Angular Generate Library", // tab title
+          "formPageGenerateAngularDirective", // internal ID
+          "Angular Generate Directive", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -56,36 +61,39 @@ export function angularCommandGenerateLibrary(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-library") {
+            if (message.command === "angular-create-directive") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
                 .join("_")
                 .toLowerCase();
+              let in_folder = !!message.in_folder;
+              const sufix = !!message.sufix;
 
               vscode.window.showInformationMessage(
-                `Generating Library: ${name}`,
+                `Generating Directive: ${name}`,
               );
 
               let command = 'echo "Error Command"';
               const flags =
-                (message.entry_file
-                  ? ` --entryFile=${message.entry_file}`
+                (!message.add_type_to_class_name
+                  ? " --addTypeToClassName=false"
                   : "") +
-                (message.prefix ? ` --prefix=${message.prefix}` : "") +
-                (path ? ` --projectRoot=${path}` : "") +
-                (message.skip_install ? " --skipInstall" : "") +
-                (message.skip_package_json ? " --skipPackageJson" : "") +
-                (message.skip_ts_config ? " --skipTsConfig" : "") +
+                (message.export ? " --export" : "") +
                 (message.standalone ? " --standalone=false" : "") +
-                (message.test_runner
-                  ? ` --testRunner=${message.test_runner}`
-                  : "");
+                (message.skip_tests ? " --skipTests" : "") +
+                (message.skip_import_module ? " --skipImport" : "") +
+                (message.prefix ? ` --prefix=${message.prefix}` : "") +
+                (message.project ? ` --project=${message.project}` : "") +
+                (message.selector ? ` --selector=${message.selector}` : "") +
+                (message.file_type ? ` --type=${message.file_type}` : "") +
+                (message.module ? ` --module=${message.module}` : "");
+              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".directive" : ""}`;
 
               if (message.type === "ng") {
-                command = `ng generate library ${name}` + flags;
+                command = `ng generate directive ${target}` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:library ${name}` + flags;
+                command = `nx g @nx/angular:directive ${target}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -122,24 +130,35 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate library</title>
+  <title>Generate directive</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate library for:</h2>
+    <h2>Generate directive for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-library">
+      <input type="hidden" name="command" value="angular-create-directive">
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "library")}
-      ${EntryFileElement()}
-      ${PrefixElement("lib")}
-      ${SkipInstallElement()}
-      ${SkipPackageJsonElement()}
-      ${SkipTsConfigElement()}
+      ${NameElement("", "directive")}
+      ${ProjectElement()}
+      ${PrefixElement("")}
+      ${SelectorElement()}
+      ${FileTypeElement()}
+      ${AddTypeToClassNameElement(true)}
+      ${InFolderElement(true)}
+      ${SufixElement(true, "directive")}
       ${StandaloneElement()}
-      ${TestRunnerElement()}
+      <fieldset class="form-group-card">
+        <legend class="card-title">Skip Options</legend>
+        ${SkipTestsElement()}
+        ${SkipImportModuleElement()}
+      </fieldset>
+      <fieldset class="form-group-card">
+        <legend class="card-title">Module Options</legend>
+        ${ModuleElement()}
+        ${ExportElement()}
+      </fieldset>
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

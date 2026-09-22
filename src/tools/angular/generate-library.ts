@@ -3,25 +3,27 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import {
-  FileTypeElement,
-  InFolderElement,
+  EntryFileElement,
   NameElement,
   PathElement,
-  ProjectElement,
-  SkipTestsElement,
-  SufixElement,
+  PrefixElement,
+  SkipInstallElement,
+  SkipPackageJsonElement,
+  SkipTsConfigElement,
+  StandaloneElement,
+  TestRunnerElement,
   TypeElement,
-} from "../form_elements";
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateClass(
+export function angularCommandGenerateLibrary(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create a new Angular class (placeholder implementation)
+  // Command to create a new Angular library
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularClass",
+      "vscode-angular.createAngularLibrary",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -39,8 +41,8 @@ export function angularCommandGenerateClass(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularClass", // internal ID
-          "Angular Generate Class", // tab title
+          "formPageGenerateAngularLibrary", // internal ID
+          "Angular Generate Library", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -54,30 +56,36 @@ export function angularCommandGenerateClass(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-class") {
+            if (message.command === "angular-create-library") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
                 .join("_")
                 .toLowerCase();
-              let in_folder = !!message.in_folder;
-              const sufix = !!message.sufix;
 
               vscode.window.showInformationMessage(
-                `Generating Class: ${name}`,
+                `Generating Library: ${name}`,
               );
 
               let command = 'echo "Error Command"';
               const flags =
-                (message.skip_tests ? " --skipTests" : "") +
-                (message.project ? ` --project=${message.project}` : "") +
-                (message.file_type ? ` --type=${message.file_type}` : "");
-              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".class" : ""}`;
+                (message.entry_file
+                  ? ` --entryFile=${message.entry_file}`
+                  : "") +
+                (message.prefix ? ` --prefix=${message.prefix}` : "") +
+                (path ? ` --projectRoot=${path}` : "") +
+                (message.skip_install ? " --skipInstall" : "") +
+                (message.skip_package_json ? " --skipPackageJson" : "") +
+                (message.skip_ts_config ? " --skipTsConfig" : "") +
+                (message.standalone ? " --standalone=false" : "") +
+                (message.test_runner
+                  ? ` --testRunner=${message.test_runner}`
+                  : "");
 
               if (message.type === "ng") {
-                command = `ng generate class ${target}` + flags;
+                command = `ng generate library ${name}` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:class ${target}` + flags;
+                command = `nx g @nx/angular:library ${name}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -114,22 +122,24 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate class</title>
+  <title>Generate library</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate class for:</h2>
+    <h2>Generate library for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-class">
+      <input type="hidden" name="command" value="angular-create-library">
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "class")}
-      ${ProjectElement()}
-      ${FileTypeElement()}
-      ${InFolderElement(false)}
-      ${SufixElement(false, "class")}
-      ${SkipTestsElement()}
+      ${NameElement("", "library")}
+      ${EntryFileElement()}
+      ${PrefixElement("lib")}
+      ${SkipInstallElement()}
+      ${SkipPackageJsonElement()}
+      ${SkipTsConfigElement()}
+      ${StandaloneElement()}
+      ${TestRunnerElement()}
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

@@ -13,7 +13,7 @@ import {
   SkipTestsElement,
   StylesElement,
   TypeDeclarationElement,
-} from "../form_elements/index";
+} from "../../shared/form_elements/index";
 import { planReactComponentGeneration } from "./component-generation";
 
 export function reactCommandGenerateComponent(

@@ -12,7 +12,7 @@ import {
   SufixElement,
   TypeElement,
   TypeSeparatorElement,
-} from "../form_elements";
+} from "../../shared/form_elements/index";
 
 export function angularCommandGenerateResolver(
   context: vscode.ExtensionContext,

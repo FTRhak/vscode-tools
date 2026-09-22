@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 
-import { planReactComponentGeneration, toPascalCase, toRelativeImport } from '../react/component-generation';
+import { planReactComponentGeneration, toPascalCase, toRelativeImport } from '../tools/react/component-generation';
 
 suite('React component generation', () => {
 	test('toPascalCase normalizes kebab, snake, and camel names', () => {

@@ -10,7 +10,7 @@ import {
   SnippetElement,
   SufixElement,
   TypeElement,
-} from "../form_elements";
+} from "../../shared/form_elements/index";
 
 export function angularCommandGenerateWebWorker(
   context: vscode.ExtensionContext,

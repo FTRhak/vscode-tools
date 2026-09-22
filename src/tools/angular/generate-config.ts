@@ -3,26 +3,21 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import {
-  FunctionalElement,
-  InFolderElement,
-  NameElement,
+  ConfigTypeElement,
   PathElement,
   ProjectElement,
-  SkipTestsElement,
-  SufixElement,
   TypeElement,
-  TypeSeparatorElement,
-} from "../form_elements";
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateInterceptor(
+export function angularCommandGenerateConfig(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create a new Angular interceptor
+  // Command to create Angular configuration files
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularInterceptor",
+      "vscode-angular.createAngularConfig",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -40,8 +35,8 @@ export function angularCommandGenerateInterceptor(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularInterceptor", // internal ID
-          "Angular Generate Interceptor", // tab title
+          "formPageGenerateAngularConfig", // internal ID
+          "Angular Generate Config", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -55,33 +50,20 @@ export function angularCommandGenerateInterceptor(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-interceptor") {
-              let path = message.path;
-              let name = message.name
-                .split(/(?=[A-Z])/)
-                .join("_")
-                .toLowerCase();
-              let in_folder = !!message.in_folder;
-              const sufix = !!message.sufix;
-
+            if (message.command === "angular-create-config") {
               vscode.window.showInformationMessage(
-                `Generating Interceptor: ${name}`,
+                `Generating Config: ${message.config_type}${message.project ? ` (${message.project})` : ""}`,
               );
 
               let command = 'echo "Error Command"';
-              const flags =
-                (!message.functional ? " --functional=false" : "") +
-                (message.skip_tests ? " --skipTests" : "") +
-                (message.project ? ` --project=${message.project}` : "") +
-                (message.type_separator
-                  ? ` --typeSeparator=${message.type_separator}`
-                  : "");
-              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".interceptor" : ""}`;
+              const flags = message.project
+                ? ` --project=${message.project}`
+                : "";
 
               if (message.type === "ng") {
-                command = `ng generate interceptor ${target}` + flags;
+                command = `ng generate config ${message.config_type}` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:interceptor ${target}` + flags;
+                command = `nx g @nx/angular:config ${message.config_type}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -118,23 +100,18 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate interceptor</title>
+  <title>Generate config</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate interceptor for:</h2>
+    <h2>Generate config for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-interceptor">
+      <input type="hidden" name="command" value="angular-create-config">
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "interceptor")}
+      ${ConfigTypeElement()}
       ${ProjectElement()}
-      ${TypeSeparatorElement()}
-      ${InFolderElement(false)}
-      ${SufixElement(true, "interceptor")}
-      ${FunctionalElement(true)}
-      ${SkipTestsElement()}
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

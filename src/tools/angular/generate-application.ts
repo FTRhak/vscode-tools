@@ -3,17 +3,15 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import {
-  InFolderElement,
   NameElement,
-  SkipImportModuleElement,
+  PathElement,
+  PrefixElement,
   SkipTestsElement,
-  StandaloneElement,
-  SufixElement,
-  TypeElement,
-} from "../form_elements";
-import { PathElement } from "../form_elements/path.element";
+  StylesElement,
+  TypeElement
+} from "../../shared/form_elements/index";
 
-export function angularCommandGeneratePipe(
+export function angularCommandGenerateApplication(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
@@ -21,7 +19,7 @@ export function angularCommandGeneratePipe(
   // Command to create a new Angular component (placeholder implementation)
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularPipe",
+      "vscode-angular.createAngularApplication",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -39,8 +37,8 @@ export function angularCommandGeneratePipe(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularPipe", // internal ID
-          "Angular Generate Pipe", // tab title
+          "formPageGenerateAngularApplication", // internal ID
+          "Angular Generate Application", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -54,7 +52,7 @@ export function angularCommandGeneratePipe(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-pipe") {
+            if (message.command === "angular-create-application") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
@@ -63,22 +61,24 @@ export function angularCommandGeneratePipe(
               let in_folder = !!message.in_folder;
               const sufix = !!message.sufix;
 
-              vscode.window.showInformationMessage(`Generating Pipe: ${name}`);
+              vscode.window.showInformationMessage(
+                `Generating Application: ${name}`,
+              );
 
               let command = 'echo "Error Command"';
 
               if (message.type === "ng") {
                 command =
-                  `ng generate pipe ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".pipe" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
+                  `ng generate application ${path}/${in_folder ? name + "/" : ""}` +
                   (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_import_module ? " --skipImport" : "");
+                  (message.style ? ` --style=${message.style}` : "") +
+                  (message.prefix ? ` --prefix=${message.prefix}` : "");
               } else if (message.type === "nx") {
                 command =
-                  `nx g @nx/angular:pipe ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".pipe" : ""}` +
-                  (message.standalone ? " --standalone=false" : "") +
+                  `nx g @nx/angular:application ${path}/${in_folder ? name + "/" : ""}` +
                   (message.skip_tests ? " --skipTests" : "") +
-                  (message.skip_import_module ? " --skipImport" : "");
+                  (message.style ? ` --style=${message.style}` : "") +
+                  (message.prefix ? ` --prefix=${message.prefix}` : "");
               }
 
               const terminal = vscode.window.createTerminal(
@@ -122,19 +122,14 @@ function getWebviewContent(
   <div class="container">
     <h2>Generate pipe for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-pipe">
+      <input type="hidden" name="command" value="angular-create-application">
       
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "pipe")}
-      ${InFolderElement(true)}
-      ${SufixElement(true, "pipe")}
-      ${StandaloneElement()}
-      <fieldset class="form-group-card">
-        <legend class="card-title">Skip Options</legend>
-        ${SkipTestsElement()}
-        ${SkipImportModuleElement()}
-      </fieldset>
+      ${NameElement("", "application")}
+      ${PrefixElement()}
+      ${StylesElement()}
+      ${SkipTestsElement()}
       
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

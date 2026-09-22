@@ -2,22 +2,17 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 
-import {
-  ConfigTypeElement,
-  PathElement,
-  ProjectElement,
-  TypeElement,
-} from "../form_elements";
+import { PathElement, ProjectElement, TypeElement } from "../../shared/form_elements/index";
 
-export function angularCommandGenerateConfig(
+export function angularCommandGenerateEnvironment(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create Angular configuration files
+  // Command to create Angular environment files
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularConfig",
+      "vscode-angular.createAngularEnvironment",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -35,8 +30,8 @@ export function angularCommandGenerateConfig(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularConfig", // internal ID
-          "Angular Generate Config", // tab title
+          "formPageGenerateAngularEnvironment", // internal ID
+          "Angular Generate Environments", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -50,9 +45,9 @@ export function angularCommandGenerateConfig(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-config") {
+            if (message.command === "angular-create-environment") {
               vscode.window.showInformationMessage(
-                `Generating Config: ${message.config_type}${message.project ? ` (${message.project})` : ""}`,
+                `Generating Environments${message.project ? `: ${message.project}` : ""}`,
               );
 
               let command = 'echo "Error Command"';
@@ -61,9 +56,9 @@ export function angularCommandGenerateConfig(
                 : "";
 
               if (message.type === "ng") {
-                command = `ng generate config ${message.config_type}` + flags;
+                command = `ng generate environments` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:config ${message.config_type}` + flags;
+                command = `nx g @nx/angular:environments` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -100,17 +95,16 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate config</title>
+  <title>Generate environments</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate config for:</h2>
+    <h2>Generate environments for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-config">
+      <input type="hidden" name="command" value="angular-create-environment">
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${ConfigTypeElement()}
       ${ProjectElement()}
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>

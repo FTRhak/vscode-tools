@@ -2,17 +2,22 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 
-import { PathElement, ProjectElement, TypeElement } from "../form_elements";
+import {
+  PathElement,
+  ProjectElement,
+  TargetElement,
+  TypeElement,
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateEnvironment(
+export function angularCommandGenerateServiceWorker(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create Angular environment files
+  // Command to add an Angular service worker
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularEnvironment",
+      "vscode-angular.createAngularServiceWorker",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -30,8 +35,8 @@ export function angularCommandGenerateEnvironment(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularEnvironment", // internal ID
-          "Angular Generate Environments", // tab title
+          "formPageGenerateAngularServiceWorker", // internal ID
+          "Angular Generate Service Worker", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -45,20 +50,20 @@ export function angularCommandGenerateEnvironment(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-environment") {
+            if (message.command === "angular-create-service-worker") {
               vscode.window.showInformationMessage(
-                `Generating Environments${message.project ? `: ${message.project}` : ""}`,
+                `Generating Service Worker${message.project ? `: ${message.project}` : ""}`,
               );
 
               let command = 'echo "Error Command"';
-              const flags = message.project
-                ? ` --project=${message.project}`
-                : "";
+              const flags =
+                (message.project ? ` --project=${message.project}` : "") +
+                (message.target ? ` --target=${message.target}` : "");
 
               if (message.type === "ng") {
-                command = `ng generate environments` + flags;
+                command = `ng generate service-worker` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:environments` + flags;
+                command = `nx g @nx/angular:service-worker` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -95,17 +100,18 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate environments</title>
+  <title>Generate service worker</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate environments for:</h2>
+    <h2>Generate service worker for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-environment">
+      <input type="hidden" name="command" value="angular-create-service-worker">
       ${PathElement(pathUrl)}
       ${TypeElement()}
       ${ProjectElement()}
+      ${TargetElement()}
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

@@ -1,34 +1,29 @@
-import * as vscode from "vscode";
-import * as path from "path";
 import * as fs from "fs";
+import * as path from "path";
+import * as vscode from "vscode";
 
 import {
-  AddTypeToClassNameElement,
-  ExportElement,
-  FileTypeElement,
+  FunctionalElement,
+  ImplementsElement,
   InFolderElement,
-  ModuleElement,
   NameElement,
   PathElement,
-  PrefixElement,
   ProjectElement,
-  SelectorElement,
-  SkipImportModuleElement,
   SkipTestsElement,
-  StandaloneElement,
   SufixElement,
   TypeElement,
-} from "../form_elements";
+  TypeSeparatorElement,
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateDirective(
+export function angularCommandGenerateGuard(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create a new Angular component (placeholder implementation)
+  // Command to create a new Angular guard
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularDirective",
+      "vscode-angular.createAngularGuard",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -46,8 +41,8 @@ export function angularCommandGenerateDirective(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularDirective", // internal ID
-          "Angular Generate Directive", // tab title
+          "formPageGenerateAngularGuard", // internal ID
+          "Angular Generate Guard", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -61,7 +56,7 @@ export function angularCommandGenerateDirective(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-directive") {
+            if (message.command === "angular-create-guard") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
@@ -69,31 +64,34 @@ export function angularCommandGenerateDirective(
                 .toLowerCase();
               let in_folder = !!message.in_folder;
               const sufix = !!message.sufix;
+              const implementsTypes = [
+                message.implements_can_activate && "CanActivate",
+                message.implements_can_activate_child && "CanActivateChild",
+                message.implements_can_deactivate && "CanDeactivate",
+                message.implements_can_match && "CanMatch",
+              ].filter(Boolean);
 
               vscode.window.showInformationMessage(
-                `Generating Directive: ${name}`,
+                `Generating Guard: ${name}`,
               );
 
               let command = 'echo "Error Command"';
               const flags =
-                (!message.add_type_to_class_name
-                  ? " --addTypeToClassName=false"
-                  : "") +
-                (message.export ? " --export" : "") +
-                (message.standalone ? " --standalone=false" : "") +
+                (!message.functional ? " --functional=false" : "") +
                 (message.skip_tests ? " --skipTests" : "") +
-                (message.skip_import_module ? " --skipImport" : "") +
-                (message.prefix ? ` --prefix=${message.prefix}` : "") +
                 (message.project ? ` --project=${message.project}` : "") +
-                (message.selector ? ` --selector=${message.selector}` : "") +
-                (message.file_type ? ` --type=${message.file_type}` : "") +
-                (message.module ? ` --module=${message.module}` : "");
-              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".directive" : ""}`;
+                (message.type_separator
+                  ? ` --typeSeparator=${message.type_separator}`
+                  : "") +
+                (implementsTypes.length
+                  ? ` --implements=${implementsTypes.join(",")}`
+                  : "");
+              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".guard" : ""}`;
 
               if (message.type === "ng") {
-                command = `ng generate directive ${target}` + flags;
+                command = `ng generate guard ${target}` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:directive ${target}` + flags;
+                command = `nx g @nx/angular:guard ${target}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -130,35 +128,24 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate directive</title>
+  <title>Generate guard</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate directive for:</h2>
+    <h2>Generate guard for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-directive">
+      <input type="hidden" name="command" value="angular-create-guard">
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "directive")}
+      ${NameElement("", "guard")}
       ${ProjectElement()}
-      ${PrefixElement("")}
-      ${SelectorElement()}
-      ${FileTypeElement()}
-      ${AddTypeToClassNameElement(true)}
-      ${InFolderElement(true)}
-      ${SufixElement(true, "directive")}
-      ${StandaloneElement()}
-      <fieldset class="form-group-card">
-        <legend class="card-title">Skip Options</legend>
-        ${SkipTestsElement()}
-        ${SkipImportModuleElement()}
-      </fieldset>
-      <fieldset class="form-group-card">
-        <legend class="card-title">Module Options</legend>
-        ${ModuleElement()}
-        ${ExportElement()}
-      </fieldset>
+      ${TypeSeparatorElement()}
+      ${InFolderElement(false)}
+      ${SufixElement(true, "guard")}
+      ${FunctionalElement(true)}
+      ${ImplementsElement()}
+      ${SkipTestsElement()}
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

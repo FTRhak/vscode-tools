@@ -3,27 +3,26 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import {
-  AddTypeToClassNameElement,
-  FileTypeElement,
+  FunctionalElement,
   InFolderElement,
-  InjectableElement,
   NameElement,
   PathElement,
   ProjectElement,
   SkipTestsElement,
   SufixElement,
   TypeElement,
-} from "../form_elements";
+  TypeSeparatorElement,
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateService(
+export function angularCommandGenerateInterceptor(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
 
-  // Command to create a new Angular component (placeholder implementation)
+  // Command to create a new Angular interceptor
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularService",
+      "vscode-angular.createAngularInterceptor",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -41,8 +40,8 @@ export function angularCommandGenerateService(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularService", // internal ID
-          "Angular Generate Service", // tab title
+          "formPageGenerateAngularInterceptor", // internal ID
+          "Angular Generate Interceptor", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -56,7 +55,7 @@ export function angularCommandGenerateService(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-service") {
+            if (message.command === "angular-create-interceptor") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
@@ -66,24 +65,23 @@ export function angularCommandGenerateService(
               const sufix = !!message.sufix;
 
               vscode.window.showInformationMessage(
-                `Generating Service: ${name}`,
+                `Generating Interceptor: ${name}`,
               );
 
               let command = 'echo "Error Command"';
               const flags =
-                (!message.add_type_to_class_name
-                  ? " --addTypeToClassName=false"
-                  : "") +
-                (message.injectable ? " --injectable" : "") +
+                (!message.functional ? " --functional=false" : "") +
                 (message.skip_tests ? " --skipTests" : "") +
                 (message.project ? ` --project=${message.project}` : "") +
-                (message.file_type ? ` --type=${message.file_type}` : "");
-              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".service" : ""}`;
+                (message.type_separator
+                  ? ` --typeSeparator=${message.type_separator}`
+                  : "");
+              const target = `${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".interceptor" : ""}`;
 
               if (message.type === "ng") {
-                command = `ng generate service ${target}` + flags;
+                command = `ng generate interceptor ${target}` + flags;
               } else if (message.type === "nx") {
-                command = `nx g @nx/angular:service ${target}` + flags;
+                command = `nx g @nx/angular:interceptor ${target}` + flags;
               }
 
               const terminal = vscode.window.createTerminal(
@@ -120,24 +118,23 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate service</title>
+  <title>Generate interceptor</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate service for:</h2>
+    <h2>Generate interceptor for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-service">
+      <input type="hidden" name="command" value="angular-create-interceptor">
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "service")}
+      ${NameElement("", "interceptor")}
       ${ProjectElement()}
-      ${FileTypeElement()}
-      ${AddTypeToClassNameElement(true)}
+      ${TypeSeparatorElement()}
       ${InFolderElement(false)}
-      ${SufixElement(true, "service")}
+      ${SufixElement(true, "interceptor")}
+      ${FunctionalElement(true)}
       ${SkipTestsElement()}
-      ${InjectableElement()}
 
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>

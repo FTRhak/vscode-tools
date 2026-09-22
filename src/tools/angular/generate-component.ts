@@ -27,7 +27,7 @@ import {
   SufixElement,
   TypeElement,
   ViewEncapsulationElement,
-} from "../form_elements/index";
+} from "../../shared/form_elements/index";
 
 export function angularCommandGenerateComponent(
   context: vscode.ExtensionContext,

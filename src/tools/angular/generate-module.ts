@@ -3,16 +3,15 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import {
+  InFolderElement,
   NameElement,
-  PrefixElement,
-  SkipTestsElement,
-  StandaloneElement,
-  StylesElement,
+  RoutingElement,
+  SufixElement,
+  PathElement,
   TypeElement,
-} from "../form_elements";
-import { PathElement } from "../form_elements/path.element";
+} from "../../shared/form_elements/index";
 
-export function angularCommandGenerateApplication(
+export function angularCommandGenerateModule(
   context: vscode.ExtensionContext,
 ): vscode.Disposable[] {
   let commands: vscode.Disposable[] = [];
@@ -20,7 +19,7 @@ export function angularCommandGenerateApplication(
   // Command to create a new Angular component (placeholder implementation)
   commands.push(
     vscode.commands.registerCommand(
-      "vscode-angular.createAngularApplication",
+      "vscode-angular.createAngularModule",
       (resource: vscode.Uri) => {
         let absolutePath = resource.fsPath;
         const stats = fs.statSync(absolutePath);
@@ -38,8 +37,8 @@ export function angularCommandGenerateApplication(
         }
 
         const panel = vscode.window.createWebviewPanel(
-          "formPageGenerateAngularApplication", // internal ID
-          "Angular Generate Application", // tab title
+          "formPageGenerateAngularModule", // internal ID
+          "Angular Generate Module", // tab title
           vscode.ViewColumn.One, // show in first column
           { enableScripts: true }, // allow JS in the webview
         );
@@ -53,7 +52,7 @@ export function angularCommandGenerateApplication(
 
         panel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.command === "angular-create-application") {
+            if (message.command === "angular-create-module") {
               let path = message.path;
               let name = message.name
                 .split(/(?=[A-Z])/)
@@ -63,23 +62,19 @@ export function angularCommandGenerateApplication(
               const sufix = !!message.sufix;
 
               vscode.window.showInformationMessage(
-                `Generating Application: ${name}`,
+                `Generating Module: ${name}`,
               );
 
               let command = 'echo "Error Command"';
 
               if (message.type === "ng") {
                 command =
-                  `ng generate application ${path}/${in_folder ? name + "/" : ""}` +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.style ? ` --style=${message.style}` : "") +
-                  (message.prefix ? ` --prefix=${message.prefix}` : "");
+                  `ng generate module ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".module" : ""}` +
+                  (message.routing ? " --routing" : "");
               } else if (message.type === "nx") {
                 command =
-                  `nx g @nx/angular:application ${path}/${in_folder ? name + "/" : ""}` +
-                  (message.skip_tests ? " --skipTests" : "") +
-                  (message.style ? ` --style=${message.style}` : "") +
-                  (message.prefix ? ` --prefix=${message.prefix}` : "");
+                  `nx g @nx/angular:module ${path}/${in_folder ? name + "/" : ""}${name}${sufix ? ".module" : ""}` +
+                  (message.routing ? " --routing" : "");
               }
 
               const terminal = vscode.window.createTerminal(
@@ -116,25 +111,26 @@ function getWebviewContent(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate pipe</title>
+  <title>Generate module</title>
   <link href="${styleUri}" rel="stylesheet">
 </head>
 <body class="vscode-angular">
   <div class="container">
-    <h2>Generate pipe for:</h2>
+    <h2>Generate module for:</h2>
     <form id="myForm">
-      <input type="hidden" name="command" value="angular-create-application">
+      <input type="hidden" name="command" value="angular-create-module">
       
       ${PathElement(pathUrl)}
       ${TypeElement()}
-      ${NameElement("", "application")}
-      ${PrefixElement()}
-      ${StylesElement()}
-      ${SkipTestsElement()}
+      ${NameElement("", "module")}
+      ${InFolderElement(true)}
+      ${SufixElement(true, "module")}
+      ${RoutingElement()}
       
       <button type="submit" id="submitBtn" class="btn">Generate</button>
     </form>
   </div>
+
   <script>
     const vscode = acquireVsCodeApi();
     document.getElementById('myForm').addEventListener('submit', (ev) => {
