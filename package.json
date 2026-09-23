@@ -119,7 +119,8 @@
       "explorer/context": [
         {
           "command": "vscode-tools.fonts.openFontPreview",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "resourceExtname == .woff || resourceExtname == .woff2 || resourceExtname == .ttf || resourceExtname == .otf || resourceExtname == .eot"
         },
         {
           "submenu": "schematicsSubmenu",
