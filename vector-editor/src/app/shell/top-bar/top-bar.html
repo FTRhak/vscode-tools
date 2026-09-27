@@ -1,8 +1,17 @@
 <header class="top-bar">
   <div class="group" role="group" aria-label="File">
     <button type="button" class="chrome-button" (click)="newDocument()">New</button>
-    <button type="button" class="chrome-button" disabled>Open</button>
-    <button type="button" class="chrome-button" disabled>Save</button>
+    <button type="button" class="chrome-button" (click)="openFile()">Open</button>
+    <button
+      type="button"
+      class="chrome-button"
+      data-file-save
+      [disabled]="!hasDocument()"
+      (click)="saveFile()"
+    >
+      Save
+    </button>
+    <p class="file-status" aria-live="polite">{{ status() }}</p>
   </div>
   <div class="mode" aria-live="polite">
     <button

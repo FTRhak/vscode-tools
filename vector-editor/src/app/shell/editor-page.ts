@@ -9,6 +9,7 @@ import { PreviewPanel } from '../panels/preview';
 import { SwatchesPanel } from '../panels/swatches';
 import { ToolsPanel } from '../panels/tools';
 import { KeymapService } from '../keymap/keymap.service';
+import { SaveDialog } from './save-dialog/save-dialog';
 import { ToolRail } from './tool-rail/tool-rail';
 import { TopBar } from './top-bar/top-bar';
 
@@ -17,6 +18,7 @@ import { TopBar } from './top-bar/top-bar';
   imports: [
     TopBar,
     ToolRail,
+    SaveDialog,
     Viewport,
     OutlinerPanel,
     OptionsPanel,

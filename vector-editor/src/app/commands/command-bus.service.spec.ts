@@ -46,6 +46,38 @@ describe('CommandBus', () => {
     expect(session.tool()).toBe('pen');
   });
 
+  it('replaces the document as one Open step and restores the previous session', () => {
+    bus.dispatch({ type: 'document.new' });
+    const original = session.document();
+    const objectId = original?.objects[0]?.id;
+    if (!original || !objectId) {
+      throw new Error('Document is missing');
+    }
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.setTool', tool: 'pen' });
+    bus.dispatch({ type: 'session.setViewport', panX: 10, panY: 4, zoom: 2 });
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [objectId], op: 'replace' });
+    bus.dispatch({
+      type: 'document.replace',
+      document: { ...original, name: 'Imported', objects: [] },
+    });
+
+    expect(session.document()?.name).toBe('Imported');
+    expect(session.document()?.objects).toEqual([]);
+    expect(session.mode()).toBe('object');
+    expect(session.tool()).toBe('pen');
+    expect(session.viewport()).toEqual({ panX: 10, panY: 4, zoom: 2 });
+    expect(session.selectedObjectIds()).toEqual([]);
+    expect(session.penObjectId()).toBeNull();
+    expect(session.history().entries.at(-1)?.label).toBe('Open');
+
+    bus.dispatch({ type: 'history.undo' });
+
+    expect(session.document()).toBe(original);
+    expect(session.mode()).toBe('edit');
+    expect(session.selectedObjectIds()).toEqual([objectId]);
+  });
+
   it('updates only the camera', () => {
     bus.dispatch({ type: 'document.new' });
     const document = session.document();
@@ -386,5 +418,129 @@ describe('CommandBus', () => {
 
     expect(session.document()!.objects[0].transform).toMatchObject({ x: 0, y: 0 });
     expect(session.history().entries).toHaveLength(recorded);
+  });
+
+  it('jumps to a snapshot without recording and drops the redo branch on the next command', () => {
+    bus.dispatch({ type: 'session.setViewport', panX: 4, panY: 0, zoom: 1 });
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.setTool', tool: 'direct-select' });
+    bus.dispatch({ type: 'object.setTransform', ids: [id], transform: { x: 12 } });
+
+    const length = session.history().entries.length;
+    expect(session.history().entries.map((entry) => entry.label)).toEqual([
+      'New document',
+      'Select',
+      'Set transform',
+    ]);
+
+    bus.dispatch({ type: 'history.jump', index: 1 });
+    expect(session.history().entries).toHaveLength(length);
+    expect(session.history().index).toBe(1);
+    expect(session.document()!.objects[0].transform.x).toBe(0);
+    expect(session.mode()).toBe('object');
+    expect(session.selectedObjectIds()).toEqual([id]);
+    expect(session.tool()).toBe('direct-select');
+    expect(session.viewport()).toEqual({ panX: 4, panY: 0, zoom: 1 });
+
+    bus.dispatch({ type: 'history.jump', index: -1 });
+    expect(session.document()).toBeNull();
+    expect(session.history().index).toBe(-1);
+    expect(session.history().entries).toHaveLength(length);
+    expect(session.viewport()).toEqual({ panX: 4, panY: 0, zoom: 1 });
+
+    bus.dispatch({ type: 'history.jump', index: 0 });
+    bus.dispatch({ type: 'history.redo' });
+    bus.dispatch({ type: 'history.redo' });
+    const redone = {
+      x: session.document()!.objects[0].transform.x,
+      mode: session.mode(),
+      selected: [...session.selectedObjectIds()],
+      index: session.history().index,
+    };
+    bus.dispatch({ type: 'history.jump', index: 0 });
+    bus.dispatch({ type: 'history.jump', index: 2 });
+    expect({
+      x: session.document()!.objects[0].transform.x,
+      mode: session.mode(),
+      selected: [...session.selectedObjectIds()],
+      index: session.history().index,
+    }).toEqual(redone);
+
+    const atEnd = session.document();
+    bus.dispatch({ type: 'history.jump', index: 2 });
+    bus.dispatch({ type: 'history.jump', index: 9 });
+    bus.dispatch({ type: 'history.jump', index: -2 });
+    bus.dispatch({ type: 'history.jump', index: 1.5 });
+    expect(session.document()).toBe(atEnd);
+    expect(session.history().index).toBe(2);
+    expect(session.history().entries).toHaveLength(length);
+
+    bus.dispatch({ type: 'history.jump', index: 0 });
+    expect(session.selectedObjectIds()).toEqual([]);
+    expect(session.mode()).toBe('object');
+    bus.dispatch({ type: 'object.setTransform', ids: [id], transform: { y: 3 } });
+    expect(session.history().entries.map((entry) => entry.label)).toEqual([
+      'New document',
+      'Set transform',
+    ]);
+    expect(session.history().index).toBe(1);
+    expect(session.document()!.objects[0].transform).toMatchObject({ x: 0, y: 3 });
+  });
+
+  it('bakes an array prefix, clears anchor selection, and undo restores the stack', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    const anchorId = session.document()!.objects[0].source.subpaths[0].anchors[0].id;
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.select', target: 'anchor', ids: [anchorId], op: 'replace' });
+    bus.dispatch({ type: 'modifier.add', objectId: id, kind: 'array' });
+    bus.dispatch({ type: 'modifier.add', objectId: id, kind: 'mirror' });
+
+    const added = session.document()!.objects[0].modifiers;
+    expect(added.map((modifier) => modifier.type)).toEqual(['array', 'mirror']);
+    expect(added[0]).toMatchObject({ count: 3, offsetX: 40, offsetY: 0, enabled: true });
+    expect(added[1]).toMatchObject({ axis: 'x', enabled: true });
+
+    bus.dispatch({ type: 'modifier.reorder', objectId: id, modifierId: added[1].id, index: 0 });
+    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.type)).toEqual([
+      'mirror',
+      'array',
+    ]);
+    bus.dispatch({
+      type: 'modifier.update',
+      objectId: id,
+      modifierId: added[0].id,
+      patch: { count: 2.9, offsetX: 12 },
+    });
+    expect(session.document()!.objects[0].modifiers[1]).toMatchObject({ count: 2, offsetX: 12 });
+
+    const arrayId = added[0].id;
+    bus.dispatch({ type: 'modifier.reorder', objectId: id, modifierId: arrayId, index: 0 });
+    bus.dispatch({ type: 'modifier.apply', objectId: id, modifierId: arrayId });
+
+    const baked = session.document()!.objects[0];
+    expect(baked.modifiers.map((modifier) => modifier.type)).toEqual(['mirror']);
+    expect(baked.source.subpaths.length).toBeGreaterThan(1);
+    expect(baked.source.subpaths[0]?.anchors[0]?.id).not.toBe(anchorId);
+    expect(baked.transform).toEqual({ x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 });
+    expect(session.selectedAnchorIds()).toEqual([]);
+    expect(session.history().entries.at(-1)?.label).toBe('Apply modifier');
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.id)).toEqual([
+      arrayId,
+      added[1].id,
+    ]);
+    expect(session.selectedAnchorIds()).toEqual([anchorId]);
+
+    bus.dispatch({ type: 'modifier.applyAll', objectId: id });
+    expect(session.document()!.objects[0].modifiers).toEqual([]);
+    expect(session.history().entries.at(-1)?.label).toBe('Apply modifiers');
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[0].modifiers).toHaveLength(2);
   });
 });

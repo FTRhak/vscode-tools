@@ -52,6 +52,26 @@ describe('hitTestObject', () => {
     expect(hitTestObject(doc([turned]), { x: -5, y: 5 }, 1)).toBe('turned');
     expect(hitTestObject(doc([flat]), { x: 5, y: 5 }, 1)).toBeNull();
   });
+
+  it('hits an array copy and ignores the gap between copies', () => {
+    const box = {
+      ...square('box'),
+      modifiers: [
+        {
+          id: 'array',
+          type: 'array' as const,
+          count: 2,
+          offsetX: 30,
+          offsetY: 0,
+          enabled: true,
+        },
+      ],
+    };
+
+    expect(hitTestObject(doc([box]), { x: 35, y: 5 }, 1)).toBe('box');
+    expect(hitTestObject(doc([box]), { x: 16, y: 5 }, 1)).toBeNull();
+    expect(objectsInRect(doc([box]), { x: 32, y: 2, width: 4, height: 4 })).toEqual(['box']);
+  });
 });
 
 describe('objectsInRect', () => {

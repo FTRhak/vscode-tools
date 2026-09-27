@@ -170,22 +170,45 @@ describe('EditorPage', () => {
     expect(pressedTools('Direct select')).toHaveLength(2);
   });
 
-  it('draws a curve after New and leaves the other file actions disabled', async () => {
+  it('draws a curve after New and enables Save', async () => {
     expect(canvas().querySelector('path')).toBeNull();
     expect(buttonByText('New').disabled).toBe(false);
-    for (const label of ['Open', 'Save', 'Undo', 'Redo']) {
-      expect(buttonByText(label).disabled).toBe(true);
-    }
+    expect(buttonByText('Open').disabled).toBe(false);
+    expect(buttonByText('Save').disabled).toBe(true);
+    expect(buttonByText('Undo').disabled).toBe(true);
+    expect(buttonByText('Redo').disabled).toBe(true);
 
     buttonByText('New').click();
     await fixture.whenStable();
 
     expect(canvas().querySelector('.artboard')).not.toBeNull();
     expect(canvas().querySelector('path')?.getAttribute('d')).toContain('C ');
-    expect(buttonByText('Open').disabled).toBe(true);
-    expect(buttonByText('Save').disabled).toBe(true);
+    expect(buttonByText('Open').disabled).toBe(false);
+    expect(buttonByText('Save').disabled).toBe(false);
     expect(buttonByText('Undo').disabled).toBe(false);
     expect(buttonByText('Redo').disabled).toBe(true);
+  });
+
+  it('opens the save dialog and closes it without writing', async () => {
+    buttonByText('New').click();
+    await fixture.whenStable();
+    buttonByText('Save').click();
+    await fixture.whenStable();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog?.textContent).toContain('All data');
+    expect(dialog?.textContent).toContain('Optimized');
+    expect(dialog?.textContent).toContain('Minimal');
+    expect(
+      dialog?.querySelector('input[type="radio"]:checked')?.parentElement?.textContent,
+    ).toContain('All data');
+
+    dialog?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(buttonByText('Save'));
   });
 
   it('paints fill and stroke on the canvas and in preview', async () => {

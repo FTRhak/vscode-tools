@@ -3,6 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { SessionService } from '@vector-editor/core';
 import { CommandBus } from '../commands/command-bus.service';
 import { Command, EditorTool, oppositeMode } from '../commands/command';
+import { FileActions } from '../shell/file-actions.service';
 
 const toolKeys: Readonly<Record<string, EditorTool>> = {
   v: 'select',
@@ -14,11 +15,19 @@ const toolKeys: Readonly<Record<string, EditorTool>> = {
 export class KeymapService {
   private readonly bus = inject(CommandBus);
   private readonly session = inject(SessionService);
+  private readonly files = inject(FileActions);
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat || isTypingTarget(event.target)) {
+        return;
+      }
+      if (this.runFileShortcut(event)) {
+        event.preventDefault();
+        return;
+      }
       const command = this.commandFor(event);
       if (!command) {
         return;
@@ -33,11 +42,23 @@ export class KeymapService {
     });
   }
 
-  private commandFor(event: KeyboardEvent): Command | null {
-    if (event.repeat || isTypingTarget(event.target)) {
-      return null;
+  private runFileShortcut(event: KeyboardEvent): boolean {
+    if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
+      return false;
     }
+    const key = event.key.toLowerCase();
+    if (key === 'o') {
+      this.files.openPicker();
+      return true;
+    }
+    if (key === 's') {
+      this.files.requestSave();
+      return true;
+    }
+    return false;
+  }
 
+  private commandFor(event: KeyboardEvent): Command | null {
     if (event.key === 'Tab') {
       if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {
         return null;
@@ -123,12 +144,19 @@ export class KeymapService {
   }
 }
 
+const nonTextInput = new Set(['button', 'checkbox', 'file', 'radio', 'range', 'reset', 'submit']);
+
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;
   }
-  const tag = target.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
+  if (target.isContentEditable) {
+    return true;
+  }
+  if (target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+    return true;
+  }
+  return target instanceof HTMLInputElement && !nonTextInput.has(target.type);
 }
 
 function isViewportTarget(target: EventTarget | null): boolean {

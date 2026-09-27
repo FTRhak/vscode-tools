@@ -1,0 +1,102 @@
+<article class="modifier-row">
+  <div class="modifier-head">
+    <button
+      type="button"
+      class="chrome-button"
+      cdkDragHandle
+      [attr.aria-label]="'Reorder ' + title()"
+    >
+      Reorder
+    </button>
+    <h3>{{ title() }}</h3>
+    <label>
+      <input type="checkbox" [checked]="modifier().enabled" (change)="commitEnabled($event)" />
+      Enabled
+    </label>
+  </div>
+  @if (arrayModifier(); as array) {
+    <form class="fields" (submit)="$event.preventDefault()">
+      <label>
+        Count
+        <input
+          type="number"
+          step="1"
+          [formField]="modifierForm.count"
+          (blur)="commitCount()"
+          (keydown.enter)="commitCount($event)"
+        />
+      </label>
+      <label>
+        Offset X
+        <input
+          type="number"
+          step="any"
+          [formField]="modifierForm.offsetX"
+          (blur)="commitOffset('offsetX')"
+          (keydown.enter)="commitOffset('offsetX', $event)"
+        />
+      </label>
+      <label>
+        Offset Y
+        <input
+          type="number"
+          step="any"
+          [formField]="modifierForm.offsetY"
+          (blur)="commitOffset('offsetY')"
+          (keydown.enter)="commitOffset('offsetY', $event)"
+        />
+      </label>
+    </form>
+  } @else if (mirrorModifier(); as mirror) {
+    <fieldset class="axis">
+      <legend>Axis</legend>
+      <label>
+        <input
+          type="radio"
+          [name]="'axis-' + mirror.id"
+          [checked]="mirror.axis === 'x'"
+          (change)="commitAxis('x')"
+        />
+        X
+      </label>
+      <label>
+        <input
+          type="radio"
+          [name]="'axis-' + mirror.id"
+          [checked]="mirror.axis === 'y'"
+          (change)="commitAxis('y')"
+        />
+        Y
+      </label>
+      <label>
+        <input
+          type="radio"
+          [name]="'axis-' + mirror.id"
+          [checked]="mirror.axis === 'xy'"
+          (change)="commitAxis('xy')"
+        />
+        Both
+      </label>
+    </fieldset>
+  } @else {
+    <p>{{ title() }} is not available yet.</p>
+  }
+  <div class="modifier-actions">
+    <button
+      type="button"
+      class="chrome-button"
+      [attr.aria-label]="'Apply ' + title()"
+      (click)="apply()"
+    >
+      Apply
+    </button>
+    <button
+      type="button"
+      class="chrome-button"
+      [attr.aria-label]="'Remove ' + title()"
+      (click)="remove()"
+    >
+      Remove
+    </button>
+  </div>
+</article>

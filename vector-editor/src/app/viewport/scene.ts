@@ -1,5 +1,6 @@
 import {
   Document,
+  evaluateObject,
   ObjectTransform,
   objectsInPaintOrder,
   sourceToPathData,
@@ -26,7 +27,7 @@ export function sceneFromDocument(document: Document): Scene {
     viewBox: document.viewBox,
     objects: objectsInPaintOrder(document).map((object) => ({
       id: object.id,
-      d: sourceToPathData(object.source),
+      d: sourceToPathData({ subpaths: evaluateObject(object).subpaths }),
       transform: formatObjectTransform(object.transform),
       fill: object.style.fill ?? 'none',
       stroke: object.style.stroke ?? 'none',

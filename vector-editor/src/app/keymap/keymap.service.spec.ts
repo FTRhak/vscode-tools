@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
 import { CommandBus } from '../commands/command-bus.service';
+import { FileActions } from '../shell/file-actions.service';
 import { KeymapService } from './keymap.service';
 
 describe('KeymapService', () => {
@@ -157,6 +158,43 @@ describe('KeymapService', () => {
 
     expect(typed.defaultPrevented).toBe(false);
     expect(session.document()!.objects[0].visible).toBe(true);
+  });
+
+  it('opens and saves from the keyboard without handing the keys to the browser', () => {
+    const files = TestBed.inject(FileActions);
+    const saved = key('s', { ctrlKey: true });
+    document.dispatchEvent(saved);
+
+    expect(saved.defaultPrevented).toBe(true);
+    expect(files.saveDialogOpen()).toBe(false);
+
+    bus.dispatch({ type: 'document.new' });
+    const withDocument = key('s', { ctrlKey: true });
+    document.dispatchEvent(withDocument);
+
+    expect(withDocument.defaultPrevented).toBe(true);
+    expect(files.saveDialogOpen()).toBe(true);
+
+    const opened = key('o', { ctrlKey: true });
+    document.dispatchEvent(opened);
+    expect(opened.defaultPrevented).toBe(true);
+
+    const input = document.createElement('input');
+    document.body.append(input);
+    const typed = key('s', { ctrlKey: true });
+    input.dispatchEvent(typed);
+    input.remove();
+
+    expect(typed.defaultPrevented).toBe(false);
+
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    document.body.append(radio);
+    const onRadio = key('s', { ctrlKey: true });
+    radio.dispatchEvent(onRadio);
+    radio.remove();
+
+    expect(onRadio.defaultPrevented).toBe(true);
   });
 
   it('does not duplicate when nothing is selected', () => {

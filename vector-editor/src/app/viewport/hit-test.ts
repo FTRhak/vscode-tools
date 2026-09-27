@@ -1,5 +1,6 @@
 import {
   Document,
+  evaluateObject,
   objectsInPaintOrder,
   ObjectTransform,
   SourcePath,
@@ -59,7 +60,7 @@ function hitsObject(object: VectorObject, point: Vec2, zoom: number): boolean {
   let crossings = 0;
   let winding = 0;
 
-  for (const subpath of object.source.subpaths) {
+  for (const subpath of displayedSource(object).subpaths) {
     const points = flattenSubpath(subpath, tolerance);
     if (points.length === 0) {
       continue;
@@ -186,7 +187,7 @@ function rayCrossings(
 }
 
 function objectBounds(object: VectorObject): Bounds | null {
-  const points = controlPoints(object.source).map((point) =>
+  const points = controlPoints(displayedSource(object)).map((point) =>
     localToDocument(object.transform, point),
   );
   if (points.length === 0) {
@@ -208,6 +209,10 @@ function objectBounds(object: VectorObject): Bounds | null {
         Math.max(Math.abs(object.transform.scaleX), Math.abs(object.transform.scaleY))
       : 0;
   return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad };
+}
+
+function displayedSource(object: VectorObject): SourcePath {
+  return { subpaths: evaluateObject(object).subpaths };
 }
 
 function controlPoints(source: SourcePath): Vec2[] {

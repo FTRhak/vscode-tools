@@ -1,0 +1,51 @@
+@if (open()) {
+  <div class="backdrop" (click)="cancel()">
+    <div
+      class="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-dialog-title"
+      cdkTrapFocus
+      cdkTrapFocusAutoCapture
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="cancel()"
+    >
+      <fieldset>
+        <legend id="save-dialog-title">Save SVG</legend>
+        <div class="choices">
+          <label>
+            <input
+              type="radio"
+              name="save-mode"
+              [checked]="mode() === 'all'"
+              (change)="choose('all')"
+            />
+            All data
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="save-mode"
+              [checked]="mode() === 'optimized'"
+              (change)="choose('optimized')"
+            />
+            Optimized
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="save-mode"
+              [checked]="mode() === 'minimal'"
+              (change)="choose('minimal')"
+            />
+            Minimal
+          </label>
+        </div>
+      </fieldset>
+      <div class="actions">
+        <button type="button" class="chrome-button" (click)="cancel()">Cancel</button>
+        <button type="button" class="chrome-button" (click)="confirm()">Save</button>
+      </div>
+    </div>
+  </div>
+}

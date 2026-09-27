@@ -25,6 +25,14 @@ import {
   setAnchorPosition,
   translateAnchors,
 } from './model/edit-path';
+import {
+  addModifier,
+  applyAllModifiers,
+  applyModifier,
+  removeModifier,
+  reorderModifier,
+  updateModifier,
+} from './model/modifier-edits';
 import { isInteractionLocked } from './model/paint-order';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
 import { Document, ObjectTransform, SourcePath, VectorObject, ViewportCamera } from './model/types';
@@ -49,7 +57,10 @@ const initialSession: SessionSlice = {
   penObjectId: null,
 };
 
-type DocumentCommand = Exclude<Command, { type: 'history.undo' } | { type: 'history.redo' }>;
+type DocumentCommand = Exclude<
+  Command,
+  { type: 'history.undo' } | { type: 'history.redo' } | { type: 'history.jump' }
+>;
 
 export function applySessionCommand(state: SessionSlice, command: DocumentCommand): SessionSlice {
   switch (command.type) {
@@ -63,6 +74,14 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return {
         ...state,
         document: createNewDocument(),
+        selection: emptySelection,
+        penObjectId: null,
+      };
+    case 'document.replace':
+      return {
+        ...state,
+        document: command.document,
+        mode: 'object',
         selection: emptySelection,
         penObjectId: null,
       };
@@ -131,6 +150,28 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyPenSetHandles(state, command);
     case 'pen.finish':
       return applyPenFinish(state, command);
+    case 'modifier.add':
+      return applyObjectChange(state, command.objectId, (object) =>
+        addModifier(object, command.kind),
+      );
+    case 'modifier.update':
+      return applyObjectChange(state, command.objectId, (object) =>
+        updateModifier(object, command.modifierId, command.patch),
+      );
+    case 'modifier.remove':
+      return applyObjectChange(state, command.objectId, (object) =>
+        removeModifier(object, command.modifierId),
+      );
+    case 'modifier.reorder':
+      return applyObjectChange(state, command.objectId, (object) =>
+        reorderModifier(object, command.modifierId, command.index),
+      );
+    case 'modifier.apply':
+      return applyBakedModifier(state, command.objectId, (object) =>
+        applyModifier(object, command.modifierId),
+      );
+    case 'modifier.applyAll':
+      return applyBakedModifier(state, command.objectId, (object) => applyAllModifiers(object));
   }
 }
 
@@ -140,6 +181,9 @@ export function commitSession(state: SessionSlice, command: Command): SessionSli
   }
   if (command.type === 'history.redo') {
     return redoSession(state);
+  }
+  if (command.type === 'history.jump') {
+    return jumpSession(state, command.index);
   }
 
   const next = applySessionCommand(state, command);
@@ -227,6 +271,29 @@ function redoSession(state: SessionSlice): SessionSlice {
     mode: entry.after.mode,
     selection: entry.after.selection,
     history: { entries: state.history.entries, index },
+  });
+}
+
+function jumpSession(state: SessionSlice, index: number): SessionSlice {
+  const { entries } = state.history;
+  if (
+    !Number.isInteger(index) ||
+    index < -1 ||
+    index >= entries.length ||
+    index === state.history.index
+  ) {
+    return state;
+  }
+  const snapshot = index === -1 ? entries[0]?.before : entries[index]?.after;
+  if (!snapshot) {
+    return state;
+  }
+  return reconcilePen({
+    ...state,
+    document: snapshot.document,
+    mode: snapshot.mode,
+    selection: snapshot.selection,
+    history: { entries, index },
   });
 }
 
@@ -673,6 +740,39 @@ function withFlags(
     next = { ...next, locked: patch.locked };
   }
   return next;
+}
+
+function applyObjectChange(
+  state: SessionSlice,
+  objectId: string,
+  update: (object: VectorObject) => VectorObject,
+): SessionSlice {
+  return applyDocument(state, (document) => mapObjects(document, [objectId], update));
+}
+
+function applyBakedModifier(
+  state: SessionSlice,
+  objectId: string,
+  update: (object: VectorObject) => VectorObject,
+): SessionSlice {
+  const next = applyObjectChange(state, objectId, update);
+  if (next === state || next.selection.activeObjectId !== objectId) {
+    return next;
+  }
+  if (
+    next.selection.selectedAnchorIds.length === 0 &&
+    next.selection.selectedSegmentIds.length === 0
+  ) {
+    return next;
+  }
+  return {
+    ...next,
+    selection: {
+      ...next.selection,
+      selectedAnchorIds: [],
+      selectedSegmentIds: [],
+    },
+  };
 }
 
 function applyDocument(

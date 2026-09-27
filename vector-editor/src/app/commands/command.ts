@@ -1,4 +1,5 @@
-import type { ObjectTransform, Vec2 } from '../core/model/types';
+import type { ModifierPatch } from '../core/model/modifier-edits';
+import type { Document, ObjectTransform, Vec2 } from '../core/model/types';
 
 export type ColorSlot = 'fill' | 'stroke';
 
@@ -21,6 +22,7 @@ export type Command =
   | { readonly type: 'session.setTool'; readonly tool: EditorTool }
   | { readonly type: 'session.setEditSelectionKind'; readonly kind: EditSelectionKind }
   | { readonly type: 'document.new' }
+  | { readonly type: 'document.replace'; readonly document: Document }
   | {
       readonly type: 'session.setViewport';
       readonly panX: number;
@@ -115,8 +117,25 @@ export type Command =
       readonly gesture: TranslateGesture;
     }
   | { readonly type: 'pen.finish'; readonly objectId: string; readonly closed: boolean }
+  | { readonly type: 'modifier.add'; readonly objectId: string; readonly kind: 'array' | 'mirror' }
+  | {
+      readonly type: 'modifier.update';
+      readonly objectId: string;
+      readonly modifierId: string;
+      readonly patch: ModifierPatch;
+    }
+  | { readonly type: 'modifier.remove'; readonly objectId: string; readonly modifierId: string }
+  | {
+      readonly type: 'modifier.reorder';
+      readonly objectId: string;
+      readonly modifierId: string;
+      readonly index: number;
+    }
+  | { readonly type: 'modifier.apply'; readonly objectId: string; readonly modifierId: string }
+  | { readonly type: 'modifier.applyAll'; readonly objectId: string }
   | { readonly type: 'history.undo' }
-  | { readonly type: 'history.redo' };
+  | { readonly type: 'history.redo' }
+  | { readonly type: 'history.jump'; readonly index: number };
 
 export function oppositeMode(mode: EditorMode): EditorMode {
   return mode === 'object' ? 'edit' : 'object';

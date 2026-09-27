@@ -43,6 +43,8 @@ export function historyLabel(command: Command): string | null {
   switch (command.type) {
     case 'document.new':
       return 'New document';
+    case 'document.replace':
+      return 'Open';
     case 'session.select':
       return 'Select';
     case 'object.translate':
@@ -97,12 +99,25 @@ export function historyLabel(command: Command): string | null {
       return 'Pen';
     case 'pen.finish':
       return command.closed ? 'Close path' : null;
+    case 'modifier.add':
+      return 'Add modifier';
+    case 'modifier.update':
+      return 'Update modifier';
+    case 'modifier.remove':
+      return 'Remove modifier';
+    case 'modifier.reorder':
+      return 'Reorder modifier';
+    case 'modifier.apply':
+      return 'Apply modifier';
+    case 'modifier.applyAll':
+      return 'Apply modifiers';
     case 'session.setMode':
     case 'session.setTool':
     case 'session.setViewport':
     case 'session.setEditSelectionKind':
     case 'history.undo':
     case 'history.redo':
+    case 'history.jump':
       return null;
   }
 }
