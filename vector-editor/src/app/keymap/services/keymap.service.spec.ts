@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
-import { CommandBus } from '../commands/command-bus.service';
-import { FileActions } from '../shell/file-actions.service';
+import { CommandBus } from '../../commands/command-bus.service';
+import { FileActions } from '../../shell/services/file-actions.service';
 import { KeymapService } from './keymap.service';
 
 describe('KeymapService', () => {

@@ -1,9 +1,9 @@
 import { DestroyRef, inject, Service } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { SessionService } from '@vector-editor/core';
-import { CommandBus } from '../commands/command-bus.service';
-import { Command, EditorTool, oppositeMode } from '../commands/command';
-import { FileActions } from '../shell/file-actions.service';
+import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { Command, EditorTool, oppositeMode } from '@vector-editor/commands/command';
+import { FileActions } from '../../shell/services/file-actions.service';
 
 const toolKeys: Readonly<Record<string, EditorTool>> = {
   v: 'select',
