@@ -1,0 +1,24 @@
+<svg aria-hidden="true">
+  @if (scene(); as scene) {
+    <g [attr.transform]="cameraTransform()">
+      <rect
+        class="artboard"
+        [attr.x]="scene.viewBox.x"
+        [attr.y]="scene.viewBox.y"
+        [attr.width]="scene.viewBox.width"
+        [attr.height]="scene.viewBox.height"
+      />
+      @for (object of scene.objects; track object.id) {
+        <g [attr.transform]="object.transform">
+          <path
+            [attr.d]="object.d"
+            [attr.fill]="object.fill"
+            [attr.stroke]="object.stroke"
+            [attr.stroke-width]="object.strokeWidth"
+            [attr.fill-rule]="object.fillRule"
+          />
+        </g>
+      }
+    </g>
+  }
+</svg>

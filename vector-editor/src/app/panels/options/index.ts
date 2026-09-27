@@ -1,1 +1,1 @@
-export { OptionsModule } from './options.module';
+export { OptionsPanel } from './components';

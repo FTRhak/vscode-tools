@@ -1,0 +1,21 @@
+<header class="top-bar">
+  <div class="group" role="group" aria-label="File">
+    <button type="button" class="chrome-button" (click)="newDocument()">New</button>
+    <button type="button" class="chrome-button" disabled>Open</button>
+    <button type="button" class="chrome-button" disabled>Save</button>
+  </div>
+  <div class="mode" aria-live="polite">
+    <button
+      type="button"
+      class="chrome-button"
+      [attr.aria-label]="modeLabel() + ' mode'"
+      (click)="toggleMode()"
+    >
+      {{ modeLabel() }}
+    </button>
+  </div>
+  <div class="group history" role="group" aria-label="History">
+    <button type="button" class="chrome-button" disabled>Undo</button>
+    <button type="button" class="chrome-button" disabled>Redo</button>
+  </div>
+</header>

@@ -1,1 +1,1 @@
-export { PreviewModule } from './preview.module';
+export { PreviewPanel } from './components';

@@ -1,1 +1,1 @@
-export { ToolsModule } from './tools.module';
+export { ToolsPanel } from './components';

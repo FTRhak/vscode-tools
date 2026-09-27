@@ -1,1 +1,113 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  color-scheme: dark;
+  --chrome: #2a2a2a;
+  --chrome-button: #3a3a3a;
+  --chrome-button-hover: #4a4a4a;
+  --chrome-text: #f3f3f3;
+  --chrome-muted: #c4c4c4;
+  --canvas: #ffffff;
+  --desk: #d4d4d4;
+  --line: #555555;
+  --accent: #ffd60a;
+  --font: system-ui, 'Segoe UI', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--chrome);
+  color: var(--chrome-text);
+  font-family: var(--font);
+}
+
+vector-editor-root {
+  display: block;
+  height: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px #ffffff;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.chrome-button {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--chrome-button);
+  color: var(--chrome-text);
+  font: inherit;
+  min-height: 2rem;
+  min-width: 2rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+}
+
+.chrome-button:hover:not(:disabled) {
+  background: var(--chrome-button-hover);
+}
+
+.chrome-button:disabled {
+  color: var(--chrome-muted);
+  cursor: not-allowed;
+}
+
+.chrome-button[aria-pressed='true'] {
+  border-inline-start-width: 3px;
+  border-inline-start-color: var(--accent);
+}
+
+.panel-section {
+  margin: 0;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-section h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.panel-section p {
+  margin: 0;
+  color: var(--chrome-muted);
+  font-size: 0.85rem;
+}
+
+.tool-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.tool-list .chrome-button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.shortcut {
+  color: var(--chrome-muted);
+}

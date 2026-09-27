@@ -1,1 +1,1 @@
-export { ModifiersModule } from './modifiers.module';
+export { ModifiersPanel } from './components';

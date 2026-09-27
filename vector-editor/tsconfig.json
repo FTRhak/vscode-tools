@@ -14,11 +14,8 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
-      "@vector-editor/panels": ["./src/app/panels/*"],
-      "@vector-editor/models": ["./src/app/core/models/index.ts"],
-      "@vector-editor/viewport": ["./src/app/core/viewport/index.ts"],
       "@vector-editor/core": ["./src/app/core/index.ts"],
-      "@vector-editor/shared": ["./src/app/shared/index.ts"],
+      "@vector-editor/viewport": ["./src/app/viewport/index.ts"]
     }
   },
   "angularCompilerOptions": {

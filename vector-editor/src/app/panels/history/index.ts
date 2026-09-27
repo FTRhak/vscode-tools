@@ -1,1 +1,1 @@
-export { HistoryModule } from './history.module';
+export { HistoryPanel } from './components';

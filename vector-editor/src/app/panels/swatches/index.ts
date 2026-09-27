@@ -1,1 +1,1 @@
-export { SwatchesModule } from './swatches.module';
+export { SwatchesPanel } from './components';

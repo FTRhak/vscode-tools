@@ -1,0 +1,15 @@
+<nav class="tool-rail" aria-label="Tools">
+  @for (tool of tools; track tool.id) {
+    <button
+      type="button"
+      class="chrome-button"
+      [attr.aria-label]="tool.label"
+      [attr.aria-keyshortcuts]="tool.shortcut"
+      [attr.aria-pressed]="activeTool() === tool.id ? 'true' : 'false'"
+      [attr.title]="tool.label"
+      (click)="select(tool.id)"
+    >
+      {{ tool.shortcut }}
+    </button>
+  }
+</nav>

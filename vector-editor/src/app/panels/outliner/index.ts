@@ -1,1 +1,1 @@
-export { OutlinerModule } from './outliner.module';
+export { OutlinerPanel } from './components';

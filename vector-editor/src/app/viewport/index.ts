@@ -1,1 +1,1 @@
-export { ViewportModule } from './viewport.module';
+export { Viewport } from './viewport';
