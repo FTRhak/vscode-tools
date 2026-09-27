@@ -1,5 +1,5 @@
-import type { ModifierPatch } from '../core/model/modifier-edits';
-import type { Document, ObjectTransform, Vec2 } from '../core/model/types';
+import type { ModifierPatch } from '../../core/model/modifier-edits';
+import type { Document, ObjectTransform, Vec2 } from '../../core/model/types';
 
 export type ColorSlot = 'fill' | 'stroke';
 

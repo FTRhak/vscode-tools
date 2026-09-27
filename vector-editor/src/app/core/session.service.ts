@@ -1,5 +1,5 @@
 import { computed, Service, signal } from '@angular/core';
-import { Command, EditorMode, EditorTool } from '../commands/command';
+import { Command, EditorMode, EditorTool } from '../commands/models/command';
 import {
   emptyHistory,
   emptySelection,
@@ -8,7 +8,7 @@ import {
   recordHistory,
   SelectionState,
   SessionSnapshot,
-} from '../commands/history';
+} from '../commands/models/history';
 import { captureClipperHold, ClipperHold } from './eval/evaluate';
 import { createNewDocument } from './model/create-document';
 import {

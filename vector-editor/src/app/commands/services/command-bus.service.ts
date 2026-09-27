@@ -1,6 +1,6 @@
 import { inject, Service } from '@angular/core';
 import { SessionService } from '@vector-editor/core';
-import { Command } from '../command';
+import { Command } from '../models/command';
 
 /** Dispatches editor commands to the active session for application. */
 @Service()

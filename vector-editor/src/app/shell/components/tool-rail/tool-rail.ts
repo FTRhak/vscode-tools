@@ -1,8 +1,6 @@
 import { Component, inject } from '@angular/core';
+import { CommandBus, EDITOR_TOOLS, EditorTool } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands';
-import { EditorTool } from '@vector-editor/commands/command';
-import { EDITOR_TOOLS } from '@vector-editor/commands/editor-tools';
 
 @Component({
   selector: 'app-tool-rail',

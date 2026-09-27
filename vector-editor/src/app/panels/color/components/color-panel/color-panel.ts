@@ -1,6 +1,6 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
-import { ColorSlot } from '@vector-editor/commands/command';
+import { ColorSlot } from '@vector-editor/commands';
 import { CommandBus } from '@vector-editor/commands';
 import { SessionService, VectorObject } from '@vector-editor/core';
 import { SharedModule } from '@vector-editor/shared';

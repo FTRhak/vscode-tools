@@ -1,5 +1,5 @@
 import { Anchor, Vec2, VectorObject } from '@vector-editor/core';
-import { Command, EditorMode } from '../../commands/command';
+import { Command, EditorMode } from '../../commands/models/command';
 import { anchorHitRadius } from '../anchor-hit';
 
 export const PEN_DRAG_THRESHOLD_PX = 4;

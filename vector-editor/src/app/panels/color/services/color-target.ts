@@ -1,5 +1,5 @@
 import { Service, signal } from '@angular/core';
-import { ColorSlot } from '@vector-editor/commands/command';
+import { ColorSlot } from '@vector-editor/commands';
 
 @Service()
 export class ColorTarget {

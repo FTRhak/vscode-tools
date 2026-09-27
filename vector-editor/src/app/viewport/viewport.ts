@@ -1,15 +1,7 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } from '@angular/core';
+import { CommandBus, TranslateGesture } from '@vector-editor/commands';
 import { isInteractionLocked, SessionService, Vec2, VectorObject } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands';
-import { TranslateGesture } from '@vector-editor/commands/command';
 import { anchorsInRect } from './anchor-hit';
-import {
-  beginDirectDrag,
-  DirectDrag,
-  finishDirectDrag,
-  updateDirectDrag,
-} from './tools/direct-select';
-import { PenDrag, penPreviewData, startPen, updatePenDrag } from './tools/pen';
 import {
   ARTBOARD_FIT_PADDING,
   cameraTransformAttribute,
@@ -21,6 +13,13 @@ import {
 } from './camera';
 import { DocumentRect, documentToLocal, hitTestObject, objectsInRect } from './hit-test';
 import { formatObjectTransform, sceneFromDocument } from './scene';
+import {
+  beginDirectDrag,
+  DirectDrag,
+  finishDirectDrag,
+  updateDirectDrag,
+} from './tools/direct-select';
+import { PenDrag, penPreviewData, startPen, updatePenDrag } from './tools/pen';
 
 interface PanGesture {
   readonly pointerId: number;
