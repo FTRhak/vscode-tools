@@ -1,1 +1,1 @@
-export { OptionsPanel } from './options-panel';
+export { OptionsPanel } from './options-panel/options-panel';

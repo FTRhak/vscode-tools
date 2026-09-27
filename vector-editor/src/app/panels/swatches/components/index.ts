@@ -1,1 +1,1 @@
-export { SwatchesPanel } from './swatches-panel';
+export { SwatchesPanel } from './swatches-panel/swatches-panel';

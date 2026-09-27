@@ -1,0 +1,16 @@
+<panel [panelName]="panelName">
+  <div class="tool-list">
+    @for (tool of tools; track tool.id) {
+      <button
+        type="button"
+        class="chrome-button"
+        [attr.aria-keyshortcuts]="tool.shortcut"
+        [attr.aria-pressed]="activeTool() === tool.id ? 'true' : 'false'"
+        (click)="select(tool.id)"
+      >
+        <span>{{ tool.label }}</span>
+        <span class="shortcut">{{ tool.shortcut }}</span>
+      </button>
+    }
+  </div>
+</panel>

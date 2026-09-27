@@ -15,6 +15,8 @@
     "module": "preserve",
     "paths": {
       "@vector-editor/core": ["./src/app/core/index.ts"],
+      "@vector-editor/shared": ["./src/app/shared/index.ts"],
+      "@vector-editor/commands/*": ["./src/app/commands/*"],
       "@vector-editor/viewport": ["./src/app/viewport/index.ts"]
     }
   },

@@ -1,0 +1,27 @@
+<panel [panelName]="panelName">
+  @if (swatches().length === 0) {
+    <p>No swatches yet.</p>
+  } @else {
+    <ul class="swatch-list">
+      @for (swatch of swatches(); track swatch.id) {
+        <li>
+          <button
+            type="button"
+            class="swatch"
+            [style.background]="swatch.color"
+            [attr.aria-label]="swatch.name"
+            (click)="apply(swatch.id)"
+          ></button>
+        </li>
+      }
+    </ul>
+  }
+  <button
+    type="button"
+    class="chrome-button add"
+    [disabled]="sharedFill() === null"
+    (click)="add()"
+  >
+    Add swatch
+  </button>
+</panel>

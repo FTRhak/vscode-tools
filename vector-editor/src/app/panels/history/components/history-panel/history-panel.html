@@ -1,0 +1,21 @@
+<panel [panelName]="panelName">
+  @if (rows().length === 0) {
+    <p>No history yet.</p>
+  } @else {
+    <ol class="history-list">
+      @for (row of rows(); track row.index) {
+        <li>
+          <button
+            type="button"
+            class="chrome-button"
+            [class.is-future]="row.future"
+            [attr.aria-current]="row.current ? 'step' : null"
+            (click)="jump(row.index)"
+          >
+            {{ row.label }}
+          </button>
+        </li>
+      }
+    </ol>
+  }
+</panel>

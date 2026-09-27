@@ -1,1 +1,1 @@
-export { HistoryPanel } from './history-panel';
+export { HistoryPanel } from './history-panel/history-panel';

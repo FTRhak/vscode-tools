@@ -1,0 +1,107 @@
+<panel [panelName]="panelName">
+  @if (hasDocument()) {
+    <button type="button" class="chrome-button add-layer" (click)="addLayer()">Add layer</button>
+    <div class="tree" role="tree" aria-label="Layers" (keydown)="onTreeKeydown($event)">
+      @for (layer of layers(); track layer.id) {
+        <div
+          class="layer"
+          role="treeitem"
+          [attr.aria-expanded]="layer.expanded"
+          [attr.aria-level]="1"
+          [attr.data-tree-key]="'layer:' + layer.id"
+          [tabindex]="activeFocusKey() === 'layer:' + layer.id ? 0 : -1"
+        >
+          <div class="tree-row layer-row" (click)="onLayerClick(layer.id)">
+            <span class="twist" aria-hidden="true">{{ layer.expanded ? '▾' : '▸' }}</span>
+            <button
+              type="button"
+              class="icon-button"
+              [attr.aria-label]="(layer.visible ? 'Hide ' : 'Show ') + layer.name"
+              [attr.aria-pressed]="layer.visible"
+              (click)="toggleLayerFlag(layer, 'visible', $event)"
+            >
+              <span aria-hidden="true">{{ layer.visible ? '●' : '○' }}</span>
+            </button>
+            <button
+              type="button"
+              class="icon-button"
+              [attr.aria-label]="(layer.locked ? 'Unlock ' : 'Lock ') + layer.name"
+              [attr.aria-pressed]="layer.locked"
+              (click)="toggleLayerFlag(layer, 'locked', $event)"
+            >
+              <span aria-hidden="true">{{ layer.locked ? '■' : '□' }}</span>
+            </button>
+            <input
+              class="layer-name"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              [value]="layer.name"
+              [attr.aria-label]="'Rename ' + layer.name"
+              (click)="$event.stopPropagation()"
+              (keydown)="$event.stopPropagation()"
+              (blur)="renameLayer(layer.id, $event)"
+              (keydown.enter)="renameLayer(layer.id, $event)"
+            />
+            <button
+              type="button"
+              class="icon-button"
+              [attr.aria-label]="'Move ' + layer.name + ' forward'"
+              [disabled]="!layer.canMoveForward"
+              (click)="moveLayer(layer.id, layer.index - 1, $event)"
+            >
+              <span aria-hidden="true">↑</span>
+            </button>
+            <button
+              type="button"
+              class="icon-button"
+              [attr.aria-label]="'Move ' + layer.name + ' backward'"
+              [disabled]="!layer.canMoveBackward"
+              (click)="moveLayer(layer.id, layer.index + 1, $event)"
+            >
+              <span aria-hidden="true">↓</span>
+            </button>
+          </div>
+          @if (layer.expanded) {
+            <div class="group" role="group">
+              @for (object of layer.objects; track object.id) {
+                <div
+                  class="tree-row object-row"
+                  role="treeitem"
+                  [class.active]="object.active"
+                  [attr.aria-selected]="object.selected"
+                  [attr.aria-level]="2"
+                  [attr.data-tree-key]="'object:' + object.id"
+                  [tabindex]="activeFocusKey() === 'object:' + object.id ? 0 : -1"
+                  (click)="onObjectClick(object.id, $event)"
+                >
+                  <button
+                    type="button"
+                    class="icon-button"
+                    [attr.aria-label]="(object.visible ? 'Hide ' : 'Show ') + object.name"
+                    [attr.aria-pressed]="object.visible"
+                    (click)="toggleObjectFlag(object, 'visible', $event)"
+                  >
+                    <span aria-hidden="true">{{ object.visible ? '●' : '○' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-button"
+                    [attr.aria-label]="(object.locked ? 'Unlock ' : 'Lock ') + object.name"
+                    [attr.aria-pressed]="object.locked"
+                    (click)="toggleObjectFlag(object, 'locked', $event)"
+                  >
+                    <span aria-hidden="true">{{ object.locked ? '■' : '□' }}</span>
+                  </button>
+                  <span class="object-name">{{ object.name }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <p>No objects yet.</p>
+  }
+</panel>

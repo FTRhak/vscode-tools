@@ -1,0 +1,37 @@
+.panel-section {
+  margin: 0;
+  padding: 0.1rem 0.1rem;
+  border-bottom: 1px solid var(--line);
+
+  .panel-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.5rem;
+    border: none;
+    background: none;
+    color: var(--chrome-text);
+    font-size: 0.85rem;
+
+    &:hover {
+      background: var(--chrome-button-hover);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  }
+
+  .panel-accordion-item-body {
+    padding: 0.5rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--chrome-muted);
+    font-size: 0.85rem;
+  }
+}

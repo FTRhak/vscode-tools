@@ -1,0 +1,30 @@
+<section class="panel-section" aria-labelledby="{{ label() }}-heading">
+  <cdk-accordion class="panel-accordion">
+    <cdk-accordion-item #accordionItem="cdkAccordionItem" class="{{ label() }}-accordion-item">
+      <button
+        class="panel-accordion-header"
+        (click)="accordionItem.toggle()"
+        tabindex="0"
+        [attr.id]="'accordion-header-{{ label() }}'"
+        [attr.aria-expanded]="accordionItem.expanded"
+        [attr.aria-controls]="'accordion-body-{{ label() }}'"
+      >
+        <h2 id="{{ label() }}-heading">{{ panelName() }}</h2>
+        <span class="panel-accordion-description">
+          <!-- TODO: Add description -->
+          <span aria-hidden="true">{{ accordionItem.expanded ? '▾' : '▸' }}</span>
+        </span>
+      </button>
+      @if (accordionItem.expanded) {
+        <div
+          class="panel-accordion-item-body"
+          role="region"
+          [attr.id]="'accordion-body-{{ label() }}'"
+          [attr.aria-labelledby]="'accordion-header-{{ label() }}'"
+        >
+          <ng-content></ng-content>
+        </div>
+      }
+    </cdk-accordion-item>
+  </cdk-accordion>
+</section>

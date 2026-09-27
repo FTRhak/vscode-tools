@@ -1,1 +1,1 @@
-export { PreviewPanel } from './preview-panel';
+export { PreviewPanel } from './preview-panel/preview-panel';

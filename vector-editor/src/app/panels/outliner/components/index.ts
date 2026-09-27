@@ -1,1 +1,1 @@
-export { OutlinerPanel } from './outliner-panel';
+export { OutlinerPanel } from './outliner-panel/outliner-panel';
