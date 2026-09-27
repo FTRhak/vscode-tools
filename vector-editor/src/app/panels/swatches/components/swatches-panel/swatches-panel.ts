@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { nextSeriesName, SessionService, VectorObject } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { ColorTarget } from '../../../color/services/color-target';
 import { SharedModule } from '@vector-editor/shared';
 

@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { DestroyRef, inject, Service, signal } from '@angular/core';
 import { exportSvg, importSvg, SaveMode, SessionService } from '@vector-editor/core';
-import { CommandBus } from '../../commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 
 @Service()
 export class FileActions {

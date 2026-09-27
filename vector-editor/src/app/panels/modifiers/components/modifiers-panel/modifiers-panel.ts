@@ -1,9 +1,9 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, computed, inject } from '@angular/core';
+import { CommandBus } from '@vector-editor/commands';
 import { evaluateDocument, Modifier, SessionService } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
-import { ModifierRow } from '../modifier-row/modifier-row';
 import { SharedModule } from '@vector-editor/shared';
+import { ModifierRow } from '../modifier-row/modifier-row';
 
 @Component({
   selector: 'app-modifiers-panel',

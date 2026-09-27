@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { FileActions } from './file-actions.service';
 
 describe('FileActions', () => {

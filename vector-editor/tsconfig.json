@@ -16,6 +16,7 @@
     "paths": {
       "@vector-editor/core": ["./src/app/core/index.ts"],
       "@vector-editor/shared": ["./src/app/shared/index.ts"],
+      "@vector-editor/commands": ["./src/app/commands/index.ts"],
       "@vector-editor/commands/*": ["./src/app/commands/*"],
       "@vector-editor/viewport": ["./src/app/viewport/index.ts"],
       "@vector-editor/keymap": ["./src/app/keymap/index.ts"],

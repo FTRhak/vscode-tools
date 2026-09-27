@@ -1,7 +1,7 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } from '@angular/core';
 import { isInteractionLocked, SessionService, Vec2, VectorObject } from '@vector-editor/core';
-import { CommandBus } from '../commands/command-bus.service';
-import { TranslateGesture } from '../commands/command';
+import { CommandBus } from '@vector-editor/commands';
+import { TranslateGesture } from '@vector-editor/commands/command';
 import { anchorsInRect } from './anchor-hit';
 import {
   beginDirectDrag,

@@ -1,7 +1,7 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { Anchor, ObjectTransform, SessionService, VectorObject } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { SharedModule } from '@vector-editor/shared';
 
 type TransformKey = keyof ObjectTransform;

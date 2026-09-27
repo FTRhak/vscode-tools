@@ -1,6 +1,6 @@
 import { Component, computed, ElementRef, inject, signal } from '@angular/core';
 import { layersFrontToBack, objectsOnLayer, SessionService } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { SharedModule } from '@vector-editor/shared';
 
 

@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionService } from '@vector-editor/core';
-import { CommandBus } from '../../../commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { oppositeMode } from '../../../commands/command';
 import { FileActions } from '../../services/file-actions.service';
 

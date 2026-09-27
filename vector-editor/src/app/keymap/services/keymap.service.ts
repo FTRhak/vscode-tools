@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Service } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { SessionService } from '@vector-editor/core';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { Command, EditorTool, oppositeMode } from '@vector-editor/commands/command';
 import { FileActions } from '../../shell/services/file-actions.service';
 

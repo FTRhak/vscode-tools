@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
-import { CommandBus } from '../commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { Viewport } from './viewport';
 
 describe('Viewport', () => {

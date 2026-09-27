@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { SessionService } from '@vector-editor/core';
 import { EditorTool } from '@vector-editor/commands/command';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { EDITOR_TOOLS } from '@vector-editor/commands/editor-tools';
 import { SharedModule } from '@vector-editor/shared';
 

@@ -1,7 +1,7 @@
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
-import { CommandBus } from '@vector-editor/commands/command-bus.service';
+import { CommandBus } from '@vector-editor/commands';
 import { Modifier, VectorObject } from '@vector-editor/core';
 
 interface ModifierDraft {
