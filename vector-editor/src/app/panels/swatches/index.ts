@@ -1,0 +1,1 @@
+export { SwatchesModule } from './swatches.module';

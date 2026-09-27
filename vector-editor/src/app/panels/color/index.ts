@@ -1,0 +1,1 @@
+export { ColorModule } from './color.module';
