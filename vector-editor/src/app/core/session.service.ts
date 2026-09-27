@@ -9,6 +9,7 @@ import {
   SelectionState,
   SessionSnapshot,
 } from '../commands/history';
+import { captureClipperHold, ClipperHold } from './eval/evaluate';
 import { createNewDocument } from './model/create-document';
 import {
   addLayer,
@@ -152,7 +153,7 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyPenFinish(state, command);
     case 'modifier.add':
       return applyObjectChange(state, command.objectId, (object) =>
-        addModifier(object, command.kind),
+        addModifier(object, command.kind, state.document?.objects ?? []),
       );
     case 'modifier.update':
       return applyObjectChange(state, command.objectId, (object) =>
@@ -168,10 +169,12 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       );
     case 'modifier.apply':
       return applyBakedModifier(state, command.objectId, (object) =>
-        applyModifier(object, command.modifierId),
+        applyModifier(object, command.modifierId, state.document?.objects ?? []),
       );
     case 'modifier.applyAll':
-      return applyBakedModifier(state, command.objectId, (object) => applyAllModifiers(object));
+      return applyBakedModifier(state, command.objectId, (object) =>
+        applyAllModifiers(object, state.document?.objects ?? []),
+      );
   }
 }
 
@@ -207,6 +210,7 @@ export function commitSession(state: SessionSlice, command: Command): SessionSli
 @Service()
 export class SessionService {
   private readonly state = signal<SessionSlice>(initialSession);
+  private readonly clipperHoldState = signal<ClipperHold | null>(null);
 
   readonly mode = computed(() => this.state().mode);
   readonly tool = computed(() => this.state().tool);
@@ -223,9 +227,28 @@ export class SessionService {
     () => this.state().history.index < this.state().history.entries.length - 1,
   );
   readonly penObjectId = computed(() => this.state().penObjectId);
+  readonly clipperHold = this.clipperHoldState.asReadonly();
 
   apply(command: Command): void {
     this.state.update((current) => commitSession(current, command));
+  }
+
+  beginClipperHold(): void {
+    if (this.clipperHoldState() !== null) {
+      return;
+    }
+    const document = this.state().document;
+    if (!document) {
+      return;
+    }
+    this.clipperHoldState.set(captureClipperHold(document.objects));
+  }
+
+  endClipperHold(): void {
+    if (this.clipperHoldState() === null) {
+      return;
+    }
+    this.clipperHoldState.set(null);
   }
 }
 

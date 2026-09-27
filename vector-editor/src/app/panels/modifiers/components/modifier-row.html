@@ -78,8 +78,101 @@
         Both
       </label>
     </fieldset>
-  } @else {
-    <p>{{ title() }} is not available yet.</p>
+  } @else if (bevelModifier(); as bevel) {
+    <form class="fields" (submit)="$event.preventDefault()">
+      <label>
+        Distance
+        <input
+          type="number"
+          step="any"
+          [formField]="modifierForm.distance"
+          (blur)="commitDistance()"
+          (keydown.enter)="commitDistance($event)"
+        />
+      </label>
+      @if (bevel.join === 'miter') {
+        <label>
+          Miter limit
+          <input
+            type="number"
+            step="any"
+            [formField]="modifierForm.miterLimit"
+            (blur)="commitMiterLimit()"
+            (keydown.enter)="commitMiterLimit($event)"
+          />
+        </label>
+      }
+    </form>
+    <fieldset class="axis">
+      <legend>Join</legend>
+      <label>
+        <input
+          type="radio"
+          [name]="'join-' + bevel.id"
+          [checked]="bevel.join === 'bevel'"
+          (change)="commitJoin('bevel')"
+        />
+        Bevel
+      </label>
+      <label>
+        <input
+          type="radio"
+          [name]="'join-' + bevel.id"
+          [checked]="bevel.join === 'miter'"
+          (change)="commitJoin('miter')"
+        />
+        Miter
+      </label>
+      <label>
+        <input
+          type="radio"
+          [name]="'join-' + bevel.id"
+          [checked]="bevel.join === 'round'"
+          (change)="commitJoin('round')"
+        />
+        Round
+      </label>
+    </fieldset>
+  } @else if (booleanModifier(); as booleanOp) {
+    <fieldset class="axis">
+      <legend>Operation</legend>
+      <label>
+        <input
+          type="radio"
+          [name]="'operation-' + booleanOp.id"
+          [checked]="booleanOp.operation === 'union'"
+          (change)="commitOperation('union')"
+        />
+        Union
+      </label>
+      <label>
+        <input
+          type="radio"
+          [name]="'operation-' + booleanOp.id"
+          [checked]="booleanOp.operation === 'difference'"
+          (change)="commitOperation('difference')"
+        />
+        Difference
+      </label>
+      <label>
+        <input
+          type="radio"
+          [name]="'operation-' + booleanOp.id"
+          [checked]="booleanOp.operation === 'intersect'"
+          (change)="commitOperation('intersect')"
+        />
+        Intersect
+      </label>
+    </fieldset>
+    <label class="operand">
+      Operand
+      <select [value]="booleanOp.operandId" (change)="commitOperand($event)">
+        <option value="">None</option>
+        @for (peer of peers(); track peer.id) {
+          <option [value]="peer.id">{{ peer.name }}</option>
+        }
+      </select>
+    </label>
   }
   <div class="modifier-actions">
     <button

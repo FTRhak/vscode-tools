@@ -83,6 +83,7 @@ export function importSvg(markup: string): SvgImportResult {
   const used = new Set<string>();
   const meta = readDocumentMeta(svg, used);
   const layers: LayerDraft[] = [];
+  const operandLinks: OperandLink[] = [];
   let loose: LayerDraft | null = null;
   let skipped = 0;
 
@@ -160,7 +161,7 @@ export function importSvg(markup: string): SvgImportResult {
         continue;
       }
       const layer = context.layer ?? ensureLoose();
-      const object = readObject(child, layer.id, context, claim);
+      const object = readObject(child, layer.id, context, claim, operandLinks);
       if (object) {
         layer.objects.push(object);
       }
@@ -203,7 +204,10 @@ export function importSvg(markup: string): SvgImportResult {
         locked: layer.locked,
         order: layer.order,
       })),
-      objects: layers.flatMap((layer) => layer.objects),
+      objects: resolveOperands(
+        layers.flatMap((layer) => layer.objects),
+        operandLinks,
+      ),
       swatches: meta.swatches,
     },
   };
@@ -255,13 +259,19 @@ function nestedContext(element: Element, parent: WalkContext): WalkContext {
   };
 }
 
+interface OperandLink {
+  readonly modifierId: string;
+  readonly operandIndex: number;
+}
+
 function readObject(
   element: Element,
   layerId: string,
   context: WalkContext,
   claim: (id: string | null) => string,
+  operandLinks: OperandLink[],
 ): VectorObject | null {
-  const payload = readObjectPayload(element.getAttribute(objectAttribute), claim);
+  const payload = readObjectPayload(element.getAttribute(objectAttribute), claim, operandLinks);
   const source = payload ? claimSource(payload.source, claim) : geometrySource(element, context);
   if (!source || source.subpaths.every((subpath) => subpath.anchors.length === 0)) {
     return null;
@@ -319,9 +329,30 @@ function readLayerMeta(
   };
 }
 
+function resolveOperands(objects: VectorObject[], links: readonly OperandLink[]): VectorObject[] {
+  if (links.length === 0) {
+    return objects;
+  }
+  const byModifier = new Map(links.map((link) => [link.modifierId, link.operandIndex]));
+  return objects.map((object) => ({
+    ...object,
+    modifiers: object.modifiers.flatMap((modifier) => {
+      if (modifier.type !== 'boolean' || !byModifier.has(modifier.id)) {
+        return [modifier];
+      }
+      const operand = objects[byModifier.get(modifier.id) ?? -1];
+      if (!operand) {
+        return [];
+      }
+      return [{ ...modifier, operandId: operand.id }];
+    }),
+  }));
+}
+
 function readObjectPayload(
   value: string | null,
   claim: (id: string | null) => string,
+  operandLinks: OperandLink[],
 ): {
   source: SourcePath;
   transform: ObjectTransform;
@@ -342,21 +373,29 @@ function readObjectPayload(
     transform: readTransform(json['transform']),
     name: stringField(json, 'name') ?? '',
     locked: booleanField(json, 'locked') === true,
-    modifiers: readModifiers(json['modifiers'], claim),
+    modifiers: readModifiers(json['modifiers'], claim, operandLinks),
   };
 }
 
-function readModifiers(value: unknown, claim: (id: string | null) => string): Modifier[] {
+function readModifiers(
+  value: unknown,
+  claim: (id: string | null) => string,
+  operandLinks: OperandLink[],
+): Modifier[] {
   if (!Array.isArray(value)) {
     return [];
   }
   return value.flatMap((item) => {
-    const modifier = readModifier(item, claim);
+    const modifier = readModifier(item, claim, operandLinks);
     return modifier ? [modifier] : [];
   });
 }
 
-function readModifier(value: unknown, claim: (id: string | null) => string): Modifier | null {
+function readModifier(
+  value: unknown,
+  claim: (id: string | null) => string,
+  operandLinks: OperandLink[],
+): Modifier | null {
   if (!isRecord(value)) {
     return null;
   }
@@ -381,6 +420,41 @@ function readModifier(value: unknown, claim: (id: string | null) => string): Mod
       return null;
     }
     return { id: claim(stringField(value, 'id')), type: 'mirror', axis, enabled };
+  }
+  if (value['type'] === 'bevel') {
+    const distance = value['distance'];
+    const join = value['join'];
+    if (typeof distance !== 'number' || !Number.isFinite(distance)) {
+      return null;
+    }
+    if (join !== 'bevel' && join !== 'miter' && join !== 'round') {
+      return null;
+    }
+    return {
+      id: claim(stringField(value, 'id')),
+      type: 'bevel',
+      distance,
+      join,
+      miterLimit: finiteField(value, 'miterLimit', 4),
+      enabled,
+    };
+  }
+  if (value['type'] === 'boolean') {
+    const operation = value['operation'];
+    if (operation !== 'union' && operation !== 'difference' && operation !== 'intersect') {
+      return null;
+    }
+    const id = claim(stringField(value, 'id'));
+    const operandIndex = value['operandIndex'];
+    if (typeof operandIndex === 'number' && Number.isInteger(operandIndex)) {
+      operandLinks.push({ modifierId: id, operandIndex });
+      return { id, type: 'boolean', operation, operandId: '', enabled };
+    }
+    const operandId = stringField(value, 'operandId');
+    if (!operandId) {
+      return null;
+    }
+    return { id, type: 'boolean', operation, operandId, enabled };
   }
   return null;
 }

@@ -284,7 +284,7 @@ describe('exportSvg', () => {
     expect(minimal).toContain('M 25 10 C 27 8 33 14 35 10');
   });
 
-  it('restores array and mirror and drops bevel, boolean, and broken entries', () => {
+  it('restores array, mirror, and boolean and drops incomplete entries', () => {
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
         <path d="M 0 0 L 4 0" fill="none" stroke="#000"
@@ -306,6 +306,13 @@ describe('exportSvg', () => {
         enabled: false,
       },
       { id: 'mir-1', type: 'mirror', axis: 'y', enabled: true },
+      {
+        id: expect.any(String),
+        type: 'boolean',
+        operation: 'union',
+        operandId: 'missing',
+        enabled: true,
+      },
     ]);
     expect(result.document.objects[0]?.locked).toBe(true);
     expect(result.document.objects[0]?.transform.x).toBe(3);
@@ -313,6 +320,89 @@ describe('exportSvg', () => {
       x: 1,
       y: 0,
     });
+  });
+
+  it('round-trips bevel and boolean, and remaps an optimized operand', () => {
+    const owner = object('owner', 'Owner', 'layer-back', true, false, squareSource('owner'), {
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+    });
+    const operand = object(
+      'operand',
+      'Operand',
+      'layer-front',
+      true,
+      false,
+      squareSource('operand'),
+      { x: 2, y: 2, rotation: 0, scaleX: 1, scaleY: 1 },
+    );
+    const document: Document = {
+      ...sampleDocument(),
+      swatches: [],
+      objects: [
+        {
+          ...owner,
+          style: { ...owner.style, fillRule: 'nonzero' },
+          modifiers: [
+            {
+              id: 'mod-bevel',
+              type: 'bevel',
+              distance: 1,
+              join: 'bevel',
+              miterLimit: 4,
+              enabled: true,
+            },
+            {
+              id: 'mod-boolean',
+              type: 'boolean',
+              operation: 'difference',
+              operandId: 'operand',
+              enabled: true,
+            },
+          ],
+        },
+        operand,
+      ],
+    };
+
+    const all = exportSvg(document, 'all');
+    const allResult = importSvg(all);
+    expect(allResult.ok).toBe(true);
+    if (!allResult.ok) {
+      return;
+    }
+    expect(allResult.document.objects[0]?.modifiers).toEqual(document.objects[0]?.modifiers);
+    expect(allResult.document.objects[0]?.style.fillRule).toBe('evenodd');
+
+    const optimized = exportSvg(document, 'optimized');
+    expect(optimized).toContain('operandIndex&quot;:1');
+    expect(optimized).not.toContain('mod-boolean');
+    const optimizedResult = importSvg(optimized);
+    expect(optimizedResult.ok).toBe(true);
+    if (!optimizedResult.ok) {
+      return;
+    }
+    const importedOperand = optimizedResult.document.objects[1];
+    expect(optimizedResult.document.objects[0]?.modifiers[1]).toMatchObject({
+      type: 'boolean',
+      operation: 'difference',
+      operandId: importedOperand?.id,
+    });
+    expect(optimizedResult.document.objects[0]?.modifiers[1]?.id).not.toBe('mod-boolean');
+
+    const minimal = exportSvg(document, 'minimal');
+    expect(minimal).not.toContain('data-vector-editor');
+    expect(minimal).toContain('fill-rule="evenodd"');
+    const minimalResult = importSvg(minimal);
+    expect(minimalResult.ok).toBe(true);
+    if (!minimalResult.ok) {
+      return;
+    }
+    expect(minimalResult.document.objects[0]?.modifiers).toEqual([]);
+    expect(minimalResult.document.objects[0]?.source.subpaths[0]?.segments[0]?.kind).toBe('line');
   });
 });
 
@@ -405,6 +495,28 @@ function sampleDocument(): Document {
         },
         { x: 0, y: 0, rotation: 90, scaleX: 1, scaleY: 1 },
       ),
+    ],
+  };
+}
+
+function squareSource(id: string): SourcePath {
+  return {
+    subpaths: [
+      {
+        closed: true,
+        anchors: [
+          { id: `${id}-a`, position: { x: 0, y: 0 }, handleIn: null, handleOut: null },
+          { id: `${id}-b`, position: { x: 8, y: 0 }, handleIn: null, handleOut: null },
+          { id: `${id}-c`, position: { x: 8, y: 8 }, handleIn: null, handleOut: null },
+          { id: `${id}-d`, position: { x: 0, y: 8 }, handleIn: null, handleOut: null },
+        ],
+        segments: [
+          { id: `${id}-0`, kind: 'line', fromId: `${id}-a`, toId: `${id}-b` },
+          { id: `${id}-1`, kind: 'line', fromId: `${id}-b`, toId: `${id}-c` },
+          { id: `${id}-2`, kind: 'line', fromId: `${id}-c`, toId: `${id}-d` },
+          { id: `${id}-3`, kind: 'line', fromId: `${id}-d`, toId: `${id}-a` },
+        ],
+      },
     ],
   };
 }

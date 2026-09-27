@@ -72,6 +72,42 @@ describe('hitTestObject', () => {
     expect(hitTestObject(doc([box]), { x: 16, y: 5 }, 1)).toBeNull();
     expect(objectsInRect(doc([box]), { x: 32, y: 2, width: 4, height: 4 })).toEqual(['box']);
   });
+
+  it('misses a hole cut from a filled square', () => {
+    const owner = square('owner');
+    const cutter = square('cutter');
+    const document = doc([
+      {
+        ...owner,
+        style: { ...owner.style, stroke: null, fillRule: 'nonzero' },
+        modifiers: [
+          {
+            id: 'cut',
+            type: 'boolean' as const,
+            operation: 'difference' as const,
+            operandId: 'cutter',
+            enabled: true,
+          },
+        ],
+      },
+      {
+        ...cutter,
+        visible: false,
+        source: {
+          subpaths: cutter.source.subpaths.map((subpath) => ({
+            ...subpath,
+            anchors: subpath.anchors.map((anchor, index) => ({
+              ...anchor,
+              position: innerCorner(index),
+            })),
+          })),
+        },
+      },
+    ]);
+
+    expect(hitTestObject(document, { x: 1, y: 1 }, 1)).toBe('owner');
+    expect(hitTestObject(document, { x: 5, y: 5 }, 1)).toBeNull();
+  });
 });
 
 describe('objectsInRect', () => {
@@ -84,6 +120,16 @@ describe('objectsInRect', () => {
     expect(objectsInRect(document, { x: 11, y: 5, width: 1, height: 1 })).toEqual(['box']);
   });
 });
+
+function innerCorner(index: number): { x: number; y: number } {
+  const corners = [
+    { x: 3, y: 3 },
+    { x: 7, y: 3 },
+    { x: 7, y: 7 },
+    { x: 3, y: 7 },
+  ];
+  return corners[index] ?? { x: 3, y: 3 };
+}
 
 function square(id: string): VectorObject {
   const anchors = [

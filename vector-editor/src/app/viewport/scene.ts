@@ -1,6 +1,7 @@
 import {
+  ClipperHold,
   Document,
-  evaluateObject,
+  evaluateDocument,
   ObjectTransform,
   objectsInPaintOrder,
   sourceToPathData,
@@ -22,18 +23,24 @@ export interface Scene {
   readonly objects: readonly SceneObject[];
 }
 
-export function sceneFromDocument(document: Document): Scene {
+export function sceneFromDocument(document: Document, hold: ClipperHold | null = null): Scene {
+  const geometry = new Map(
+    evaluateDocument(document.objects, hold).map((item) => [item.objectId, item]),
+  );
   return {
     viewBox: document.viewBox,
-    objects: objectsInPaintOrder(document).map((object) => ({
-      id: object.id,
-      d: sourceToPathData({ subpaths: evaluateObject(object).subpaths }),
-      transform: formatObjectTransform(object.transform),
-      fill: object.style.fill ?? 'none',
-      stroke: object.style.stroke ?? 'none',
-      strokeWidth: object.style.strokeWidth,
-      fillRule: object.style.fillRule,
-    })),
+    objects: objectsInPaintOrder(document).map((object) => {
+      const evaluated = geometry.get(object.id);
+      return {
+        id: object.id,
+        d: sourceToPathData({ subpaths: evaluated?.subpaths ?? object.source.subpaths }),
+        transform: formatObjectTransform(object.transform),
+        fill: object.style.fill ?? 'none',
+        stroke: object.style.stroke ?? 'none',
+        strokeWidth: object.style.strokeWidth,
+        fillRule: evaluated?.fillRule ?? object.style.fillRule,
+      };
+    }),
   };
 }
 

@@ -1,6 +1,8 @@
-import { Modifier, SourcePath, Vec2 } from '../model/types';
+import { applyModifier } from '../model/modifier-edits';
+import { Modifier, SourcePath, Vec2, VectorObject } from '../model/types';
 import { sourceBounds } from './bounds';
-import { evaluateSource } from './evaluate';
+import { captureClipperHold, evaluateDocument, evaluateSource } from './evaluate';
+import { collectPoints } from './flatten';
 
 describe('evaluateSource', () => {
   it('copies a cubic path by the array offset and keeps the segment kind', () => {
@@ -102,24 +104,9 @@ describe('evaluateSource', () => {
     expect(positions(arrayThenMirror)[1]).not.toEqual(positions(mirroredThenArray)[1]);
   });
 
-  it('reports bevel and boolean without changing the path', () => {
+  it('skips a disabled bevel and leaves the source untouched', () => {
     const source = path('a', { x: 0, y: 0 }, { x: 1, y: 0 }, null, null);
     const evaluated = evaluateSource(source, [
-      {
-        id: 'bevel',
-        type: 'bevel',
-        distance: 2,
-        join: 'bevel',
-        miterLimit: 4,
-        enabled: true,
-      },
-      {
-        id: 'bool',
-        type: 'boolean',
-        operation: 'difference',
-        operandId: 'other',
-        enabled: true,
-      },
       {
         id: 'off',
         type: 'bevel',
@@ -131,10 +118,222 @@ describe('evaluateSource', () => {
     ]);
 
     expect(evaluated.source).toBe(source);
-    expect(evaluated.diagnostics).toEqual([
-      'Bevel is not available yet.',
-      'Boolean is not available yet.',
+    expect(evaluated.diagnostics).toEqual([]);
+  });
+});
+
+describe('bevel and boolean', () => {
+  it('keeps a cubic within the flatten tolerance', () => {
+    const points = collectPoints({
+      closed: false,
+      anchors: [
+        { id: 'a', position: { x: 0, y: 0 }, handleIn: null, handleOut: { x: 0, y: 10 } },
+        { id: 'b', position: { x: 10, y: 0 }, handleIn: { x: 10, y: 10 }, handleOut: null },
+      ],
+      segments: [{ id: 's', kind: 'cubic', fromId: 'a', toId: 'b' }],
+    });
+
+    expect(points.length).toBeGreaterThan(2);
+    expect(distanceToPolyline({ x: 5, y: 7.5 }, points)).toBeLessThanOrEqual(0.25);
+  });
+
+  it('chamfers a square and turns an open path into a closed band', () => {
+    const square = evaluateDocument([
+      shape('plate', squarePath('plate', 0, 0, 10), [
+        bevel('edge', { distance: 2, join: 'bevel' }),
+      ]),
+    ])[0];
+    const points = square?.subpaths.flatMap((subpath) =>
+      subpath.anchors.map((anchor) => anchor.position),
+    );
+
+    expect(square?.subpaths[0]?.closed).toBe(true);
+    expect(square?.subpaths[0]?.segments.every((segment) => segment.kind === 'line')).toBe(true);
+    expect(points).toContainEqual({ x: 12, y: 10 });
+    expect(points).toContainEqual({ x: 10, y: 12 });
+    expect(points).not.toContainEqual({ x: 12, y: 12 });
+    expect(points).not.toContainEqual({ x: 10, y: 10 });
+
+    const band = evaluateDocument([
+      shape('line', path('a', { x: 0, y: 0 }, { x: 10, y: 0 }, null, null), [
+        bevel('stroke', { distance: 2, join: 'round' }),
+      ]),
+    ])[0];
+    const ys = band?.subpaths.flatMap((subpath) =>
+      subpath.anchors.map((anchor) => anchor.position.y),
+    );
+
+    expect(band?.subpaths[0]?.closed).toBe(true);
+    expect(Math.min(...(ys ?? []))).toBeLessThan(-1);
+    expect(Math.max(...(ys ?? []))).toBeGreaterThan(1);
+  });
+
+  it('cuts a hole, distinguishes union from intersect, and follows a moved operand', () => {
+    const owner = shape('owner', squarePath('owner', 0, 0, 10), [
+      booleanOp('cut', 'difference', 'operand'),
     ]);
+    const operand = shape('operand', squarePath('operand', 2, 2, 6), []);
+    const difference = evaluateDocument([owner, operand])[0];
+    const united = evaluateDocument([
+      shape('owner', squarePath('owner', 0, 0, 10), [booleanOp('cut', 'union', 'operand')]),
+      operand,
+    ])[0];
+    const shared = evaluateDocument([
+      shape('owner', squarePath('owner', 0, 0, 10), [booleanOp('cut', 'intersect', 'operand')]),
+      operand,
+    ])[0];
+
+    expect(difference?.fillRule).toBe('evenodd');
+    expect(difference?.subpaths).toHaveLength(2);
+    expect(difference?.diagnostics).toEqual([]);
+    const hole = [...(difference?.subpaths ?? [])].sort(
+      (left, right) => Math.abs(ringArea(left)) - Math.abs(ringArea(right)),
+    )[0];
+    expect(sourceBounds({ subpaths: hole ? [hole] : [] })).toEqual({
+      minX: 2,
+      minY: 2,
+      maxX: 8,
+      maxY: 8,
+    });
+    expect(sourceBounds({ subpaths: united?.subpaths ?? [] })).toEqual({
+      minX: 0,
+      minY: 0,
+      maxX: 10,
+      maxY: 10,
+    });
+    expect(sourceBounds({ subpaths: shared?.subpaths ?? [] })).toEqual({
+      minX: 2,
+      minY: 2,
+      maxX: 8,
+      maxY: 8,
+    });
+
+    const moved = evaluateDocument([
+      owner,
+      {
+        ...shape('operand', squarePath('operand', 0, 0, 4), []),
+        transform: { x: 3, y: 3, rotation: 0, scaleX: 1, scaleY: 1 },
+      },
+    ])[0];
+    const movedHole = [...(moved?.subpaths ?? [])].sort(
+      (left, right) => Math.abs(ringArea(left)) - Math.abs(ringArea(right)),
+    )[0];
+    expect(sourceBounds({ subpaths: movedHole ? [movedHole] : [] })).toEqual({
+      minX: 3,
+      minY: 3,
+      maxX: 7,
+      maxY: 7,
+    });
+  });
+
+  it('reports open paths, a missing operand, a self operand, a cycle, and a singular transform', () => {
+    const open = shape('owner', path('a', { x: 0, y: 0 }, { x: 4, y: 0 }, null, null), [
+      booleanOp('cut', 'difference', 'operand'),
+    ]);
+    const operand = shape('operand', squarePath('operand', 0, 0, 4), []);
+    const openResult = evaluateDocument([open, operand])[0];
+    expect(openResult?.subpaths).toBe(open.source.subpaths);
+    expect(openResult?.diagnostics).toEqual(['Boolean needs closed paths.']);
+
+    const missingSource = squarePath('owner', 0, 0, 4);
+    const missing = evaluateDocument([
+      shape('owner', missingSource, [booleanOp('cut', 'union', 'gone')]),
+    ])[0];
+    expect(missing?.subpaths).toBe(missingSource.subpaths);
+    expect(missing?.diagnostics).toEqual(['Boolean operand is missing.']);
+
+    const self = evaluateDocument([
+      shape('owner', squarePath('owner', 0, 0, 4), [booleanOp('cut', 'union', 'owner')]),
+    ])[0];
+    expect(self?.diagnostics).toEqual(['Boolean operand is the same object.']);
+
+    const left = shape('left', squarePath('left', 0, 0, 4), [
+      booleanOp('to-right', 'union', 'right'),
+    ]);
+    const right = shape('right', squarePath('right', 1, 1, 4), [
+      booleanOp('to-left', 'union', 'left'),
+    ]);
+    const cycle = evaluateDocument([left, right]);
+    expect(cycle[0]?.subpaths).toBe(left.source.subpaths);
+    expect(cycle[1]?.subpaths).toBe(right.source.subpaths);
+    expect(cycle[0]?.diagnostics).toEqual(['Boolean operands form a cycle.']);
+    expect(cycle[1]?.diagnostics).toEqual(['Boolean operands form a cycle.']);
+
+    const flat = evaluateDocument([
+      {
+        ...shape('owner', squarePath('owner', 0, 0, 4), [
+          booleanOp('cut', 'difference', 'operand'),
+        ]),
+        transform: { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 1 },
+      },
+      operand,
+    ])[0];
+    expect(flat?.diagnostics).toEqual(['Boolean transform cannot be inverted.']);
+    expect(flat?.fillRule).toBe('nonzero');
+  });
+
+  it('copies a boolean polyline and bakes it with evenodd', () => {
+    const owner = shape('owner', squarePath('owner', 0, 0, 10), [
+      booleanOp('cut', 'difference', 'operand'),
+      array('copies', { count: 2, offsetX: 30, offsetY: 0 }),
+    ]);
+    const operand = shape('operand', squarePath('operand', 2, 2, 6), []);
+    const copied = evaluateDocument([owner, operand])[0];
+    const base = evaluateDocument([
+      shape('owner', squarePath('owner', 0, 0, 10), [booleanOp('cut', 'difference', 'operand')]),
+      operand,
+    ])[0];
+
+    expect(copied?.subpaths).toHaveLength((base?.subpaths.length ?? 0) * 2);
+    expect(copied?.subpaths[2]?.anchors[0]?.position.x).toBeCloseTo(
+      (base?.subpaths[0]?.anchors[0]?.position.x ?? 0) + 30,
+      5,
+    );
+    expect(
+      copied?.subpaths.every((subpath) =>
+        subpath.segments.every((segment) => segment.kind === 'line'),
+      ),
+    ).toBe(true);
+
+    const baked = applyModifier(owner, 'cut', [owner, operand]);
+    expect(baked.modifiers.map((modifier) => modifier.type)).toEqual(['array']);
+    expect(baked.style.fillRule).toBe('evenodd');
+    expect(baked.source.subpaths[0]?.segments.every((segment) => segment.kind === 'line')).toBe(
+      true,
+    );
+    expect(baked.source.subpaths[0]?.anchors[0]?.id).not.toBe('owner-a');
+  });
+
+  it('freezes clipper output during a hold and lets array keep moving', () => {
+    const owner = shape('owner', squarePath('owner', 0, 0, 10), [
+      booleanOp('cut', 'difference', 'operand'),
+      array('copies', { count: 2, offsetX: 30, offsetY: 0 }),
+    ]);
+    const operand = shape('operand', squarePath('operand', 2, 2, 6), []);
+    const before = evaluateDocument([owner, operand]);
+    const hold = captureClipperHold([owner, operand]);
+    const movedOwner = {
+      ...owner,
+      source: translatePath(owner.source, 5, 0),
+    };
+    const held = evaluateDocument([movedOwner, operand], hold);
+    const released = evaluateDocument([movedOwner, operand]);
+
+    expect(held[0]?.subpaths).toEqual(before[0]?.subpaths);
+    expect(released[0]?.subpaths).not.toEqual(held[0]?.subpaths);
+
+    const shifted = {
+      ...owner,
+      modifiers: owner.modifiers.map((modifier) =>
+        modifier.type === 'array' ? { ...modifier, offsetX: 80 } : modifier,
+      ),
+    };
+    const liveCopies = evaluateDocument([shifted, operand], hold)[0];
+    expect(liveCopies?.subpaths[0]).toEqual(before[0]?.subpaths[0]);
+    expect(liveCopies?.subpaths[2]?.anchors[0]?.position.x).toBeCloseTo(
+      (before[0]?.subpaths[0]?.anchors[0]?.position.x ?? 0) + 80,
+      5,
+    );
   });
 });
 
@@ -182,4 +381,114 @@ function mirror(id: string, axis: 'x' | 'y' | 'xy'): Extract<Modifier, { type: '
 
 function positions(source: SourcePath): Vec2[][] {
   return source.subpaths.map((subpath) => subpath.anchors.map((anchor) => anchor.position));
+}
+
+function bevel(
+  id: string,
+  patch: Partial<Extract<Modifier, { type: 'bevel' }>> = {},
+): Extract<Modifier, { type: 'bevel' }> {
+  return { id, type: 'bevel', distance: 2, join: 'bevel', miterLimit: 4, enabled: true, ...patch };
+}
+
+function booleanOp(
+  id: string,
+  operation: 'union' | 'difference' | 'intersect',
+  operandId: string,
+): Extract<Modifier, { type: 'boolean' }> {
+  return { id, type: 'boolean', operation, operandId, enabled: true };
+}
+
+function squarePath(id: string, x: number, y: number, size: number): SourcePath {
+  const corners = [
+    { id: `${id}-a`, x, y },
+    { id: `${id}-b`, x: x + size, y },
+    { id: `${id}-c`, x: x + size, y: y + size },
+    { id: `${id}-d`, x, y: y + size },
+  ];
+  return {
+    subpaths: [
+      {
+        closed: true,
+        anchors: corners.map((corner) => ({
+          id: corner.id,
+          position: { x: corner.x, y: corner.y },
+          handleIn: null,
+          handleOut: null,
+        })),
+        segments: [
+          { id: `${id}-0`, kind: 'line', fromId: corners[0].id, toId: corners[1].id },
+          { id: `${id}-1`, kind: 'line', fromId: corners[1].id, toId: corners[2].id },
+          { id: `${id}-2`, kind: 'line', fromId: corners[2].id, toId: corners[3].id },
+          { id: `${id}-3`, kind: 'line', fromId: corners[3].id, toId: corners[0].id },
+        ],
+      },
+    ],
+  };
+}
+
+function shape(id: string, source: SourcePath, modifiers: readonly Modifier[]): VectorObject {
+  return {
+    id,
+    name: id,
+    layerId: 'layer',
+    visible: true,
+    locked: false,
+    source,
+    style: { fill: '#cccccc', stroke: null, strokeWidth: 1, fillRule: 'nonzero' },
+    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+    modifiers,
+  };
+}
+
+function translatePath(source: SourcePath, dx: number, dy: number): SourcePath {
+  return {
+    subpaths: source.subpaths.map((subpath) => ({
+      ...subpath,
+      anchors: subpath.anchors.map((anchor) => ({
+        ...anchor,
+        position: { x: anchor.position.x + dx, y: anchor.position.y + dy },
+      })),
+    })),
+  };
+}
+
+function ringArea(subpath: SourcePath['subpaths'][number]): number {
+  const points = subpath.anchors.map((anchor) => anchor.position);
+  let area = 0;
+  for (let index = 0; index < points.length; index += 1) {
+    const next = points[(index + 1) % points.length];
+    const current = points[index];
+    if (!current || !next) {
+      continue;
+    }
+    area += current.x * next.y - next.x * current.y;
+  }
+  return area / 2;
+}
+
+function distanceToPolyline(point: Vec2, points: readonly Vec2[]): number {
+  let best = Infinity;
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    if (!start || !end) {
+      continue;
+    }
+    best = Math.min(best, distanceToSegment(point, start, end));
+  }
+  return best;
+}
+
+function distanceToSegment(point: Vec2, start: Vec2, end: Vec2): number {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSq = dx * dx + dy * dy;
+  if (lengthSq === 0) {
+    return Math.hypot(point.x - start.x, point.y - start.y);
+  }
+  const t = Math.max(
+    0,
+    Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq),
+  );
+  return Math.hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy));
 }

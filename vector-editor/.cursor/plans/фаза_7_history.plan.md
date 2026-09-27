@@ -4,13 +4,13 @@ overview: "Додати панель History: список уже записан
 todos:
   - id: jump-command
     content: "Додати history.jump: відновлення знімка за індексом, reconcilePen, без нового запису"
-    status: pending
+    status: completed
   - id: history-panel
     content: Список міток від старіших до новіших, поточний рядок і сіра гілка redo, клік шле history.jump
-    status: pending
+    status: completed
   - id: verify
     content: Юніти jump і панелі; у браузері перевірити рухи, жест, відкат, відрізання redo і Ctrl+Shift+Z
-    status: pending
+    status: completed
 isProject: false
 ---
 

@@ -4,19 +4,19 @@ overview: "Додати Edit Mode для активного об’єкта: о�
 todos:
   - id: path-commands
     content: Чисті edit-path і команди select/translateAnchors/setAnchor/setHandle/deleteAnchors зі злиттям жесту
-    status: pending
+    status: completed
   - id: mode-keys
     content: setMode скидає якорі; клавіші 1/2, Delete і X; підпис Anchors/Segments
-    status: pending
+    status: completed
   - id: overlay-direct-select
     content: Оверлей якорів і handles, хіт-тест 6px, жест Direct Select лише в Edit Mode
-    status: pending
+    status: completed
   - id: anchor-options
     content: "Options якоря на Signal Forms: позиція, handles, dx/dy для кількох"
-    status: pending
+    status: completed
   - id: verify
     content: Юніт-тести шляху, хіт-тесту і keymap; пройти редагування якоря у браузері
-    status: pending
+    status: completed
 isProject: false
 ---
 

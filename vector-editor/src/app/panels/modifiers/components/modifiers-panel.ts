@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, computed, inject } from '@angular/core';
-import { evaluateObject, Modifier, SessionService } from '@vector-editor/core';
+import { evaluateDocument, Modifier, SessionService } from '@vector-editor/core';
 import { CommandBus } from '../../../commands/command-bus.service';
 import { ModifierRow } from './modifier-row';
 
@@ -25,12 +25,22 @@ export class ModifiersPanel {
 
   protected readonly modifiers = computed(() => this.active()?.modifiers ?? []);
 
+  protected readonly objects = computed(() => this.session.document()?.objects ?? []);
+
   protected readonly diagnostics = computed(() => {
+    const document = this.session.document();
     const object = this.active();
-    return object ? evaluateObject(object).diagnostics : [];
+    if (!document || !object) {
+      return [];
+    }
+    return (
+      evaluateDocument(document.objects, this.session.clipperHold()).find(
+        (item) => item.objectId === object.id,
+      )?.diagnostics ?? []
+    );
   });
 
-  protected add(kind: 'array' | 'mirror'): void {
+  protected add(kind: 'array' | 'mirror' | 'bevel' | 'boolean'): void {
     const object = this.active();
     if (!object) {
       return;

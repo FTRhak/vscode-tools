@@ -1,4 +1,4 @@
-import { evaluateObject } from '../eval/evaluate';
+import { evaluateDocument, EvaluatedGeometry } from '../eval/evaluate';
 import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '../model/paint-order';
 import { sourceToPathData } from '../model/path-data';
 import { Document, Layer, Modifier, SourcePath, VectorObject } from '../model/types';
@@ -9,17 +9,19 @@ export type SaveMode = 'all' | 'optimized' | 'minimal';
 const formatVersion = 1;
 
 export function exportSvg(document: Document, mode: SaveMode): string {
+  const geometry = new Map(evaluateDocument(document.objects).map((item) => [item.objectId, item]));
+  const order = exportedObjects(document);
   const lines = [svgOpen(document, mode)];
   if (mode === 'minimal') {
     for (const object of objectsInPaintOrder(document)) {
-      lines.push(`  ${pathTag(object, mode)}`);
+      lines.push(`  ${pathTag(object, mode, geometry.get(object.id), order)}`);
     }
   } else {
     const known = new Set(document.layers.map((layer) => layer.id));
     for (const layer of layersBackToFront(document)) {
       lines.push(`  ${groupOpen(layer, mode)}`);
       for (const object of objectsOnLayer(document, layer.id)) {
-        lines.push(`    ${pathTag(object, mode)}`);
+        lines.push(`    ${pathTag(object, mode, geometry.get(object.id), order)}`);
       }
       lines.push('  </g>');
     }
@@ -28,13 +30,23 @@ export function exportSvg(document: Document, mode: SaveMode): string {
       const label = escapeXml(JSON.stringify({ name: 'Layer', visible: true }));
       lines.push(`  <g data-vector-editor-layer="${label}">`);
       for (const object of orphans) {
-        lines.push(`    ${pathTag(object, mode)}`);
+        lines.push(`    ${pathTag(object, mode, geometry.get(object.id), order)}`);
       }
       lines.push('  </g>');
     }
   }
   lines.push('</svg>');
   return lines.join('\n');
+}
+
+function exportedObjects(document: Document): readonly VectorObject[] {
+  const known = new Set(document.layers.map((layer) => layer.id));
+  const objects: VectorObject[] = [];
+  for (const layer of layersBackToFront(document)) {
+    objects.push(...objectsOnLayer(document, layer.id));
+  }
+  objects.push(...document.objects.filter((object) => !known.has(object.layerId)));
+  return objects;
 }
 
 function svgOpen(document: Document, mode: SaveMode): string {
@@ -74,9 +86,14 @@ function layerPayload(layer: Layer, mode: SaveMode): unknown {
   return { name: layer.name, visible: layer.visible };
 }
 
-function pathTag(object: VectorObject, mode: SaveMode): string {
+function pathTag(
+  object: VectorObject,
+  mode: SaveMode,
+  evaluated: EvaluatedGeometry | undefined,
+  order: readonly VectorObject[],
+): string {
   const geometry = transformSource(
-    { subpaths: evaluateObject(object).subpaths },
+    { subpaths: evaluated?.subpaths ?? object.source.subpaths },
     matrixFromTransform(object.transform),
   );
   const attributes = [
@@ -85,16 +102,20 @@ function pathTag(object: VectorObject, mode: SaveMode): string {
     `fill="${escapeXml(object.style.fill ?? 'none')}"`,
     `stroke="${escapeXml(object.style.stroke ?? 'none')}"`,
     `stroke-width="${formatNumber(object.style.strokeWidth)}"`,
-    `fill-rule="${object.style.fillRule}"`,
+    `fill-rule="${evaluated?.fillRule ?? object.style.fillRule}"`,
     object.visible ? null : 'display="none"',
     mode === 'minimal'
       ? null
-      : `data-vector-editor="${escapeXml(JSON.stringify(objectPayload(object, mode)))}"`,
+      : `data-vector-editor="${escapeXml(JSON.stringify(objectPayload(object, mode, order)))}"`,
   ].filter((item): item is string => item !== null);
   return `<path ${attributes.join(' ')} />`;
 }
 
-function objectPayload(object: VectorObject, mode: SaveMode): unknown {
+function objectPayload(
+  object: VectorObject,
+  mode: SaveMode,
+  order: readonly VectorObject[],
+): unknown {
   const payload: {
     version: number;
     name: string;
@@ -107,7 +128,10 @@ function objectPayload(object: VectorObject, mode: SaveMode): unknown {
     name: object.name,
     source: mode === 'all' ? object.source : indexedSource(object.source),
     transform: object.transform,
-    modifiers: object.modifiers.map((modifier) => modifierPayload(modifier, mode)),
+    modifiers: object.modifiers.flatMap((modifier) => {
+      const payload = modifierPayload(modifier, mode, order);
+      return payload === null ? [] : [payload];
+    }),
   };
   if (mode === 'all') {
     payload.locked = object.locked;
@@ -115,7 +139,11 @@ function objectPayload(object: VectorObject, mode: SaveMode): unknown {
   return payload;
 }
 
-function modifierPayload(modifier: Modifier, mode: SaveMode): unknown {
+function modifierPayload(
+  modifier: Modifier,
+  mode: SaveMode,
+  order: readonly VectorObject[],
+): unknown | null {
   if (mode === 'all') {
     return modifier;
   }
@@ -138,13 +166,18 @@ function modifierPayload(modifier: Modifier, mode: SaveMode): unknown {
         miterLimit: modifier.miterLimit,
         enabled: modifier.enabled,
       };
-    case 'boolean':
+    case 'boolean': {
+      const operandIndex = order.findIndex((item) => item.id === modifier.operandId);
+      if (operandIndex < 0) {
+        return null;
+      }
       return {
         type: modifier.type,
         operation: modifier.operation,
-        operandId: modifier.operandId,
+        operandIndex,
         enabled: modifier.enabled,
       };
+    }
   }
 }
 

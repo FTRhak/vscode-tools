@@ -4,22 +4,22 @@ overview: "Додати Object Mode: виділення кліком, Shift і �
 todos:
   - id: selection-history
     content: Додати виділення в сесію, команди select/translate/setTransform/setFlags і History зі злиттям жесту
-    status: pending
+    status: completed
   - id: duplicate
     content: "Реалізувати object.duplicate і Shift+D: нові id, зсув 24, виділення копії"
-    status: pending
+    status: completed
   - id: hit-select
     content: Hit-test заливки/обвідки, рамка, перетяг Select одним записом History, обводка виділення
-    status: pending
+    status: completed
   - id: outliner-options
     content: Outliner-дерево з session.select і Options об’єкта на Signal Forms
-    status: pending
+    status: completed
   - id: undo-keys
     content: Увімкнути Undo/Redo і клавіші Ctrl+Z, Ctrl+Shift+Z, Shift+D
-    status: pending
+    status: completed
   - id: verify
     content: Юніт-тести hit-test, шини і History; пройти виділення, перетяг і Ctrl+Z у браузері
-    status: pending
+    status: completed
 isProject: false
 ---
 

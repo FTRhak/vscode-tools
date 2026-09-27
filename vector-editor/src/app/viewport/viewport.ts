@@ -98,7 +98,7 @@ export class Viewport {
 
   protected readonly scene = computed(() => {
     const document = this.session.document();
-    return document ? sceneFromDocument(document) : null;
+    return document ? sceneFromDocument(document, this.session.clipperHold()) : null;
   });
 
   protected readonly selectedIds = computed(() => new Set(this.session.selectedObjectIds()));
@@ -318,7 +318,12 @@ export class Viewport {
       return;
     }
     const point = this.pointerToDocument(event);
-    const hitId = hitTestObject(document, point, this.session.viewport().zoom);
+    const hitId = hitTestObject(
+      document,
+      point,
+      this.session.viewport().zoom,
+      this.session.clipperHold(),
+    );
     const hit = hitId ? (document.objects.find((object) => object.id === hitId) ?? null) : null;
     if (hit && !this.session.selectedObjectIds().includes(hit.id)) {
       this.bus.dispatch({
@@ -382,6 +387,7 @@ export class Viewport {
     const gestureKind: TranslateGesture = gesture.moveSent ? 'continue' : 'begin';
     gesture.moveSent = true;
     this.moving.set(true);
+    this.session.beginClipperHold();
     this.bus.dispatch({
       type: 'object.translate',
       ids: this.session.selectedObjectIds(),
@@ -397,6 +403,7 @@ export class Viewport {
     this.moving.set(false);
     this.marquee.set(null);
     this.release(gesture?.pointerId);
+    this.session.endClipperHold();
     if (!gesture) {
       return;
     }
@@ -405,7 +412,11 @@ export class Viewport {
       this.bus.dispatch({
         type: 'session.select',
         target: 'object',
-        ids: objectsInRect(document, this.marqueeRect(gesture.originX, gesture.originY, event)),
+        ids: objectsInRect(
+          document,
+          this.marqueeRect(gesture.originX, gesture.originY, event),
+          this.session.clipperHold(),
+        ),
         op: event.shiftKey ? 'add' : 'replace',
       });
       return;
@@ -471,6 +482,9 @@ export class Viewport {
       transform: object.transform,
       selectedAnchorIds: this.session.selectedAnchorIds(),
     });
+    if (commands.length > 0) {
+      this.session.beginClipperHold();
+    }
     for (const command of commands) {
       this.bus.dispatch(command);
     }
@@ -490,6 +504,7 @@ export class Viewport {
       drag?.mode === 'marquee' ? this.marqueeRect(drag.originX, drag.originY, event) : null;
     this.marquee.set(null);
     this.release(drag?.pointerId);
+    this.session.endClipperHold();
     if (!drag) {
       return;
     }
@@ -554,12 +569,16 @@ export class Viewport {
       return;
     }
     const localPoint = documentToLocal(object.transform, this.pointerToDocument(event));
-    for (const command of updatePenDrag(drag, {
+    const commands = updatePenDrag(drag, {
       clientX: event.clientX,
       clientY: event.clientY,
       altKey: event.altKey,
       localPoint,
-    })) {
+    });
+    if (commands.length > 0) {
+      this.session.beginClipperHold();
+    }
+    for (const command of commands) {
       this.bus.dispatch(command);
     }
   }
@@ -568,6 +587,7 @@ export class Viewport {
     this.pen = null;
     this.penDragging.set(false);
     this.release(event.pointerId);
+    this.session.endClipperHold();
     if (this.session.penObjectId()) {
       this.trackPenPreview(event);
     } else {

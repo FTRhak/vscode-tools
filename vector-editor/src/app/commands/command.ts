@@ -117,7 +117,11 @@ export type Command =
       readonly gesture: TranslateGesture;
     }
   | { readonly type: 'pen.finish'; readonly objectId: string; readonly closed: boolean }
-  | { readonly type: 'modifier.add'; readonly objectId: string; readonly kind: 'array' | 'mirror' }
+  | {
+      readonly type: 'modifier.add';
+      readonly objectId: string;
+      readonly kind: 'array' | 'mirror' | 'bevel' | 'boolean';
+    }
   | {
       readonly type: 'modifier.update';
       readonly objectId: string;

@@ -30,6 +30,21 @@ export function multiplyMatrix(left: Matrix, right: Matrix): Matrix {
   };
 }
 
+export function invertMatrix(value: Matrix): Matrix | null {
+  const determinant = value.a * value.d - value.b * value.c;
+  if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-12) {
+    return null;
+  }
+  return {
+    a: value.d / determinant,
+    b: -value.b / determinant,
+    c: -value.c / determinant,
+    d: value.a / determinant,
+    e: (value.c * value.f - value.d * value.e) / determinant,
+    f: (value.b * value.e - value.a * value.f) / determinant,
+  };
+}
+
 export function applyMatrix(matrix: Matrix, point: Vec2): Vec2 {
   return {
     x: matrix.a * point.x + matrix.c * point.y + matrix.e,

@@ -36,8 +36,8 @@ export type {
   ViewBox,
   ViewportCamera,
 } from './model';
-export { evaluateObject } from './eval/evaluate';
-export type { EvaluatedGeometry } from './eval/evaluate';
+export { captureClipperHold, evaluateDocument, evaluateObject } from './eval/evaluate';
+export type { ClipperHold, EvaluatedGeometry } from './eval/evaluate';
 export { exportSvg, importSvg } from './io';
 export type { SaveMode, SvgImportResult } from './io';
 export { SessionService } from './session.service';

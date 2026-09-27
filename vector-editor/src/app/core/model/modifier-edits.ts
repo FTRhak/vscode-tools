@@ -1,7 +1,7 @@
-import { createId } from './create-id';
-import { evaluateSource } from '../eval/evaluate';
+import { evaluateObjectPrefix } from '../eval/evaluate';
 import { remintSource } from '../eval/remint';
-import { Modifier, VectorObject } from './types';
+import { createId } from './create-id';
+import { Modifier, Style, VectorObject } from './types';
 
 export interface ModifierPatch {
   readonly enabled?: boolean;
@@ -9,10 +9,19 @@ export interface ModifierPatch {
   readonly offsetX?: number;
   readonly offsetY?: number;
   readonly axis?: 'x' | 'y' | 'xy';
+  readonly distance?: number;
+  readonly join?: 'bevel' | 'miter' | 'round';
+  readonly miterLimit?: number;
+  readonly operation?: 'union' | 'difference' | 'intersect';
+  readonly operandId?: string;
 }
 
-export function addModifier(object: VectorObject, kind: 'array' | 'mirror'): VectorObject {
-  const modifier = kind === 'array' ? defaultArray() : defaultMirror();
+export function addModifier(
+  object: VectorObject,
+  kind: 'array' | 'mirror' | 'bevel' | 'boolean',
+  objects: readonly VectorObject[] = [],
+): VectorObject {
+  const modifier = defaultModifier(object.id, kind, objects);
   return { ...object, modifiers: [...object.modifiers, modifier] };
 }
 
@@ -62,30 +71,67 @@ export function reorderModifier(
   return { ...object, modifiers };
 }
 
-export function applyModifier(object: VectorObject, modifierId: string): VectorObject {
+export function applyModifier(
+  object: VectorObject,
+  modifierId: string,
+  objects: readonly VectorObject[] = [object],
+): VectorObject {
   const index = object.modifiers.findIndex((modifier) => modifier.id === modifierId);
   if (index < 0) {
     return object;
   }
-  const source = remintSource(
-    evaluateSource(object.source, object.modifiers.slice(0, index + 1)).source,
+  return bake(
+    object,
+    evaluateObjectPrefix(object, object.modifiers.slice(0, index + 1), objects),
+    object.modifiers.slice(index + 1),
   );
-  return {
-    ...object,
-    source,
-    modifiers: object.modifiers.slice(index + 1),
-  };
 }
 
-export function applyAllModifiers(object: VectorObject): VectorObject {
+export function applyAllModifiers(
+  object: VectorObject,
+  objects: readonly VectorObject[] = [object],
+): VectorObject {
   if (object.modifiers.length === 0) {
     return object;
   }
+  return bake(object, evaluateObjectPrefix(object, object.modifiers, objects), []);
+}
+
+function bake(
+  object: VectorObject,
+  evaluated: {
+    readonly subpaths: VectorObject['source']['subpaths'];
+    readonly fillRule: Style['fillRule'];
+  },
+  modifiers: readonly Modifier[],
+): VectorObject {
+  const style =
+    evaluated.fillRule === object.style.fillRule
+      ? object.style
+      : { ...object.style, fillRule: evaluated.fillRule };
   return {
     ...object,
-    source: remintSource(evaluateSource(object.source, object.modifiers).source),
-    modifiers: [],
+    source: remintSource({ subpaths: evaluated.subpaths }),
+    style,
+    modifiers,
   };
+}
+
+function defaultModifier(
+  objectId: string,
+  kind: 'array' | 'mirror' | 'bevel' | 'boolean',
+  objects: readonly VectorObject[],
+): Modifier {
+  switch (kind) {
+    case 'array':
+      return defaultArray();
+    case 'mirror':
+      return defaultMirror();
+    case 'bevel':
+      return defaultBevel();
+    case 'boolean':
+      return defaultBoolean(objectId, objects);
+  }
 }
 
 function defaultArray(): Modifier {
@@ -104,6 +150,28 @@ function defaultMirror(): Modifier {
     id: createId(),
     type: 'mirror',
     axis: 'x',
+    enabled: true,
+  };
+}
+
+function defaultBevel(): Modifier {
+  return {
+    id: createId(),
+    type: 'bevel',
+    distance: 8,
+    join: 'bevel',
+    miterLimit: 4,
+    enabled: true,
+  };
+}
+
+function defaultBoolean(objectId: string, objects: readonly VectorObject[]): Modifier {
+  const operand = objects.find((item) => item.id !== objectId);
+  return {
+    id: createId(),
+    type: 'boolean',
+    operation: 'difference',
+    operandId: operand?.id ?? '',
     enabled: true,
   };
 }
@@ -134,10 +202,30 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
     }
     return { ...modifier, enabled, axis };
   }
-  if (enabled === modifier.enabled) {
+  if (modifier.type === 'bevel') {
+    const distance = finite(patch.distance, modifier.distance);
+    const join = patch.join ?? modifier.join;
+    const miterLimit = finite(patch.miterLimit, modifier.miterLimit);
+    if (
+      enabled === modifier.enabled &&
+      distance === modifier.distance &&
+      join === modifier.join &&
+      miterLimit === modifier.miterLimit
+    ) {
+      return modifier;
+    }
+    return { ...modifier, enabled, distance, join, miterLimit };
+  }
+  const operation = patch.operation ?? modifier.operation;
+  const operandId = patch.operandId !== undefined ? patch.operandId : modifier.operandId;
+  if (
+    enabled === modifier.enabled &&
+    operation === modifier.operation &&
+    operandId === modifier.operandId
+  ) {
     return modifier;
   }
-  return { ...modifier, enabled };
+  return { ...modifier, enabled, operation, operandId };
 }
 
 function finite(value: number | undefined, fallback: number): number {

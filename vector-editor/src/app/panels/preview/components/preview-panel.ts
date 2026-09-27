@@ -15,7 +15,7 @@ export class PreviewPanel {
     if (!document) {
       return null;
     }
-    const scene = sceneFromDocument(document);
+    const scene = sceneFromDocument(document, this.session.clipperHold());
     if (scene.objects.length === 0) {
       return null;
     }

@@ -1,6 +1,8 @@
 import {
+  ClipperHold,
   Document,
-  evaluateObject,
+  evaluateDocument,
+  EvaluatedGeometry,
   objectsInPaintOrder,
   ObjectTransform,
   SourcePath,
@@ -26,7 +28,13 @@ interface Bounds {
 const MAX_FLATTEN_DEPTH = 12;
 const SCREEN_TOLERANCE = 0.75;
 
-export function hitTestObject(document: Document, point: Vec2, zoom: number): string | null {
+export function hitTestObject(
+  document: Document,
+  point: Vec2,
+  zoom: number,
+  hold: ClipperHold | null = null,
+): string | null {
+  const geometry = geometryById(document, hold);
   const objects = objectsInPaintOrder(document);
   for (let index = objects.length - 1; index >= 0; index -= 1) {
     const object = objects[index];
@@ -34,18 +42,23 @@ export function hitTestObject(document: Document, point: Vec2, zoom: number): st
     if (!local) {
       continue;
     }
-    if (hitsObject(object, local, zoom)) {
+    if (hitsObject(object, local, zoom, geometry.get(object.id))) {
       return object.id;
     }
   }
   return null;
 }
 
-export function objectsInRect(document: Document, rect: DocumentRect): readonly string[] {
+export function objectsInRect(
+  document: Document,
+  rect: DocumentRect,
+  hold: ClipperHold | null = null,
+): readonly string[] {
+  const geometry = geometryById(document, hold);
   const box = normalizeRect(rect);
   const hits: string[] = [];
   for (const object of objectsInPaintOrder(document)) {
-    const bounds = objectBounds(object);
+    const bounds = objectBounds(object, geometry.get(object.id));
     if (bounds && intersects(bounds, box)) {
       hits.push(object.id);
     }
@@ -53,14 +66,27 @@ export function objectsInRect(document: Document, rect: DocumentRect): readonly 
   return hits;
 }
 
-function hitsObject(object: VectorObject, point: Vec2, zoom: number): boolean {
+function geometryById(
+  document: Document,
+  hold: ClipperHold | null,
+): Map<string, EvaluatedGeometry> {
+  return new Map(evaluateDocument(document.objects, hold).map((item) => [item.objectId, item]));
+}
+
+function hitsObject(
+  object: VectorObject,
+  point: Vec2,
+  zoom: number,
+  geometry: EvaluatedGeometry | undefined,
+): boolean {
   const tolerance = localTolerance(zoom, object.transform);
   const radius =
     object.style.stroke !== null && object.style.strokeWidth > 0 ? object.style.strokeWidth / 2 : 0;
+  const fillRule = geometry?.fillRule ?? object.style.fillRule;
   let crossings = 0;
   let winding = 0;
 
-  for (const subpath of displayedSource(object).subpaths) {
+  for (const subpath of geometry?.subpaths ?? []) {
     const points = flattenSubpath(subpath, tolerance);
     if (points.length === 0) {
       continue;
@@ -79,7 +105,7 @@ function hitsObject(object: VectorObject, point: Vec2, zoom: number): boolean {
   if (object.style.fill === null) {
     return false;
   }
-  return object.style.fillRule === 'evenodd' ? crossings % 2 === 1 : winding !== 0;
+  return fillRule === 'evenodd' ? crossings % 2 === 1 : winding !== 0;
 }
 
 function localTolerance(zoom: number, transform: ObjectTransform): number {
@@ -186,8 +212,11 @@ function rayCrossings(
   return { count, winding };
 }
 
-function objectBounds(object: VectorObject): Bounds | null {
-  const points = controlPoints(displayedSource(object)).map((point) =>
+function objectBounds(
+  object: VectorObject,
+  geometry: EvaluatedGeometry | undefined,
+): Bounds | null {
+  const points = controlPoints({ subpaths: geometry?.subpaths ?? [] }).map((point) =>
     localToDocument(object.transform, point),
   );
   if (points.length === 0) {
@@ -209,10 +238,6 @@ function objectBounds(object: VectorObject): Bounds | null {
         Math.max(Math.abs(object.transform.scaleX), Math.abs(object.transform.scaleY))
       : 0;
   return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad };
-}
-
-function displayedSource(object: VectorObject): SourcePath {
-  return { subpaths: evaluateObject(object).subpaths };
 }
 
 function controlPoints(source: SourcePath): Vec2[] {
