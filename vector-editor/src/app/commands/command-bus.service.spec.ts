@@ -15,6 +15,7 @@ describe('CommandBus', () => {
   it('starts in object mode with the select tool and an empty canvas', () => {
     expect(session.mode()).toBe('object');
     expect(session.tool()).toBe('select');
+    expect(session.penObjectId()).toBeNull();
     expect(session.document()).toBeNull();
     expect(session.viewport()).toEqual({ panX: 0, panY: 0, zoom: 1 });
   });
@@ -242,5 +243,148 @@ describe('CommandBus', () => {
     bus.dispatch({ type: 'history.undo' });
     expect(session.document()!.objects[0].source.subpaths[0].anchors).toHaveLength(4);
     expect(session.selectedAnchorIds()).toEqual([anchor.id]);
+  });
+
+  it('draws a pen path as one history step per click and drops the stroke outside edit', () => {
+    bus.dispatch({ type: 'document.new' });
+    bus.dispatch({ type: 'session.setTool', tool: 'pen' });
+    bus.dispatch({ type: 'pen.begin', position: { x: 10, y: 20 } });
+    const objectId = session.penObjectId();
+    const first = session.document()!.objects.at(-1)!;
+    expect(session.mode()).toBe('edit');
+    expect(session.tool()).toBe('pen');
+    expect(first.source.subpaths[0].anchors).toHaveLength(1);
+    expect(session.selectedAnchorIds()).toEqual([first.source.subpaths[0].anchors[0].id]);
+
+    bus.dispatch({ type: 'pen.addPoint', objectId: objectId!, position: { x: 40, y: 20 } });
+    const second = session.document()!.objects.at(-1)!.source.subpaths[0].anchors[1];
+    bus.dispatch({
+      type: 'pen.setHandles',
+      objectId: objectId!,
+      anchorId: second.id,
+      handleOut: { x: 50, y: 30 },
+      breakLink: false,
+      gesture: 'continue',
+    });
+    bus.dispatch({
+      type: 'pen.setHandles',
+      objectId: objectId!,
+      anchorId: second.id,
+      handleOut: { x: 55, y: 28 },
+      breakLink: false,
+      gesture: 'continue',
+    });
+
+    const drawn = session.document()!.objects.at(-1)!.source.subpaths[0];
+    expect(drawn.segments[0].kind).toBe('cubic');
+    expect(drawn.anchors[1].handleIn).toEqual({ x: 25, y: 12 });
+    expect(session.history().entries.filter((entry) => entry.label === 'Pen')).toHaveLength(2);
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].anchors).toHaveLength(1);
+    expect(session.penObjectId()).toBe(objectId);
+
+    bus.dispatch({ type: 'pen.addPoint', objectId: objectId!, position: { x: 40, y: 20 } });
+    bus.dispatch({ type: 'pen.finish', objectId: objectId!, closed: true });
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].closed).toBe(true);
+    expect(session.penObjectId()).toBeNull();
+    expect(session.history().entries.at(-1)?.label).toBe('Close path');
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].closed).toBe(false);
+    expect(session.penObjectId()).toBeNull();
+
+    bus.dispatch({ type: 'pen.addPoint', objectId: objectId!, position: { x: 70, y: 20 } });
+    const recorded = session.history().entries.length;
+    bus.dispatch({ type: 'pen.finish', objectId: objectId!, closed: false });
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].closed).toBe(false);
+    expect(session.penObjectId()).toBeNull();
+    expect(session.history().entries).toHaveLength(recorded);
+
+    bus.dispatch({ type: 'pen.addPoint', objectId: objectId!, position: { x: 90, y: 20 } });
+    bus.dispatch({ type: 'session.setMode', mode: 'object' });
+    expect(session.penObjectId()).toBeNull();
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].anchors.length).toBeGreaterThan(
+      1,
+    );
+
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'pen.addPoint', objectId: objectId!, position: { x: 110, y: 20 } });
+    bus.dispatch({ type: 'session.setTool', tool: 'select' });
+    expect(session.penObjectId()).toBeNull();
+    expect(session.mode()).toBe('edit');
+
+    const sampleId = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'pen.addPoint', objectId: sampleId, position: { x: 1, y: 1 } });
+    expect(session.document()!.objects[0].source.subpaths[0].anchors).toHaveLength(4);
+    expect(session.penObjectId()).toBeNull();
+
+    bus.dispatch({ type: 'history.undo' });
+    bus.dispatch({ type: 'history.undo' });
+    bus.dispatch({ type: 'history.undo' });
+    bus.dispatch({ type: 'history.undo' });
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects).toHaveLength(1);
+    expect(session.mode()).toBe('object');
+    expect(session.penObjectId()).toBeNull();
+  });
+
+  it('does not record a style, swatch, or layer edit that changes nothing', () => {
+    bus.dispatch({ type: 'document.new' });
+    const object = session.document()!.objects[0];
+    const layerId = session.document()!.layers[0].id;
+    const recorded = session.history().entries.length;
+
+    bus.dispatch({ type: 'style.set', objectIds: [object.id], fill: object.style.fill });
+    bus.dispatch({ type: 'style.set', objectIds: ['missing'], fill: '#ff0000' });
+    bus.dispatch({ type: 'swatch.add', name: '  ', color: '#ff0000' });
+    bus.dispatch({
+      type: 'swatch.apply',
+      swatchId: 'missing',
+      target: 'fill',
+      objectIds: [object.id],
+    });
+    bus.dispatch({ type: 'layer.update', id: layerId, name: '   ' });
+    bus.dispatch({ type: 'layer.reorder', id: layerId, index: 0 });
+
+    expect(session.history().entries).toHaveLength(recorded);
+    expect(session.document()!.objects[0].style.fill).toBe(object.style.fill);
+  });
+
+  it('sets a fill, applies a swatch, and stacks a new layer in front', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    const backId = session.document()!.layers[0].id;
+
+    bus.dispatch({ type: 'style.set', objectIds: [id], fill: '#FF0000' });
+    expect(session.document()!.objects[0].style.fill).toBe('#ff0000');
+    expect(session.history().entries.at(-1)?.label).toBe('Set fill');
+
+    bus.dispatch({ type: 'swatch.add', name: 'Red', color: '#ff0000' });
+    const swatchId = session.document()!.swatches[0].id;
+    bus.dispatch({ type: 'swatch.apply', swatchId, target: 'stroke', objectIds: [id] });
+    expect(session.document()!.objects[0].style.stroke).toBe('#ff0000');
+    expect(session.history().entries.at(-1)?.label).toBe('Apply swatch');
+
+    bus.dispatch({ type: 'layer.add' });
+    const front = session.document()!.layers.find((layer) => layer.id !== backId);
+    expect(front).toMatchObject({ name: 'Layer 2', order: 1 });
+    bus.dispatch({ type: 'layer.reorder', id: front!.id, index: 1 });
+    expect(session.document()!.layers.find((layer) => layer.id === front!.id)?.order).toBe(0);
+    expect(session.document()!.layers.find((layer) => layer.id === backId)?.order).toBe(1);
+    expect(session.history().entries.at(-1)?.label).toBe('Reorder layer');
+  });
+
+  it('does not move an object on a locked layer', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    const layerId = session.document()!.layers[0].id;
+    bus.dispatch({ type: 'layer.update', id: layerId, locked: true });
+    const recorded = session.history().entries.length;
+
+    bus.dispatch({ type: 'object.translate', ids: [id], dx: 5, dy: 4, gesture: 'begin' });
+
+    expect(session.document()!.objects[0].transform).toMatchObject({ x: 0, y: 0 });
+    expect(session.history().entries).toHaveLength(recorded);
   });
 });

@@ -5,6 +5,8 @@ import { CommandBus } from '../../../commands/command-bus.service';
 interface OutlinerObject {
   readonly id: string;
   readonly name: string;
+  readonly visible: boolean;
+  readonly locked: boolean;
   readonly selected: boolean;
   readonly active: boolean;
 }
@@ -12,7 +14,12 @@ interface OutlinerObject {
 interface OutlinerLayer {
   readonly id: string;
   readonly name: string;
+  readonly visible: boolean;
+  readonly locked: boolean;
   readonly expanded: boolean;
+  readonly index: number;
+  readonly canMoveForward: boolean;
+  readonly canMoveBackward: boolean;
   readonly objects: readonly OutlinerObject[];
 }
 
@@ -45,9 +52,11 @@ export class OutlinerPanel {
     const collapsed = this.collapsedLayerIds();
     const selected = new Set(this.session.selectedObjectIds());
     const activeId = this.session.activeObjectId();
-    return layersFrontToBack(document).map((layer) => ({
+    const layers = layersFrontToBack(document).map((layer) => ({
       id: layer.id,
       name: layer.name,
+      visible: layer.visible,
+      locked: layer.locked,
       expanded: !collapsed.has(layer.id),
       objects: objectsOnLayer(document, layer.id)
         .slice()
@@ -55,9 +64,17 @@ export class OutlinerPanel {
         .map((object) => ({
           id: object.id,
           name: object.name,
+          visible: object.visible,
+          locked: object.locked,
           selected: selected.has(object.id),
           active: object.id === activeId,
         })),
+    }));
+    return layers.map((layer, index) => ({
+      ...layer,
+      index,
+      canMoveForward: index > 0,
+      canMoveBackward: index < layers.length - 1,
     }));
   });
 
@@ -84,6 +101,56 @@ export class OutlinerPanel {
     return rows[0]?.key ?? null;
   });
 
+  protected addLayer(): void {
+    this.bus.dispatch({ type: 'layer.add' });
+  }
+
+  protected toggleLayerFlag(layer: OutlinerLayer, flag: 'visible' | 'locked', event: Event): void {
+    event.stopPropagation();
+    this.focusedKey.set(`layer:${layer.id}`);
+    this.bus.dispatch({
+      type: 'layer.update',
+      id: layer.id,
+      [flag]: flag === 'visible' ? !layer.visible : !layer.locked,
+    });
+  }
+
+  protected toggleObjectFlag(
+    object: OutlinerObject,
+    flag: 'visible' | 'locked',
+    event: Event,
+  ): void {
+    event.stopPropagation();
+    this.focusedKey.set(`object:${object.id}`);
+    this.bus.dispatch({
+      type: 'object.setFlags',
+      ids: [object.id],
+      [flag]: flag === 'visible' ? !object.visible : !object.locked,
+    });
+  }
+
+  protected renameLayer(id: string, event: Event): void {
+    event.stopPropagation();
+    if (event instanceof KeyboardEvent) {
+      event.preventDefault();
+    }
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) {
+      return;
+    }
+    const name = input.value.trim();
+    if (!name) {
+      return;
+    }
+    this.bus.dispatch({ type: 'layer.update', id, name });
+  }
+
+  protected moveLayer(id: string, index: number, event: Event): void {
+    event.stopPropagation();
+    this.focusedKey.set(`layer:${id}`);
+    this.bus.dispatch({ type: 'layer.reorder', id, index });
+  }
+
   protected onLayerClick(id: string): void {
     this.toggleLayer(id);
   }
@@ -100,6 +167,9 @@ export class OutlinerPanel {
   }
 
   protected onTreeKeydown(event: KeyboardEvent): void {
+    if (isTypingTarget(event.target)) {
+      return;
+    }
     const rows = this.focusableRows();
     if (rows.length === 0) {
       return;
@@ -160,4 +230,8 @@ export class OutlinerPanel {
       }
     });
   }
+}
+
+function isTypingTarget(target: EventTarget | null): boolean {
+  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
 }

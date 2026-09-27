@@ -1,5 +1,7 @@
 import type { ObjectTransform, Vec2 } from '../core/model/types';
 
+export type ColorSlot = 'fill' | 'stroke';
+
 export type EditorMode = 'object' | 'edit';
 
 export type EditorTool = 'select' | 'direct-select' | 'pen';
@@ -79,6 +81,40 @@ export type Command =
       readonly locked?: boolean;
     }
   | { readonly type: 'object.duplicate'; readonly ids: readonly string[] }
+  | {
+      readonly type: 'style.set';
+      readonly objectIds: readonly string[];
+      readonly fill?: string | null;
+      readonly stroke?: string | null;
+      readonly strokeWidth?: number;
+    }
+  | { readonly type: 'swatch.add'; readonly name: string; readonly color: string }
+  | {
+      readonly type: 'swatch.apply';
+      readonly swatchId: string;
+      readonly target: ColorSlot;
+      readonly objectIds: readonly string[];
+    }
+  | { readonly type: 'layer.add' }
+  | {
+      readonly type: 'layer.update';
+      readonly id: string;
+      readonly name?: string;
+      readonly visible?: boolean;
+      readonly locked?: boolean;
+    }
+  | { readonly type: 'layer.reorder'; readonly id: string; readonly index: number }
+  | { readonly type: 'pen.begin'; readonly position: Vec2 }
+  | { readonly type: 'pen.addPoint'; readonly objectId: string; readonly position: Vec2 }
+  | {
+      readonly type: 'pen.setHandles';
+      readonly objectId: string;
+      readonly anchorId: string;
+      readonly handleOut: Vec2;
+      readonly breakLink: boolean;
+      readonly gesture: TranslateGesture;
+    }
+  | { readonly type: 'pen.finish'; readonly objectId: string; readonly closed: boolean }
   | { readonly type: 'history.undo' }
   | { readonly type: 'history.redo' };
 

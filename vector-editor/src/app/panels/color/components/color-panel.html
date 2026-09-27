@@ -1,0 +1,59 @@
+<section class="panel-section" aria-labelledby="color-heading">
+  <h2 id="color-heading">Color</h2>
+  @if (hasSelection()) {
+    <div class="slots">
+      <button
+        type="button"
+        class="slot"
+        [attr.aria-pressed]="slot() === 'fill'"
+        (click)="chooseSlot('fill')"
+      >
+        <span
+          class="chip"
+          [class.none]="fillColor().kind === 'none'"
+          [class.mixed]="fillColor().kind === 'mixed'"
+          [style.background]="chipBackground(fillColor())"
+        ></span>
+        Fill
+      </button>
+      <button
+        type="button"
+        class="slot"
+        [attr.aria-pressed]="slot() === 'stroke'"
+        (click)="chooseSlot('stroke')"
+      >
+        <span
+          class="chip"
+          [class.none]="strokeColor().kind === 'none'"
+          [class.mixed]="strokeColor().kind === 'mixed'"
+          [style.background]="chipBackground(strokeColor())"
+        ></span>
+        Stroke
+      </button>
+    </div>
+    <div class="picker">
+      <label>
+        Color
+        <input type="color" [value]="pickerValue()" (change)="commitColor($event)" />
+      </label>
+      <button type="button" class="chrome-button" (click)="clearActive()">None</button>
+      @if (activeColor().kind === 'mixed') {
+        <span class="mixed-label">Mixed</span>
+      }
+    </div>
+    <form class="width-form" (submit)="$event.preventDefault()">
+      <label>
+        Stroke width
+        <input
+          type="number"
+          step="any"
+          [formField]="widthForm.strokeWidth"
+          (blur)="commitWidth()"
+          (keydown.enter)="commitWidth($event)"
+        />
+      </label>
+    </form>
+  } @else {
+    <p>No color yet.</p>
+  }
+</section>

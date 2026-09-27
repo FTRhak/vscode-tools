@@ -10,6 +10,14 @@ import {
   SessionSnapshot,
 } from '../commands/history';
 import { createNewDocument } from './model/create-document';
+import {
+  addLayer,
+  addSwatch,
+  applySwatch,
+  reorderLayer,
+  setObjectStyle,
+  updateLayer,
+} from './model/document-edits';
 import { duplicateObjects } from './model/duplicate-objects';
 import {
   deleteAnchors,
@@ -17,6 +25,8 @@ import {
   setAnchorPosition,
   translateAnchors,
 } from './model/edit-path';
+import { isInteractionLocked } from './model/paint-order';
+import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
 import { Document, ObjectTransform, SourcePath, VectorObject, ViewportCamera } from './model/types';
 
 export interface SessionSlice {
@@ -26,6 +36,7 @@ export interface SessionSlice {
   readonly viewport: ViewportCamera;
   readonly selection: SelectionState;
   readonly history: HistoryState;
+  readonly penObjectId: string | null;
 }
 
 const initialSession: SessionSlice = {
@@ -35,6 +46,7 @@ const initialSession: SessionSlice = {
   viewport: { panX: 0, panY: 0, zoom: 1 },
   selection: emptySelection,
   history: emptyHistory,
+  penObjectId: null,
 };
 
 type DocumentCommand = Exclude<Command, { type: 'history.undo' } | { type: 'history.redo' }>;
@@ -44,11 +56,16 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
     case 'session.setMode':
       return applyMode(state, command.mode);
     case 'session.setTool':
-      return { ...state, tool: command.tool };
+      return applyTool(state, command.tool);
     case 'session.setEditSelectionKind':
       return applyEditSelectionKind(state, command.kind);
     case 'document.new':
-      return { ...state, document: createNewDocument(), selection: emptySelection };
+      return {
+        ...state,
+        document: createNewDocument(),
+        selection: emptySelection,
+        penObjectId: null,
+      };
     case 'session.setViewport':
       return {
         ...state,
@@ -86,6 +103,34 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyFlags(state, command);
     case 'object.duplicate':
       return applyDuplicate(state, command);
+    case 'style.set':
+      return applyDocument(state, (document) =>
+        setObjectStyle(document, command.objectIds, {
+          fill: command.fill,
+          stroke: command.stroke,
+          strokeWidth: command.strokeWidth,
+        }),
+      );
+    case 'swatch.add':
+      return applyDocument(state, (document) => addSwatch(document, command.name, command.color));
+    case 'swatch.apply':
+      return applyDocument(state, (document) =>
+        applySwatch(document, command.swatchId, command.target, command.objectIds),
+      );
+    case 'layer.add':
+      return applyDocument(state, addLayer);
+    case 'layer.update':
+      return applyDocument(state, (document) => updateLayer(document, command.id, command));
+    case 'layer.reorder':
+      return applyDocument(state, (document) => reorderLayer(document, command.id, command.index));
+    case 'pen.begin':
+      return applyPenBegin(state, command);
+    case 'pen.addPoint':
+      return applyPenAddPoint(state, command);
+    case 'pen.setHandles':
+      return applyPenSetHandles(state, command);
+    case 'pen.finish':
+      return applyPenFinish(state, command);
   }
 }
 
@@ -133,6 +178,7 @@ export class SessionService {
   readonly canRedo = computed(
     () => this.state().history.index < this.state().history.entries.length - 1,
   );
+  readonly penObjectId = computed(() => this.state().penObjectId);
 
   apply(command: Command): void {
     this.state.update((current) => commitSession(current, command));
@@ -160,13 +206,13 @@ function undoSession(state: SessionSlice): SessionSlice {
   if (!entry || state.history.index < 0) {
     return state;
   }
-  return {
+  return reconcilePen({
     ...state,
     document: entry.before.document,
     mode: entry.before.mode,
     selection: entry.before.selection,
     history: { entries: state.history.entries, index: state.history.index - 1 },
-  };
+  });
 }
 
 function redoSession(state: SessionSlice): SessionSlice {
@@ -175,19 +221,21 @@ function redoSession(state: SessionSlice): SessionSlice {
   if (!entry) {
     return state;
   }
-  return {
+  return reconcilePen({
     ...state,
     document: entry.after.document,
     mode: entry.after.mode,
     selection: entry.after.selection,
     history: { entries: state.history.entries, index },
-  };
+  });
 }
 
 function applyMode(state: SessionSlice, mode: SessionSlice['mode']): SessionSlice {
   const selection = state.selection;
+  const penObjectId = mode === 'edit' ? state.penObjectId : null;
   if (
     state.mode === mode &&
+    penObjectId === state.penObjectId &&
     selection.selectedAnchorIds.length === 0 &&
     selection.selectedSegmentIds.length === 0
   ) {
@@ -196,12 +244,21 @@ function applyMode(state: SessionSlice, mode: SessionSlice['mode']): SessionSlic
   return {
     ...state,
     mode,
+    penObjectId,
     selection: {
       ...selection,
       selectedAnchorIds: [],
       selectedSegmentIds: [],
     },
   };
+}
+
+function applyTool(state: SessionSlice, tool: EditorTool): SessionSlice {
+  const penObjectId = tool === 'pen' ? state.penObjectId : null;
+  if (state.tool === tool && state.penObjectId === penObjectId) {
+    return state;
+  }
+  return { ...state, tool, penObjectId };
 }
 
 function applyEditSelectionKind(
@@ -275,7 +332,7 @@ function applyDeleteAnchors(
     return state;
   }
   const object = state.document.objects.find((item) => item.id === command.objectId);
-  if (!object || object.locked) {
+  if (!object || isInteractionLocked(state.document, object)) {
     return state;
   }
   const source = deleteAnchors(object.source, command.anchorIds);
@@ -296,11 +353,12 @@ function replaceSource(
   objectId: string,
   update: (source: SourcePath) => SourcePath,
 ): SessionSlice {
-  if (!state.document) {
+  const current = state.document;
+  if (!current) {
     return state;
   }
-  const document = mapObjects(state.document, [objectId], (object) => {
-    if (object.locked) {
+  const document = mapObjects(current, [objectId], (object) => {
+    if (isInteractionLocked(current, object)) {
       return object;
     }
     const source = update(object.source);
@@ -402,14 +460,15 @@ function applyTranslate(
   state: SessionSlice,
   command: Extract<Command, { type: 'object.translate' }>,
 ): SessionSlice {
-  if (!state.document || !Number.isFinite(command.dx) || !Number.isFinite(command.dy)) {
+  const current = state.document;
+  if (!current || !Number.isFinite(command.dx) || !Number.isFinite(command.dy)) {
     return state;
   }
   if (command.dx === 0 && command.dy === 0) {
     return state;
   }
-  const document = mapObjects(state.document, command.ids, (object) => {
-    if (object.locked) {
+  const document = mapObjects(current, command.ids, (object) => {
+    if (isInteractionLocked(current, object)) {
       return object;
     }
     return {
@@ -472,6 +531,120 @@ function applyDuplicate(
   };
 }
 
+function applyPenBegin(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'pen.begin' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const created = beginPenObject(state.document, command.position);
+  if (!created) {
+    return state;
+  }
+  return {
+    ...state,
+    mode: 'edit',
+    document: created.document,
+    penObjectId: created.objectId,
+    selection: penSelection(state.selection, created.objectId, created.anchorId, true),
+  };
+}
+
+function applyPenAddPoint(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'pen.addPoint' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const object = state.document.objects.find((item) => item.id === command.objectId);
+  if (!object || isInteractionLocked(state.document, object)) {
+    return state;
+  }
+  const added = addPenPoint(object.source, command.position);
+  if (!added) {
+    return state;
+  }
+  return {
+    ...state,
+    document: mapObjects(state.document, [command.objectId], (item) => ({
+      ...item,
+      source: added.source,
+    })),
+    penObjectId: command.objectId,
+    selection: penSelection(state.selection, command.objectId, added.anchorId, false),
+  };
+}
+
+function applyPenSetHandles(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'pen.setHandles' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  return replaceSource(state, command.objectId, (source) =>
+    setPenHandles(source, command.anchorId, command.handleOut, command.breakLink),
+  );
+}
+
+function applyPenFinish(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'pen.finish' }>,
+): SessionSlice {
+  const cleared = state.penObjectId === null ? state : { ...state, penObjectId: null };
+  if (!command.closed || !state.document) {
+    return cleared;
+  }
+  const object = state.document.objects.find((item) => item.id === command.objectId);
+  if (!object || isInteractionLocked(state.document, object)) {
+    return cleared;
+  }
+  const source = finishPen(object.source, true);
+  if (source === object.source) {
+    return cleared;
+  }
+  return {
+    ...cleared,
+    document: mapObjects(state.document, [command.objectId], (item) => ({ ...item, source })),
+  };
+}
+
+function penSelection(
+  selection: SelectionState,
+  objectId: string,
+  anchorId: string,
+  replaceObjects: boolean,
+): SelectionState {
+  const selectedObjectIds =
+    replaceObjects || !selection.selectedObjectIds.includes(objectId)
+      ? [objectId]
+      : selection.selectedObjectIds;
+  return {
+    ...selection,
+    activeObjectId: objectId,
+    selectedObjectIds,
+    selectedAnchorIds: [anchorId],
+    selectedSegmentIds: [],
+  };
+}
+
+function reconcilePen(state: SessionSlice): SessionSlice {
+  if (state.penObjectId === null) {
+    return state;
+  }
+  if (state.tool !== 'pen' || state.mode !== 'edit' || !state.document) {
+    return { ...state, penObjectId: null };
+  }
+  const object = state.document.objects.find((item) => item.id === state.penObjectId);
+  const subpath = object?.source.subpaths.at(-1);
+  if (!object || !subpath || subpath.closed) {
+    return { ...state, penObjectId: null };
+  }
+  return state;
+}
+
 function withTransform(object: VectorObject, patch: Partial<ObjectTransform>): VectorObject {
   const transform = { ...object.transform };
   let changed = false;
@@ -500,6 +673,17 @@ function withFlags(
     next = { ...next, locked: patch.locked };
   }
   return next;
+}
+
+function applyDocument(
+  state: SessionSlice,
+  update: (document: Document) => Document,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const document = update(state.document);
+  return document === state.document ? state : { ...state, document };
 }
 
 function mapObjects(

@@ -25,6 +25,7 @@ export function beginDirectDrag(input: {
   readonly clientY: number;
   readonly shiftKey: boolean;
   readonly object: VectorObject;
+  readonly blocked: boolean;
   readonly localPoint: Vec2;
   readonly zoom: number;
   readonly selectedAnchorIds: readonly string[];
@@ -52,7 +53,7 @@ export function beginDirectDrag(input: {
       mode: 'pending',
       moveSent: false,
       hit,
-      canMove: !input.object.locked,
+      canMove: !input.blocked,
       objectId: input.object.id,
     },
     commands,

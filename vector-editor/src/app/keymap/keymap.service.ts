@@ -65,11 +65,23 @@ export class KeymapService {
       return null;
     }
 
+    const penObjectId = this.session.penObjectId();
+    if (event.key === 'Enter' && penObjectId && isViewportTarget(event.target)) {
+      return { type: 'pen.finish', objectId: penObjectId, closed: false };
+    }
+    if (event.key === 'Escape' && penObjectId) {
+      return { type: 'history.undo' };
+    }
+
     if (this.session.mode() === 'edit' && (key === '1' || key === '2')) {
       return {
         type: 'session.setEditSelectionKind',
         kind: key === '1' ? 'anchor' : 'segment',
       };
+    }
+
+    if (key === 'h') {
+      return this.toggleVisible();
     }
 
     if (key === 'delete' || key === 'x') {
@@ -78,6 +90,24 @@ export class KeymapService {
 
     const tool = toolKeys[key];
     return tool ? { type: 'session.setTool', tool } : null;
+  }
+
+  private toggleVisible(): Command | null {
+    const document = this.session.document();
+    const ids = this.session.selectedObjectIds();
+    if (!document || ids.length === 0) {
+      return null;
+    }
+    const selected = new Set(ids);
+    const objects = document.objects.filter((object) => selected.has(object.id));
+    if (objects.length === 0) {
+      return null;
+    }
+    return {
+      type: 'object.setFlags',
+      ids: objects.map((object) => object.id),
+      visible: !objects.every((object) => object.visible),
+    };
   }
 
   private deleteAnchors(): Command | null {

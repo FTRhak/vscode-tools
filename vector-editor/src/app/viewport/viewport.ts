@@ -1,5 +1,5 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } from '@angular/core';
-import { SessionService, Vec2, VectorObject } from '@vector-editor/core';
+import { isInteractionLocked, SessionService, Vec2, VectorObject } from '@vector-editor/core';
 import { CommandBus } from '../commands/command-bus.service';
 import { TranslateGesture } from '../commands/command';
 import { anchorsInRect } from './anchor-hit';
@@ -9,6 +9,7 @@ import {
   finishDirectDrag,
   updateDirectDrag,
 } from './tools/direct-select';
+import { PenDrag, penPreviewData, startPen, updatePenDrag } from './tools/pen';
 import {
   ARTBOARD_FIT_PADDING,
   cameraTransformAttribute,
@@ -55,6 +56,7 @@ const GESTURE_THRESHOLD_PX = 4;
     '[class.panning]': 'panning()',
     '[class.moving]': 'moving()',
     '[class.direct]': 'directCursor()',
+    '[class.pen]': 'penTool()',
     '(pointerdown)': 'onPointerDown($event)',
     '(pointermove)': 'onPointerMove($event)',
     '(pointerup)': 'onPointerUp($event)',
@@ -62,6 +64,7 @@ const GESTURE_THRESHOLD_PX = 4;
     '(keydown)': 'onKeyDown($event)',
     '(keyup)': 'onKeyUp($event)',
     '(blur)': 'onBlur()',
+    '(pointerleave)': 'onPointerLeave()',
     '(auxclick)': 'onAuxClick($event)',
   },
   templateUrl: './viewport.html',
@@ -78,6 +81,7 @@ export class Viewport {
   private pan: PanGesture | null = null;
   private select: SelectGesture | null = null;
   private direct: DirectDrag | null = null;
+  private pen: PenDrag | null = null;
   private spaceHeld = false;
 
   protected readonly panning = signal(false);
@@ -87,6 +91,9 @@ export class Viewport {
   protected readonly directCursor = computed(
     () => this.editing() && this.session.tool() === 'direct-select',
   );
+  protected readonly penTool = computed(() => this.session.tool() === 'pen');
+  private readonly penHover = signal<Vec2 | null>(null);
+  private readonly penDragging = signal(false);
   protected readonly activeId = this.session.activeObjectId;
 
   protected readonly scene = computed(() => {
@@ -135,6 +142,28 @@ export class Viewport {
     };
   });
 
+  protected readonly penPreview = computed(() => {
+    if (this.penDragging()) {
+      return null;
+    }
+    const hover = this.penHover();
+    const objectId = this.session.penObjectId();
+    const document = this.session.document();
+    if (!hover || !objectId || !document) {
+      return null;
+    }
+    const object = document.objects.find((item) => item.id === objectId);
+    const subpath = object?.source.subpaths.at(-1);
+    const anchor = subpath?.anchors.at(-1);
+    if (!object || !subpath || subpath.closed || !anchor) {
+      return null;
+    }
+    return {
+      transform: formatObjectTransform(object.transform),
+      d: penPreviewData(anchor, hover),
+    };
+  });
+
   protected readonly cameraTransform = computed(() =>
     cameraTransformAttribute(this.session.viewport()),
   );
@@ -155,6 +184,10 @@ export class Viewport {
     if (event.button !== 0) {
       return;
     }
+    if (this.session.tool() === 'pen') {
+      this.beginPen(event);
+      return;
+    }
     if (this.session.tool() === 'direct-select') {
       this.beginDirect(event);
       return;
@@ -167,18 +200,28 @@ export class Viewport {
       this.movePan(event);
       return;
     }
+    if (this.pen && event.pointerId === this.pen.pointerId) {
+      this.movePen(event);
+      return;
+    }
     if (this.direct && event.pointerId === this.direct.pointerId) {
       this.moveDirect(event);
       return;
     }
     if (this.select && event.pointerId === this.select.pointerId) {
       this.moveSelect(event);
+      return;
     }
+    this.trackPenPreview(event);
   }
 
   protected onPointerUp(event: PointerEvent): void {
     if (this.pan && event.pointerId === this.pan.pointerId) {
       this.stopPan();
+      return;
+    }
+    if (this.pen && event.pointerId === this.pen.pointerId) {
+      this.finishPen(event);
       return;
     }
     if (this.direct && event.pointerId === this.direct.pointerId) {
@@ -216,6 +259,12 @@ export class Viewport {
     this.spaceHeld = false;
     if (this.pan?.fromSpace) {
       this.stopPan();
+    }
+  }
+
+  protected onPointerLeave(): void {
+    if (!this.pen) {
+      this.penHover.set(null);
     }
   }
 
@@ -286,7 +335,7 @@ export class Viewport {
       lastX: event.clientX,
       lastY: event.clientY,
       hitId: hit?.id ?? null,
-      canMove: !!hit && !hit.locked,
+      canMove: !!hit && !isInteractionLocked(document, hit),
       moved: false,
       mode: 'pending',
       moveSent: false,
@@ -376,7 +425,8 @@ export class Viewport {
       return;
     }
     const object = this.activeObject();
-    if (!object) {
+    const document = this.session.document();
+    if (!object || !document) {
       return;
     }
     const localPoint = documentToLocal(object.transform, this.pointerToDocument(event));
@@ -389,6 +439,7 @@ export class Viewport {
       clientY: event.clientY,
       shiftKey: event.shiftKey,
       object,
+      blocked: isInteractionLocked(document, object),
       localPoint,
       zoom: this.session.viewport().zoom,
       selectedAnchorIds: this.session.selectedAnchorIds(),
@@ -447,6 +498,102 @@ export class Viewport {
     for (const command of finishDirectDrag(drag, { shiftKey: event.shiftKey, anchorIds })) {
       this.bus.dispatch(command);
     }
+  }
+
+  private beginPen(event: PointerEvent): void {
+    const document = this.session.document();
+    if (!document) {
+      return;
+    }
+    const documentPoint = this.pointerToDocument(event);
+    const penObject = this.penObject();
+    const activeObject = this.activeObject();
+    const localTarget = penObject ?? (this.session.mode() === 'edit' ? activeObject : null);
+    const localPoint = localTarget ? documentToLocal(localTarget.transform, documentPoint) : null;
+    const started = startPen({
+      mode: this.session.mode(),
+      documentPoint,
+      zoom: this.session.viewport().zoom,
+      penObject,
+      activeObject,
+      localPoint,
+      isBlocked: (object) => isInteractionLocked(document, object),
+    });
+    for (const command of started.commands) {
+      this.bus.dispatch(command);
+    }
+    if (started.place) {
+      const placed = this.penObject();
+      const anchor = placed?.source.subpaths.at(-1)?.anchors.at(-1);
+      if (placed && anchor) {
+        this.pen = {
+          pointerId: event.pointerId,
+          originX: event.clientX,
+          originY: event.clientY,
+          objectId: placed.id,
+          anchorId: anchor.id,
+          moved: false,
+        };
+        this.penDragging.set(true);
+        this.penHover.set(null);
+      }
+    }
+    this.host.nativeElement.focus();
+    if (this.pen) {
+      this.host.nativeElement.setPointerCapture?.(event.pointerId);
+    }
+  }
+
+  private movePen(event: PointerEvent): void {
+    const drag = this.pen;
+    if (!drag) {
+      return;
+    }
+    const object = this.session.document()?.objects.find((item) => item.id === drag.objectId);
+    if (!object) {
+      return;
+    }
+    const localPoint = documentToLocal(object.transform, this.pointerToDocument(event));
+    for (const command of updatePenDrag(drag, {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      altKey: event.altKey,
+      localPoint,
+    })) {
+      this.bus.dispatch(command);
+    }
+  }
+
+  private finishPen(event: PointerEvent): void {
+    this.pen = null;
+    this.penDragging.set(false);
+    this.release(event.pointerId);
+    if (this.session.penObjectId()) {
+      this.trackPenPreview(event);
+    } else {
+      this.penHover.set(null);
+    }
+  }
+
+  private trackPenPreview(event: PointerEvent): void {
+    if (this.pen || this.session.tool() !== 'pen') {
+      return;
+    }
+    const object = this.penObject();
+    if (!object) {
+      this.penHover.set(null);
+      return;
+    }
+    this.penHover.set(documentToLocal(object.transform, this.pointerToDocument(event)));
+  }
+
+  private penObject(): VectorObject | null {
+    const id = this.session.penObjectId();
+    const document = this.session.document();
+    if (!id || !document) {
+      return null;
+    }
+    return document.objects.find((object) => object.id === id) ?? null;
   }
 
   private activeObject(): VectorObject | null {

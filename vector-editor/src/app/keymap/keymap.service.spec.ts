@@ -87,6 +87,78 @@ describe('KeymapService', () => {
     expect(session.selectedAnchorIds()).toEqual([]);
   });
 
+  it('finishes an open pen stroke from the canvas and undoes the last point with Escape', () => {
+    bus.dispatch({ type: 'document.new' });
+    bus.dispatch({ type: 'session.setTool', tool: 'pen' });
+    bus.dispatch({ type: 'pen.begin', position: { x: 4, y: 6 } });
+    const objectId = session.penObjectId()!;
+    bus.dispatch({ type: 'pen.addPoint', objectId, position: { x: 20, y: 6 } });
+
+    const away = key('Enter');
+    document.body.dispatchEvent(away);
+    expect(away.defaultPrevented).toBe(false);
+    expect(session.penObjectId()).toBe(objectId);
+
+    const input = document.createElement('input');
+    document.body.append(input);
+    const typed = key('Enter');
+    input.dispatchEvent(typed);
+    input.remove();
+    expect(typed.defaultPrevented).toBe(false);
+    expect(session.penObjectId()).toBe(objectId);
+
+    const viewport = document.createElement('div');
+    viewport.setAttribute('data-viewport', '');
+    document.body.append(viewport);
+    const finished = key('Enter');
+    viewport.dispatchEvent(finished);
+    viewport.remove();
+
+    expect(finished.defaultPrevented).toBe(true);
+    expect(session.penObjectId()).toBeNull();
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].closed).toBe(false);
+
+    bus.dispatch({ type: 'pen.addPoint', objectId, position: { x: 30, y: 6 } });
+    document.dispatchEvent(key('Escape'));
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].anchors).toHaveLength(2);
+    expect(session.penObjectId()).toBe(objectId);
+
+    document.dispatchEvent(key('Escape'));
+    document.dispatchEvent(key('Escape'));
+    expect(session.document()!.objects).toHaveLength(1);
+    expect(session.mode()).toBe('object');
+    expect(session.penObjectId()).toBeNull();
+
+    bus.dispatch({
+      type: 'object.setFlags',
+      ids: [session.document()!.objects[0].id],
+      name: 'Kept',
+    });
+    document.dispatchEvent(key('Escape'));
+    expect(session.document()!.objects[0].name).toBe('Kept');
+  });
+
+  it('hides selected objects with H and shows them again', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [id], op: 'replace' });
+
+    document.dispatchEvent(key('h'));
+    expect(session.document()!.objects[0].visible).toBe(false);
+
+    document.dispatchEvent(key('h'));
+    expect(session.document()!.objects[0].visible).toBe(true);
+
+    const input = document.createElement('input');
+    document.body.append(input);
+    const typed = key('h');
+    input.dispatchEvent(typed);
+    input.remove();
+
+    expect(typed.defaultPrevented).toBe(false);
+    expect(session.document()!.objects[0].visible).toBe(true);
+  });
+
   it('does not duplicate when nothing is selected', () => {
     bus.dispatch({ type: 'document.new' });
 

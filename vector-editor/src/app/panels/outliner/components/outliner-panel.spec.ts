@@ -33,7 +33,9 @@ describe('OutlinerPanel', () => {
 
     bus.dispatch({ type: 'session.select', target: 'object', ids: [], op: 'clear' });
     await fixture.whenStable();
-    row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    row.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    );
     await fixture.whenStable();
     expect(session.selectedObjectIds()).toEqual([id]);
   });
@@ -72,10 +74,44 @@ describe('OutlinerPanel', () => {
     expect(layer.tabIndex).toBe(-1);
   });
 
-  function objectRow(name: string): HTMLElement {
-    const row = [...fixture.nativeElement.querySelectorAll('[role="treeitem"]')].find(
-      (item) => item.getAttribute('aria-level') === '2' && item.textContent?.trim() === name,
+  it('hides an object from its eye without selecting the row', async () => {
+    bus.dispatch({ type: 'document.new' });
+    await fixture.whenStable();
+    const eye = fixture.nativeElement.querySelector('[aria-label="Hide Path"]');
+    if (!(eye instanceof HTMLButtonElement)) {
+      throw new Error('Eye button is missing');
+    }
+
+    eye.click();
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].visible).toBe(false);
+    expect(session.selectedObjectIds()).toEqual([]);
+    expect(eye.getAttribute('aria-label')).toBe('Show Path');
+  });
+
+  it('leaves the tree focus in place when an arrow is pressed in the layer name', async () => {
+    bus.dispatch({ type: 'document.new' });
+    await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('.layer-name');
+    if (!(input instanceof HTMLInputElement)) {
+      throw new Error('Layer name is missing');
+    }
+
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
     );
+    await fixture.whenStable();
+
+    expect(objectRow('Path').tabIndex).toBe(-1);
+    expect(input.closest('[role="treeitem"]')?.getAttribute('tabindex')).toBe('0');
+  });
+
+  function objectRow(name: string): HTMLElement {
+    const row = [...fixture.nativeElement.querySelectorAll('[role="treeitem"]')].find((item) => {
+      const label = item.querySelector('.object-name');
+      return item.getAttribute('aria-level') === '2' && label?.textContent?.trim() === name;
+    });
     if (!(row instanceof HTMLElement)) {
       throw new Error(`${name} row is missing`);
     }

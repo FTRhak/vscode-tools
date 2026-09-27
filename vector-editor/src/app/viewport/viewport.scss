@@ -11,7 +11,8 @@
   user-select: none;
 }
 
-:host.direct {
+:host.direct,
+:host.pen {
   cursor: crosshair;
 }
 
@@ -65,6 +66,15 @@ svg {
   stroke: #1d4ed8;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
+}
+
+.pen-preview {
+  fill: none;
+  stroke: #1d4ed8;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
 }
 
 .marquee {

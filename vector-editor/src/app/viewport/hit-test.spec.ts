@@ -25,6 +25,12 @@ describe('hitTestObject', () => {
 
     expect(hitTestObject(doc([back, front]), { x: 5, y: 5 }, 1)).toBe('front');
     expect(hitTestObject(doc([back, hidden]), { x: 5, y: 5 }, 1)).toBe('back');
+    const document = createNewDocument();
+    const hiddenLayer = {
+      ...document,
+      layers: [{ ...document.layers[0], visible: false }],
+    };
+    expect(hitTestObject(hiddenLayer, { x: 450, y: 400 }, 1)).toBeNull();
   });
 
   it('follows translation, rotation, and a zero scale', () => {

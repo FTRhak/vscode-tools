@@ -70,6 +70,33 @@ export function historyLabel(command: Command): string | null {
       return command.gesture ? 'Move handle' : 'Set handle';
     case 'path.deleteAnchors':
       return 'Delete anchors';
+    case 'style.set':
+      return styleLabel(command);
+    case 'swatch.add':
+      return 'Add swatch';
+    case 'swatch.apply':
+      return 'Apply swatch';
+    case 'layer.add':
+      return 'Add layer';
+    case 'layer.update':
+      if (command.name !== undefined) {
+        return 'Rename layer';
+      }
+      if (command.visible !== undefined) {
+        return command.visible ? 'Show layer' : 'Hide layer';
+      }
+      if (command.locked !== undefined) {
+        return command.locked ? 'Lock layer' : 'Unlock layer';
+      }
+      return null;
+    case 'layer.reorder':
+      return 'Reorder layer';
+    case 'pen.begin':
+    case 'pen.addPoint':
+    case 'pen.setHandles':
+      return 'Pen';
+    case 'pen.finish':
+      return command.closed ? 'Close path' : null;
     case 'session.setMode':
     case 'session.setTool':
     case 'session.setViewport':
@@ -102,6 +129,15 @@ export function recordHistory(
   return { entries, index: entries.length - 1 };
 }
 
+function styleLabel(command: Extract<Command, { type: 'style.set' }>): string {
+  const labels = [
+    command.fill !== undefined ? 'Set fill' : null,
+    command.stroke !== undefined ? 'Set stroke' : null,
+    command.strokeWidth !== undefined ? 'Set stroke width' : null,
+  ].filter((label) => label !== null);
+  return labels.length === 1 && labels[0] ? labels[0] : 'Set style';
+}
+
 function gestureContinues(command: Command, label: string | undefined): boolean {
   if (command.type === 'object.translate' && command.gesture === 'continue') {
     return label === 'Move';
@@ -111,6 +147,9 @@ function gestureContinues(command: Command, label: string | undefined): boolean 
   }
   if (command.type === 'path.setHandle' && command.gesture === 'continue') {
     return label === 'Move handle';
+  }
+  if (command.type === 'pen.setHandles' && command.gesture === 'continue') {
+    return label === 'Pen';
   }
   return false;
 }
