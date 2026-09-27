@@ -1,0 +1,43 @@
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tree-row {
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  min-height: 1.75rem;
+}
+
+.layer-row {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  align-items: center;
+  column-gap: 0.25rem;
+  padding: 0.15rem 0.35rem;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.object-row {
+  padding: 0.2rem 0.4rem 0.2rem 1.35rem;
+}
+
+.object-row[aria-selected='true'] {
+  background: #31456f;
+}
+
+.object-row.active {
+  box-shadow: inset 3px 0 0 #8eb4ff;
+}
+
+.twist {
+  color: var(--chrome-muted);
+  line-height: 1;
+}

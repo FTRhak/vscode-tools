@@ -9,7 +9,10 @@
         [attr.height]="scene.viewBox.height"
       />
       @for (object of scene.objects; track object.id) {
-        <g [attr.transform]="object.transform">
+        <g
+          [attr.transform]="object.transform"
+          [attr.opacity]="editing() && activeId() !== object.id ? 0.4 : null"
+        >
           <path
             [attr.d]="object.d"
             [attr.fill]="object.fill"
@@ -17,7 +20,62 @@
             [attr.stroke-width]="object.strokeWidth"
             [attr.fill-rule]="object.fillRule"
           />
+          @if (selectedIds().has(object.id)) {
+            <path
+              class="selection"
+              [attr.d]="object.d"
+              fill="none"
+              stroke="#1d4ed8"
+              stroke-width="1.5"
+              vector-effect="non-scaling-stroke"
+              pointer-events="none"
+            />
+          }
         </g>
+      }
+      @if (anchorOverlay(); as overlay) {
+        <g [attr.transform]="overlay.transform" pointer-events="none">
+          @for (handle of overlay.handles; track handle.id) {
+            <line
+              class="handle-line"
+              [attr.x1]="handle.x1"
+              [attr.y1]="handle.y1"
+              [attr.x2]="handle.x2"
+              [attr.y2]="handle.y2"
+            />
+            <circle
+              class="handle"
+              [attr.cx]="handle.x2"
+              [attr.cy]="handle.y2"
+              [attr.r]="overlay.handleRadius"
+            />
+          }
+          @for (anchor of overlay.anchors; track anchor.id) {
+            <rect
+              class="anchor"
+              [class.selected]="anchor.selected"
+              [attr.x]="anchor.x - overlay.anchorSize / 2"
+              [attr.y]="anchor.y - overlay.anchorSize / 2"
+              [attr.width]="overlay.anchorSize"
+              [attr.height]="overlay.anchorSize"
+            />
+          }
+        </g>
+      }
+      @if (marquee(); as rect) {
+        <rect
+          class="marquee"
+          fill="#1d4ed8"
+          fill-opacity="0.12"
+          stroke="#1d4ed8"
+          stroke-width="1"
+          vector-effect="non-scaling-stroke"
+          pointer-events="none"
+          [attr.x]="rect.width < 0 ? rect.x + rect.width : rect.x"
+          [attr.y]="rect.height < 0 ? rect.y + rect.height : rect.y"
+          [attr.width]="rect.width < 0 ? -rect.width : rect.width"
+          [attr.height]="rect.height < 0 ? -rect.height : rect.height"
+        />
       }
     </g>
   }

@@ -135,6 +135,9 @@ describe('EditorPage', () => {
     expect(canvas().querySelector('.artboard')).not.toBeNull();
     expect(canvas().querySelector('path')?.getAttribute('d')).toContain('C ');
     expect(buttonByText('Open').disabled).toBe(true);
+    expect(buttonByText('Save').disabled).toBe(true);
+    expect(buttonByText('Undo').disabled).toBe(false);
+    expect(buttonByText('Redo').disabled).toBe(true);
   });
 
   it('ignores tool shortcuts while typing in a field', async () => {

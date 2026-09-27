@@ -43,6 +43,13 @@ export function zoomAtPoint(
   };
 }
 
+export function screenToDocument(camera: ViewportCamera, screen: Vec2): Vec2 {
+  return {
+    x: (screen.x - camera.panX) / camera.zoom,
+    y: (screen.y - camera.panY) / camera.zoom,
+  };
+}
+
 export function panBy(viewport: ViewportCamera, dx: number, dy: number): ViewportCamera {
   return {
     panX: viewport.panX + dx,

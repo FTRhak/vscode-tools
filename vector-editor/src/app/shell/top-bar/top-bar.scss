@@ -21,5 +21,13 @@
 }
 
 .mode {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
+}
+
+.selection-kind {
+  color: var(--chrome-muted);
+  font-size: 0.85rem;
 }

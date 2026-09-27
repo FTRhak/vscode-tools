@@ -1,4 +1,4 @@
-import { fitArtboard, MAX_ZOOM, panBy, zoomAtPoint } from './camera';
+import { fitArtboard, MAX_ZOOM, panBy, screenToDocument, zoomAtPoint } from './camera';
 
 describe('camera', () => {
   it('fits the artboard inside the view with padding', () => {
@@ -38,6 +38,13 @@ describe('camera', () => {
       panX: 5,
       panY: 7,
       zoom: 3,
+    });
+  });
+
+  it('maps a screen point back to the document', () => {
+    expect(screenToDocument({ panX: 24, panY: 10, zoom: 2 }, { x: 64, y: 30 })).toEqual({
+      x: 20,
+      y: 10,
     });
   });
 });

@@ -13,9 +13,16 @@
     >
       {{ modeLabel() }}
     </button>
+    @if (selectionKindLabel(); as kind) {
+      <span class="selection-kind">{{ kind }}</span>
+    }
   </div>
   <div class="group history" role="group" aria-label="History">
-    <button type="button" class="chrome-button" disabled>Undo</button>
-    <button type="button" class="chrome-button" disabled>Redo</button>
+    <button type="button" class="chrome-button" [disabled]="!canUndo()" (click)="undo()">
+      Undo
+    </button>
+    <button type="button" class="chrome-button" [disabled]="!canRedo()" (click)="redo()">
+      Redo
+    </button>
   </div>
 </header>

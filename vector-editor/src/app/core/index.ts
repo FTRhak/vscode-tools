@@ -1,4 +1,17 @@
-export { createId, createNewDocument, sourceToPathData } from './model';
+export {
+  createId,
+  createNewDocument,
+  DUPLICATE_OFFSET,
+  deleteAnchors,
+  duplicateObjects,
+  setAnchorHandle,
+  setAnchorPosition,
+  translateAnchors,
+  layersFrontToBack,
+  objectsInPaintOrder,
+  objectsOnLayer,
+  sourceToPathData,
+} from './model';
 export type {
   Anchor,
   Document,

@@ -48,12 +48,48 @@ export class KeymapService {
       return { type: 'session.setMode', mode: oppositeMode(this.session.mode()) };
     }
 
+    const key = event.key.toLowerCase();
+    if (event.ctrlKey && !event.altKey && !event.metaKey && key === 'z') {
+      return event.shiftKey ? { type: 'history.redo' } : { type: 'history.undo' };
+    }
+
+    if (event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && key === 'd') {
+      const ids = this.session.selectedObjectIds();
+      if (ids.length === 0) {
+        return null;
+      }
+      return { type: 'object.duplicate', ids };
+    }
+
     if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
       return null;
     }
 
-    const tool = toolKeys[event.key.toLowerCase()];
+    if (this.session.mode() === 'edit' && (key === '1' || key === '2')) {
+      return {
+        type: 'session.setEditSelectionKind',
+        kind: key === '1' ? 'anchor' : 'segment',
+      };
+    }
+
+    if (key === 'delete' || key === 'x') {
+      return this.deleteAnchors();
+    }
+
+    const tool = toolKeys[key];
     return tool ? { type: 'session.setTool', tool } : null;
+  }
+
+  private deleteAnchors(): Command | null {
+    if (this.session.mode() !== 'edit') {
+      return null;
+    }
+    const objectId = this.session.activeObjectId();
+    const anchorIds = this.session.selectedAnchorIds();
+    if (!objectId || anchorIds.length === 0) {
+      return null;
+    }
+    return { type: 'path.deleteAnchors', objectId, anchorIds };
   }
 }
 

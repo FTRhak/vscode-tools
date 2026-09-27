@@ -11,7 +11,12 @@
   user-select: none;
 }
 
-:host.panning {
+:host.direct {
+  cursor: crosshair;
+}
+
+:host.panning,
+:host.moving {
   cursor: grabbing;
 }
 
@@ -28,4 +33,44 @@ svg {
   stroke: #b0b0b0;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
+}
+
+.selection {
+  fill: none;
+  stroke: #1d4ed8;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.anchor {
+  fill: #fff;
+  stroke: #1d4ed8;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.anchor.selected {
+  fill: #1d4ed8;
+}
+
+.handle-line {
+  stroke: #1d4ed8;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.handle {
+  fill: #fff;
+  stroke: #1d4ed8;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.marquee {
+  fill: rgb(29 78 216 / 12%);
+  stroke: #1d4ed8;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
 }

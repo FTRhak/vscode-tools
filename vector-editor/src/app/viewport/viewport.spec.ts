@@ -173,4 +173,150 @@ describe('Viewport', () => {
     });
     expect(canvas().classList.contains('panning')).toBe(true);
   });
+
+  it('selects a clicked curve, drags it once, and restores it with one undo', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const id = session.document()!.objects[0].id;
+
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointerup', 474, 424);
+    await fixture.whenStable();
+
+    expect(session.selectedObjectIds()).toEqual([id]);
+    expect(canvas().querySelector('.selection')).not.toBeNull();
+
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointermove', 504, 434);
+    pointer(canvas(), 'pointermove', 514, 434);
+    pointer(canvas(), 'pointerup', 514, 434);
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].transform).toMatchObject({ x: 40, y: 10 });
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[0].transform).toMatchObject({ x: 0, y: 0 });
+    expect(session.selectedObjectIds()).toEqual([id]);
+  });
+
+  it('selects the curve with a marquee and clears it with an empty click', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const id = session.document()!.objects[0].id;
+
+    pointer(canvas(), 'pointerdown', 24, 24);
+    pointer(canvas(), 'pointermove', 924, 724);
+    pointer(canvas(), 'pointerup', 924, 724);
+    await fixture.whenStable();
+
+    expect(session.selectedObjectIds()).toEqual([id]);
+
+    pointer(canvas(), 'pointerdown', 24, 24);
+    pointer(canvas(), 'pointerup', 24, 24);
+    await fixture.whenStable();
+
+    expect(session.selectedObjectIds()).toEqual([]);
+  });
+
+  it('ignores canvas clicks in edit mode and with the pen', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointerup', 474, 424);
+
+    bus.dispatch({ type: 'session.setMode', mode: 'object' });
+    bus.dispatch({ type: 'session.setTool', tool: 'pen' });
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointerup', 474, 424);
+    await fixture.whenStable();
+
+    expect(session.selectedObjectIds()).toEqual([]);
+  });
+
+  it('draws anchors in edit mode and moves one with direct select', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const object = session.document()!.objects[0];
+    const anchor = object.source.subpaths[0].anchors[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    await fixture.whenStable();
+
+    expect(canvas().querySelectorAll('.anchor')).toHaveLength(4);
+    expect(canvas().classList.contains('direct')).toBe(false);
+
+    bus.dispatch({ type: 'session.setTool', tool: 'direct-select' });
+    await fixture.whenStable();
+    expect(canvas().classList.contains('direct')).toBe(true);
+
+    pointer(canvas(), 'pointerdown', 474, 274);
+    pointer(canvas(), 'pointermove', 494, 274);
+    pointer(canvas(), 'pointerup', 494, 274);
+    await fixture.whenStable();
+
+    const moved = session.document()!.objects[0].source.subpaths[0].anchors[0];
+    expect(moved.id).toBe(anchor.id);
+    expect(moved.position).toEqual({ x: anchor.position.x + 20, y: anchor.position.y });
+    expect(moved.handleOut).toEqual({
+      x: anchor.handleOut!.x + 20,
+      y: anchor.handleOut!.y,
+    });
+    expect(
+      session.history().entries.filter((entry) => entry.label === 'Move anchors'),
+    ).toHaveLength(1);
+  });
+
+  it('bends a handle and keeps the opposite handle when Alt is held', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const object = session.document()!.objects[0];
+    const anchor = object.source.subpaths[0].anchors[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.setTool', tool: 'direct-select' });
+    await fixture.whenStable();
+
+    pointer(canvas(), 'pointerdown', 574, 204);
+    canvas().dispatchEvent(
+      new PointerEvent('pointermove', {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 7,
+        clientX: 594,
+        clientY: 204,
+        altKey: true,
+      }),
+    );
+    pointer(canvas(), 'pointerup', 594, 204);
+    await fixture.whenStable();
+
+    const moved = session.document()!.objects[0].source.subpaths[0].anchors[0];
+    expect(moved.handleOut).toEqual({ x: 570, y: 180 });
+    expect(moved.handleIn).toEqual(anchor.handleIn);
+  });
+
+  it('does not enter edit mode when direct select is used in object mode', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const document = session.document();
+    bus.dispatch({ type: 'session.setTool', tool: 'direct-select' });
+
+    pointer(canvas(), 'pointerdown', 474, 274);
+    pointer(canvas(), 'pointermove', 520, 274);
+    pointer(canvas(), 'pointerup', 520, 274);
+    await fixture.whenStable();
+
+    expect(session.mode()).toBe('object');
+    expect(session.document()).toBe(document);
+    expect(session.selectedAnchorIds()).toEqual([]);
+    expect(canvas().querySelector('.anchor')).toBeNull();
+  });
 });
+
+function pointer(target: HTMLElement, type: string, x: number, y: number): void {
+  target.dispatchEvent(
+    new PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      pointerId: 7,
+      button: 0,
+      clientX: x,
+      clientY: y,
+    }),
+  );
+}

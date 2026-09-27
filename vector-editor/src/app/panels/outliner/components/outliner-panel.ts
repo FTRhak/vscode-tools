@@ -1,12 +1,163 @@
-import { Component } from '@angular/core';
+import { Component, computed, ElementRef, inject, signal } from '@angular/core';
+import { layersFrontToBack, objectsOnLayer, SessionService } from '@vector-editor/core';
+import { CommandBus } from '../../../commands/command-bus.service';
+
+interface OutlinerObject {
+  readonly id: string;
+  readonly name: string;
+  readonly selected: boolean;
+  readonly active: boolean;
+}
+
+interface OutlinerLayer {
+  readonly id: string;
+  readonly name: string;
+  readonly expanded: boolean;
+  readonly objects: readonly OutlinerObject[];
+}
+
+interface TreeRow {
+  readonly key: string;
+  readonly kind: 'layer' | 'object';
+  readonly id: string;
+}
 
 @Component({
   selector: 'app-outliner-panel',
-  template: `
-    <section class="panel-section" aria-labelledby="outliner-heading">
-      <h2 id="outliner-heading">Outliner</h2>
-      <p>No objects yet.</p>
-    </section>
-  `,
+  templateUrl: './outliner-panel.html',
+  styleUrl: './outliner-panel.scss',
 })
-export class OutlinerPanel {}
+export class OutlinerPanel {
+  private readonly session = inject(SessionService);
+  private readonly bus = inject(CommandBus);
+  private readonly host = inject(ElementRef<HTMLElement>);
+
+  private readonly collapsedLayerIds = signal<ReadonlySet<string>>(new Set());
+  private readonly focusedKey = signal<string | null>(null);
+
+  protected readonly hasDocument = computed(() => this.session.document() !== null);
+
+  protected readonly layers = computed((): readonly OutlinerLayer[] => {
+    const document = this.session.document();
+    if (!document) {
+      return [];
+    }
+    const collapsed = this.collapsedLayerIds();
+    const selected = new Set(this.session.selectedObjectIds());
+    const activeId = this.session.activeObjectId();
+    return layersFrontToBack(document).map((layer) => ({
+      id: layer.id,
+      name: layer.name,
+      expanded: !collapsed.has(layer.id),
+      objects: objectsOnLayer(document, layer.id)
+        .slice()
+        .reverse()
+        .map((object) => ({
+          id: object.id,
+          name: object.name,
+          selected: selected.has(object.id),
+          active: object.id === activeId,
+        })),
+    }));
+  });
+
+  private readonly focusableRows = computed((): readonly TreeRow[] => {
+    const rows: TreeRow[] = [];
+    for (const layer of this.layers()) {
+      rows.push({ key: `layer:${layer.id}`, kind: 'layer', id: layer.id });
+      if (!layer.expanded) {
+        continue;
+      }
+      for (const object of layer.objects) {
+        rows.push({ key: `object:${object.id}`, kind: 'object', id: object.id });
+      }
+    }
+    return rows;
+  });
+
+  protected readonly activeFocusKey = computed(() => {
+    const rows = this.focusableRows();
+    const current = this.focusedKey();
+    if (current && rows.some((row) => row.key === current)) {
+      return current;
+    }
+    return rows[0]?.key ?? null;
+  });
+
+  protected onLayerClick(id: string): void {
+    this.toggleLayer(id);
+  }
+
+  protected onObjectClick(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.focusedKey.set(`object:${id}`);
+    this.bus.dispatch({
+      type: 'session.select',
+      target: 'object',
+      ids: [id],
+      op: event.shiftKey ? 'add' : 'replace',
+    });
+  }
+
+  protected onTreeKeydown(event: KeyboardEvent): void {
+    const rows = this.focusableRows();
+    if (rows.length === 0) {
+      return;
+    }
+    const index = Math.max(
+      0,
+      rows.findIndex((row) => row.key === this.activeFocusKey()),
+    );
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const nextIndex =
+        event.key === 'ArrowDown' ? Math.min(rows.length - 1, index + 1) : Math.max(0, index - 1);
+      this.focusRow(rows[nextIndex]?.key);
+      return;
+    }
+    if (event.key !== 'Enter') {
+      return;
+    }
+    event.preventDefault();
+    const row = rows[index];
+    if (!row) {
+      return;
+    }
+    if (row.kind === 'layer') {
+      this.toggleLayer(row.id);
+      return;
+    }
+    this.bus.dispatch({
+      type: 'session.select',
+      target: 'object',
+      ids: [row.id],
+      op: 'replace',
+    });
+  }
+
+  private toggleLayer(id: string): void {
+    this.focusedKey.set(`layer:${id}`);
+    this.collapsedLayerIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  private focusRow(key: string | undefined): void {
+    if (!key) {
+      return;
+    }
+    this.focusedKey.set(key);
+    queueMicrotask(() => {
+      const element = this.host.nativeElement.querySelector(`[data-tree-key="${key}"]`);
+      if (element instanceof HTMLElement) {
+        element.focus();
+      }
+    });
+  }
+}

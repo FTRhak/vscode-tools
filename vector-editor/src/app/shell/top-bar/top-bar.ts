@@ -16,6 +16,16 @@ export class TopBar {
     this.session.mode() === 'object' ? 'Object' : 'Edit',
   );
 
+  protected readonly selectionKindLabel = computed(() => {
+    if (this.session.mode() !== 'edit') {
+      return null;
+    }
+    return this.session.editSelectionKind() === 'anchor' ? 'Anchors' : 'Segments';
+  });
+
+  protected readonly canUndo = this.session.canUndo;
+  protected readonly canRedo = this.session.canRedo;
+
   protected toggleMode(): void {
     this.bus.dispatch({
       type: 'session.setMode',
@@ -25,5 +35,13 @@ export class TopBar {
 
   protected newDocument(): void {
     this.bus.dispatch({ type: 'document.new' });
+  }
+
+  protected undo(): void {
+    this.bus.dispatch({ type: 'history.undo' });
+  }
+
+  protected redo(): void {
+    this.bus.dispatch({ type: 'history.redo' });
   }
 }

@@ -1,0 +1,42 @@
+<section class="panel-section" aria-labelledby="outliner-heading">
+  <h2 id="outliner-heading">Outliner</h2>
+  @if (hasDocument()) {
+    <div class="tree" role="tree" aria-label="Layers" (keydown)="onTreeKeydown($event)">
+      @for (layer of layers(); track layer.id) {
+        <div
+          class="layer"
+          role="treeitem"
+          [attr.aria-expanded]="layer.expanded"
+          [attr.aria-level]="1"
+          [attr.data-tree-key]="'layer:' + layer.id"
+          [tabindex]="activeFocusKey() === 'layer:' + layer.id ? 0 : -1"
+        >
+          <div class="tree-row layer-row" (click)="onLayerClick(layer.id)">
+            <span class="twist" aria-hidden="true">{{ layer.expanded ? '▾' : '▸' }}</span>
+            <span>{{ layer.name }}</span>
+          </div>
+          @if (layer.expanded) {
+            <div class="group" role="group">
+              @for (object of layer.objects; track object.id) {
+                <div
+                  class="tree-row object-row"
+                  role="treeitem"
+                  [class.active]="object.active"
+                  [attr.aria-selected]="object.selected"
+                  [attr.aria-level]="2"
+                  [attr.data-tree-key]="'object:' + object.id"
+                  [tabindex]="activeFocusKey() === 'object:' + object.id ? 0 : -1"
+                  (click)="onObjectClick(object.id, $event)"
+                >
+                  {{ object.name }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <p>No objects yet.</p>
+  }
+</section>
