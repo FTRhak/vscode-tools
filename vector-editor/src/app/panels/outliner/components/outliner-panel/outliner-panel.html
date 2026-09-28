@@ -1,6 +1,10 @@
-<panel [panelName]="panelName">
+<panel [panelName]="panelName" [icon]="'&#xe0f5;'">
   @if (hasDocument()) {
-    <button type="button" class="chrome-button add-layer" (click)="addLayer()">Add layer</button>
+    <div>
+      <button type="button" class="chrome-button add-layer" title="Add layer" (click)="addLayer()">
+        <i class="icon">&#xe0e6;</i>
+      </button>
+    </div>
     <div class="tree" role="tree" aria-label="Layers" (keydown)="onTreeKeydown($event)">
       @for (layer of layers(); track layer.id) {
         <div
@@ -12,7 +16,13 @@
           [tabindex]="activeFocusKey() === 'layer:' + layer.id ? 0 : -1"
         >
           <div class="tree-row layer-row" (click)="onLayerClick(layer.id)">
-            <span class="twist" aria-hidden="true">{{ layer.expanded ? '▾' : '▸' }}</span>
+            <span class="twist" aria-hidden="true">
+              @if (layer.expanded) {
+                <i class="icon">&#xe0e9;</i>
+              } @else {
+                <i class="icon">&#xe0ec;</i>
+              }
+            </span>
             <button
               type="button"
               class="icon-button"
@@ -20,7 +30,13 @@
               [attr.aria-pressed]="layer.visible"
               (click)="toggleLayerFlag(layer, 'visible', $event)"
             >
-              <span aria-hidden="true">{{ layer.visible ? '●' : '○' }}</span>
+              <span aria-hidden="true">
+                @if (layer.visible) {
+                  <i class="icon">&#xe0e0;</i>
+                } @else {
+                  <i class="icon">&#xe0e1;</i>
+                }
+              </span>
             </button>
             <button
               type="button"
@@ -29,7 +45,13 @@
               [attr.aria-pressed]="layer.locked"
               (click)="toggleLayerFlag(layer, 'locked', $event)"
             >
-              <span aria-hidden="true">{{ layer.locked ? '■' : '□' }}</span>
+              <span aria-hidden="true">
+                @if (layer.locked) {
+                  <i class="icon">&#xe0e2;</i>
+                } @else {
+                  <i class="icon">&#xe0e3;</i>
+                }
+              </span>
             </button>
             <input
               class="layer-name"
@@ -50,7 +72,9 @@
               [disabled]="!layer.canMoveForward"
               (click)="moveLayer(layer.id, layer.index - 1, $event)"
             >
-              <span aria-hidden="true">↑</span>
+              <span aria-hidden="true">
+                <i class="icon">&#xe0e4;</i>
+              </span>
             </button>
             <button
               type="button"
@@ -59,7 +83,9 @@
               [disabled]="!layer.canMoveBackward"
               (click)="moveLayer(layer.id, layer.index + 1, $event)"
             >
-              <span aria-hidden="true">↓</span>
+              <span aria-hidden="true">
+                <i class="icon">&#xe0e5;</i>
+              </span>
             </button>
           </div>
           @if (layer.expanded) {
@@ -82,7 +108,13 @@
                     [attr.aria-pressed]="object.visible"
                     (click)="toggleObjectFlag(object, 'visible', $event)"
                   >
-                    <span aria-hidden="true">{{ object.visible ? '●' : '○' }}</span>
+                    <span aria-hidden="true">
+                      @if (object.visible) {
+                        <i class="icon">&#xe0e0;</i>
+                      } @else {
+                        <i class="icon">&#xe0e1;</i>
+                      }
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -91,7 +123,13 @@
                     [attr.aria-pressed]="object.locked"
                     (click)="toggleObjectFlag(object, 'locked', $event)"
                   >
-                    <span aria-hidden="true">{{ object.locked ? '■' : '□' }}</span>
+                    <span aria-hidden="true">
+                      @if (object.locked) {
+                        <i class="icon">&#xe0e2;</i>
+                      } @else {
+                        <i class="icon">&#xe0e3;</i>
+                      }
+                    </span>
                   </button>
                   <span class="object-name">{{ object.name }}</span>
                 </div>

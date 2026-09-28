@@ -4,10 +4,12 @@ import { CommandBus } from '@vector-editor/commands';
 import { evaluateDocument, Modifier, SessionService } from '@vector-editor/core';
 import { SharedModule } from '@vector-editor/shared';
 import { ModifierRow } from '../modifier-row/modifier-row';
+import { ModifierKind } from '../../../../core/model/modifier-edits';
+import {CdkMenuModule} from '@angular/cdk/menu';
 
 @Component({
   selector: 'app-modifiers-panel',
-  imports: [CdkDropList, CdkDrag, ModifierRow, SharedModule],
+  imports: [CdkDropList, CdkDrag, ModifierRow, CdkMenuModule, SharedModule],
   templateUrl: './modifiers-panel.html',
   styleUrl: './modifiers-panel.scss',
 })
@@ -43,7 +45,7 @@ export class ModifiersPanel {
     );
   });
 
-  protected add(kind: 'array' | 'mirror' | 'bevel' | 'boolean'): void {
+  protected add(kind: ModifierKind): void {
     const object = this.active();
     if (!object) {
       return;

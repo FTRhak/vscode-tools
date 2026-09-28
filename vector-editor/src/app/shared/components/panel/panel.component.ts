@@ -8,6 +8,7 @@ import { Component, computed, input } from '@angular/core';
 })
 export class PanelComponent {
   public readonly panelName = input.required<string>();
+  public readonly icon = input<string>();
 
   public readonly label = computed(() => this.panelName().toLocaleLowerCase().replace(' ', '-'));
 }

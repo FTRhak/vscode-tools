@@ -1,4 +1,4 @@
-import type { ModifierPatch } from '../../core/model/modifier-edits';
+import type { ModifierKind, ModifierPatch } from '../../core/model/modifier-edits';
 import type { Document, ObjectTransform, Vec2 } from '../../core/model/types';
 
 export type ColorSlot = 'fill' | 'stroke';
@@ -120,7 +120,7 @@ export type Command =
   | {
       readonly type: 'modifier.add';
       readonly objectId: string;
-      readonly kind: 'array' | 'mirror' | 'bevel' | 'boolean';
+      readonly kind: ModifierKind;
     }
   | {
       readonly type: 'modifier.update';

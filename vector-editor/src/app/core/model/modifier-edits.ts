@@ -16,9 +16,11 @@ export interface ModifierPatch {
   readonly operandId?: string;
 }
 
+export type ModifierKind = 'array' | 'mirror' | 'bevel' | 'boolean';
+
 export function addModifier(
   object: VectorObject,
-  kind: 'array' | 'mirror' | 'bevel' | 'boolean',
+  kind: ModifierKind,
   objects: readonly VectorObject[] = [],
 ): VectorObject {
   const modifier = defaultModifier(object.id, kind, objects);
@@ -119,7 +121,7 @@ function bake(
 
 function defaultModifier(
   objectId: string,
-  kind: 'array' | 'mirror' | 'bevel' | 'boolean',
+  kind: ModifierKind,
   objects: readonly VectorObject[],
 ): Modifier {
   switch (kind) {

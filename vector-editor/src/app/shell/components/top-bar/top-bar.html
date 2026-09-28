@@ -28,9 +28,11 @@
   </div>
   <div class="group history" role="group" aria-label="History">
     <button type="button" class="chrome-button" [disabled]="!canUndo()" (click)="undo()">
+      <i class="icon">&#xe0ef;</i>
       Undo
     </button>
     <button type="button" class="chrome-button" [disabled]="!canRedo()" (click)="redo()">
+      <i class="icon">&#xe0f0;</i>
       Redo
     </button>
   </div>

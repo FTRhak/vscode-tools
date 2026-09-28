@@ -1,10 +1,19 @@
 <panel [panelName]="panelName">
   @if (active(); as object) {
     <div class="modifier-actions">
-      <button type="button" class="chrome-button" (click)="add('array')">Add array</button>
-      <button type="button" class="chrome-button" (click)="add('mirror')">Add mirror</button>
-      <button type="button" class="chrome-button" (click)="add('bevel')">Add bevel</button>
-      <button type="button" class="chrome-button" (click)="add('boolean')">Add boolean</button>
+      <button class="chrome-button modifier-action-button" [cdkMenuTriggerFor]="menu">
+        <i class="icon">&#xe0e6;</i>
+        Add modifier
+      </button>
+      <ng-template #menu>
+        <div class="modifier-list-menu" cdkMenu>
+          <button cdkMenuItem (click)="add('array')">Add array</button>
+          <button cdkMenuItem (click)="add('mirror')">Add mirror</button>
+          <button cdkMenuItem (click)="add('bevel')">Add bevel</button>
+          <button cdkMenuItem (click)="add('boolean')">Add boolean</button>
+        </div>
+      </ng-template>
+      
     </div>
     @if (modifiers().length === 0) {
       <p>No modifiers yet.</p>

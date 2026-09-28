@@ -2,34 +2,8 @@ import { Component, computed, ElementRef, inject, signal } from '@angular/core';
 import { layersFrontToBack, objectsOnLayer, SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
 import { SharedModule } from '@vector-editor/shared';
+import { OutlinerLayer, OutlinerObject, TreeRow } from '../../models';
 
-
-interface OutlinerObject {
-  readonly id: string;
-  readonly name: string;
-  readonly visible: boolean;
-  readonly locked: boolean;
-  readonly selected: boolean;
-  readonly active: boolean;
-}
-
-interface OutlinerLayer {
-  readonly id: string;
-  readonly name: string;
-  readonly visible: boolean;
-  readonly locked: boolean;
-  readonly expanded: boolean;
-  readonly index: number;
-  readonly canMoveForward: boolean;
-  readonly canMoveBackward: boolean;
-  readonly objects: readonly OutlinerObject[];
-}
-
-interface TreeRow {
-  readonly key: string;
-  readonly kind: 'layer' | 'object';
-  readonly id: string;
-}
 
 @Component({
   selector: 'app-outliner-panel',

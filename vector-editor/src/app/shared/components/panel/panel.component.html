@@ -5,22 +5,33 @@
         class="panel-accordion-header"
         (click)="accordionItem.toggle()"
         tabindex="0"
-        [attr.id]="'accordion-header-{{ label() }}'"
+        [attr.id]="'accordion-header-' + label()"
         [attr.aria-expanded]="accordionItem.expanded"
-        [attr.aria-controls]="'accordion-body-{{ label() }}'"
+        [attr.aria-controls]="'accordion-body-' + label()"
       >
-        <h2 id="{{ label() }}-heading">{{ panelName() }}</h2>
+        <h2 id="{{ label() }}-heading">
+          @if (icon()) {
+            <i class="icon">{{ icon() }}</i>
+          }
+          {{ panelName() }}
+        </h2>
         <span class="panel-accordion-description">
           <!-- TODO: Add description -->
-          <span aria-hidden="true">{{ accordionItem.expanded ? '▾' : '▸' }}</span>
+          <span aria-hidden="true">
+            @if (accordionItem.expanded) {
+              <i class="icon">&#xe0e9;</i>
+            } @else {
+              <i class="icon">&#xe0ec;</i>
+            }
+          </span>
         </span>
       </button>
       @if (accordionItem.expanded) {
         <div
           class="panel-accordion-item-body"
           role="region"
-          [attr.id]="'accordion-body-{{ label() }}'"
-          [attr.aria-labelledby]="'accordion-header-{{ label() }}'"
+          [attr.id]="'accordion-body-' + label()"
+          [attr.aria-labelledby]="'accordion-header-' + label()"
         >
           <ng-content></ng-content>
         </div>
