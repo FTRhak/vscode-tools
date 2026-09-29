@@ -1,9 +1,7 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
-import { form, FormField } from '@angular/forms/signals';
-import { ColorSlot } from '@vector-editor/commands';
-import { CommandBus } from '@vector-editor/commands';
+import { form } from '@angular/forms/signals';
+import { ColorSlot, CommandBus } from '@vector-editor/commands';
 import { SessionService, VectorObject } from '@vector-editor/core';
-import { SharedModule } from '@vector-editor/shared';
 import { ColorTarget } from '../../services/color-target';
 
 interface WidthDraft {
@@ -16,8 +14,8 @@ type SharedColor =
   | { readonly kind: 'mixed' };
 
 @Component({
-  selector: 'app-color-panel',
-  imports: [FormField, SharedModule],
+  selector: 'color-panel',
+  standalone: false,
   templateUrl: './color-panel.html',
   styleUrl: './color-panel.scss',
 })

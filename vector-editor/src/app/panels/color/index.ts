@@ -1,1 +1,1 @@
-export { ColorPanel } from './components';
+export { PanelColorModule } from './color.module';

@@ -12,7 +12,7 @@ interface HistoryRow {
 
 @Component({
   imports: [SharedModule, CdkListbox, CdkOption],
-  selector: 'app-history-panel',
+  selector: 'history-panel',
   templateUrl: './history-panel.html',
   styleUrl: './history-panel.scss',
 })

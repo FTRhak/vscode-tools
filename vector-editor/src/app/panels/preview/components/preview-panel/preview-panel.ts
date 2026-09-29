@@ -1,13 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionService } from '@vector-editor/core';
-import { SharedModule } from '@vector-editor/shared';
 import { sceneFromDocument } from '../../../../viewport/scene';
 
 @Component({
-  imports: [SharedModule],
   selector: 'app-preview-panel',
+  standalone: false,
   templateUrl: './preview-panel.html',
-  styleUrl: './preview-panel.scss',
 })
 export class PreviewPanel {
   private readonly session = inject(SessionService);
@@ -24,6 +22,7 @@ export class PreviewPanel {
       return null;
     }
     const box = scene.viewBox;
+
     return {
       scene,
       viewBox: `${box.x} ${box.y} ${box.width} ${box.height}`,
