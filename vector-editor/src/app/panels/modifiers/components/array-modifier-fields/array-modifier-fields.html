@@ -1,0 +1,32 @@
+<form class="fields" (submit)="$event.preventDefault()">
+  <label>
+    Count
+    <input
+      type="number"
+      step="1"
+      [formField]="arrayForm.count"
+      (blur)="commitCount()"
+      (keydown.enter)="commitCount($event)"
+    />
+  </label>
+  <label>
+    Offset X
+    <input
+      type="number"
+      step="any"
+      [formField]="arrayForm.offsetX"
+      (blur)="commitOffset('offsetX')"
+      (keydown.enter)="commitOffset('offsetX', $event)"
+    />
+  </label>
+  <label>
+    Offset Y
+    <input
+      type="number"
+      step="any"
+      [formField]="arrayForm.offsetY"
+      (blur)="commitOffset('offsetY')"
+      (keydown.enter)="commitOffset('offsetY', $event)"
+    />
+  </label>
+</form>

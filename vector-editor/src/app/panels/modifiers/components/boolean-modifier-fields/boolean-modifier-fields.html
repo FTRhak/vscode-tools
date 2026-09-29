@@ -1,0 +1,39 @@
+<fieldset class="axis">
+  <legend>Operation</legend>
+  <label>
+    <input
+      type="radio"
+      [name]="'operation-' + modifier().id"
+      [checked]="modifier().operation === 'union'"
+      (change)="commitOperation('union')"
+    />
+    Union
+  </label>
+  <label>
+    <input
+      type="radio"
+      [name]="'operation-' + modifier().id"
+      [checked]="modifier().operation === 'difference'"
+      (change)="commitOperation('difference')"
+    />
+    Difference
+  </label>
+  <label>
+    <input
+      type="radio"
+      [name]="'operation-' + modifier().id"
+      [checked]="modifier().operation === 'intersect'"
+      (change)="commitOperation('intersect')"
+    />
+    Intersect
+  </label>
+</fieldset>
+<label class="operand">
+  Operand
+  <select [value]="modifier().operandId" (change)="commitOperand($event)">
+    <option value="">None</option>
+    @for (peer of peers(); track peer.id) {
+      <option [value]="peer.id">{{ peer.name }}</option>
+    }
+  </select>
+</label>

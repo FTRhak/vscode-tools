@@ -6,192 +6,48 @@
       cdkDragHandle
       [attr.aria-label]="'Reorder ' + title()"
     >
-      Reorder
+      <i class="icon">&#xe0fe;</i>
     </button>
     <h3>{{ title() }}</h3>
-    <label>
-      <input type="checkbox" [checked]="modifier().enabled" (change)="commitEnabled($event)" />
-      Enabled
-    </label>
+    <button type="button" class="chrome-button" (click)="toggleEnabled()">
+      @if (modifier().enabled) {
+        <i class="icon">&#xe0e0;</i>
+      } @else {
+        <i class="icon">&#xe0e1;</i>
+      }
+    </button>
+    <div class="modifier-actions">
+      <button
+        type="button"
+        class="chrome-button"
+        title="Apply modifier {{ title() }}"
+        [attr.aria-label]="'Apply ' + title()"
+        (click)="apply()"
+      >
+        <i class="icon">&#xe0fd;</i>
+      </button>
+      <button
+        type="button"
+        class="chrome-button"
+        title="Remove modifier {{ title() }}"
+        [attr.aria-label]="'Remove ' + title()"
+        (click)="remove()"
+      >
+        <i class="icon">&#xe0e7;</i>
+      </button>
+    </div>
   </div>
   @if (arrayModifier(); as array) {
-    <form class="fields" (submit)="$event.preventDefault()">
-      <label>
-        Count
-        <input
-          type="number"
-          step="1"
-          [formField]="modifierForm.count"
-          (blur)="commitCount()"
-          (keydown.enter)="commitCount($event)"
-        />
-      </label>
-      <label>
-        Offset X
-        <input
-          type="number"
-          step="any"
-          [formField]="modifierForm.offsetX"
-          (blur)="commitOffset('offsetX')"
-          (keydown.enter)="commitOffset('offsetX', $event)"
-        />
-      </label>
-      <label>
-        Offset Y
-        <input
-          type="number"
-          step="any"
-          [formField]="modifierForm.offsetY"
-          (blur)="commitOffset('offsetY')"
-          (keydown.enter)="commitOffset('offsetY', $event)"
-        />
-      </label>
-    </form>
+    <array-modifier-fields [modifier]="array" (committed)="patch($event)" />
   } @else if (mirrorModifier(); as mirror) {
-    <fieldset class="axis">
-      <legend>Axis</legend>
-      <label>
-        <input
-          type="radio"
-          [name]="'axis-' + mirror.id"
-          [checked]="mirror.axis === 'x'"
-          (change)="commitAxis('x')"
-        />
-        X
-      </label>
-      <label>
-        <input
-          type="radio"
-          [name]="'axis-' + mirror.id"
-          [checked]="mirror.axis === 'y'"
-          (change)="commitAxis('y')"
-        />
-        Y
-      </label>
-      <label>
-        <input
-          type="radio"
-          [name]="'axis-' + mirror.id"
-          [checked]="mirror.axis === 'xy'"
-          (change)="commitAxis('xy')"
-        />
-        Both
-      </label>
-    </fieldset>
+    <mirror-modifier-fields [modifier]="mirror" (committed)="patch($event)" />
   } @else if (bevelModifier(); as bevel) {
-    <form class="fields" (submit)="$event.preventDefault()">
-      <label>
-        Distance
-        <input
-          type="number"
-          step="any"
-          [formField]="modifierForm.distance"
-          (blur)="commitDistance()"
-          (keydown.enter)="commitDistance($event)"
-        />
-      </label>
-      @if (bevel.join === 'miter') {
-        <label>
-          Miter limit
-          <input
-            type="number"
-            step="any"
-            [formField]="modifierForm.miterLimit"
-            (blur)="commitMiterLimit()"
-            (keydown.enter)="commitMiterLimit($event)"
-          />
-        </label>
-      }
-    </form>
-    <fieldset class="axis">
-      <legend>Join</legend>
-      <label>
-        <input
-          type="radio"
-          [name]="'join-' + bevel.id"
-          [checked]="bevel.join === 'bevel'"
-          (change)="commitJoin('bevel')"
-        />
-        Bevel
-      </label>
-      <label>
-        <input
-          type="radio"
-          [name]="'join-' + bevel.id"
-          [checked]="bevel.join === 'miter'"
-          (change)="commitJoin('miter')"
-        />
-        Miter
-      </label>
-      <label>
-        <input
-          type="radio"
-          [name]="'join-' + bevel.id"
-          [checked]="bevel.join === 'round'"
-          (change)="commitJoin('round')"
-        />
-        Round
-      </label>
-    </fieldset>
+    <bevel-modifier-fields [modifier]="bevel" (committed)="patch($event)" />
   } @else if (booleanModifier(); as booleanOp) {
-    <fieldset class="axis">
-      <legend>Operation</legend>
-      <label>
-        <input
-          type="radio"
-          [name]="'operation-' + booleanOp.id"
-          [checked]="booleanOp.operation === 'union'"
-          (change)="commitOperation('union')"
-        />
-        Union
-      </label>
-      <label>
-        <input
-          type="radio"
-          [name]="'operation-' + booleanOp.id"
-          [checked]="booleanOp.operation === 'difference'"
-          (change)="commitOperation('difference')"
-        />
-        Difference
-      </label>
-      <label>
-        <input
-          type="radio"
-          [name]="'operation-' + booleanOp.id"
-          [checked]="booleanOp.operation === 'intersect'"
-          (change)="commitOperation('intersect')"
-        />
-        Intersect
-      </label>
-    </fieldset>
-    <label class="operand">
-      Operand
-      <select [value]="booleanOp.operandId" (change)="commitOperand($event)">
-        <option value="">None</option>
-        @for (peer of peers(); track peer.id) {
-          <option [value]="peer.id">{{ peer.name }}</option>
-        }
-      </select>
-    </label>
+    <boolean-modifier-fields
+      [modifier]="booleanOp"
+      [peers]="peers()"
+      (committed)="patch($event)"
+    />
   }
-  <div class="modifier-actions">
-    <button
-      type="button"
-      class="chrome-button"
-      title="Apply modifier {{ title() }}"
-      [attr.aria-label]="'Apply ' + title()"
-      (click)="apply()"
-    >
-      Apply
-    </button>
-    <button
-      type="button"
-      class="chrome-button"
-      title="Remove modifier {{ title() }}"
-      [attr.aria-label]="'Remove ' + title()"
-      (click)="remove()"
-    >
-      <i class="icon">&#xe0e7;</i>
-    </button>
-  </div>
 </article>

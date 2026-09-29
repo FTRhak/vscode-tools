@@ -1,0 +1,30 @@
+:host {
+  display: contents;
+}
+
+.axis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 0.85rem;
+}
+
+.axis legend {
+  padding: 0;
+}
+
+.axis label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+input[type='radio'] {
+  accent-color: #8eb4ff;
+  width: 1rem;
+  height: 1rem;
+}

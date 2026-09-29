@@ -1,0 +1,54 @@
+<form class="fields" (submit)="$event.preventDefault()">
+  <label>
+    Distance
+    <input
+      type="number"
+      step="any"
+      [formField]="modifierForm.distance"
+      (blur)="commitDistance()"
+      (keydown.enter)="commitDistance($event)"
+    />
+  </label>
+  @if (modifier().join === 'miter') {
+    <label>
+      Miter limit
+      <input
+        type="number"
+        step="any"
+        [formField]="modifierForm.miterLimit"
+        (blur)="commitMiterLimit()"
+        (keydown.enter)="commitMiterLimit($event)"
+      />
+    </label>
+  }
+</form>
+<fieldset class="axis">
+  <legend>Join</legend>
+  <label>
+    <input
+      type="radio"
+      [name]="'join-' + modifier().id"
+      [checked]="modifier().join === 'bevel'"
+      (change)="commitJoin('bevel')"
+    />
+    Bevel
+  </label>
+  <label>
+    <input
+      type="radio"
+      [name]="'join-' + modifier().id"
+      [checked]="modifier().join === 'miter'"
+      (change)="commitJoin('miter')"
+    />
+    Miter
+  </label>
+  <label>
+    <input
+      type="radio"
+      [name]="'join-' + modifier().id"
+      [checked]="modifier().join === 'round'"
+      (change)="commitJoin('round')"
+    />
+    Round
+  </label>
+</fieldset>
