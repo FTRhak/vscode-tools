@@ -1,17 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { KeymapService } from '@vector-editor/keymap';
-import { Viewport } from '@vector-editor/viewport';
 import { ColorPanel } from '@vector-editor/panels/color';
 import { HistoryPanel } from '@vector-editor/panels/history';
-import { ModifiersPanel } from '@vector-editor/panels/modifiers';
-import { OptionsPanel } from '@vector-editor/panels/options';
+import { PanelModifiersModule } from '@vector-editor/panels/modifiers';
+import { PanelOptionsModule } from '@vector-editor/panels/options';
 import { OutlinerPanel } from '@vector-editor/panels/outliner';
 import { PreviewPanel } from '@vector-editor/panels/preview';
 import { SwatchesPanel } from '@vector-editor/panels/swatches';
 import { ToolsPanel } from '@vector-editor/panels/tools';
-import { TopBar } from '../top-bar/top-bar';
-import { ToolRail } from '../tool-rail/tool-rail';
+import { Viewport } from '@vector-editor/viewport';
 import { SaveDialog } from '../save-dialog/save-dialog';
+import { ToolRail } from '../tool-rail/tool-rail';
+import { TopBar } from '../top-bar/top-bar';
 
 @Component({
   selector: 'app-editor-page',
@@ -21,8 +21,8 @@ import { SaveDialog } from '../save-dialog/save-dialog';
     SaveDialog,
     Viewport,
     OutlinerPanel,
-    OptionsPanel,
-    ModifiersPanel,
+    PanelOptionsModule,
+    PanelModifiersModule,
     ToolsPanel,
     ColorPanel,
     SwatchesPanel,

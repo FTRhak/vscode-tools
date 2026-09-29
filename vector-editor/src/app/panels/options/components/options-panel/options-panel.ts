@@ -1,12 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { Anchor, SessionService } from '@vector-editor/core';
-import { SharedModule } from '@vector-editor/shared';
-import { AnchorOptions } from '../anchor-options/anchor-options';
-import { ObjectOptions } from '../object-options/object-options';
 
 @Component({
   selector: 'app-options-panel',
-  imports: [AnchorOptions, ObjectOptions, SharedModule],
+  standalone: false,
   templateUrl: './options-panel.html',
 })
 export class OptionsPanel {

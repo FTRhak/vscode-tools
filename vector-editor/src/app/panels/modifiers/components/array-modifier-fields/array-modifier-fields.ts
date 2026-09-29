@@ -20,7 +20,7 @@ type OffsetKey = 'offsetX' | 'offsetY';
 
 @Component({
   selector: 'array-modifier-fields',
-  imports: [FormField],
+  standalone: false,
   templateUrl: './array-modifier-fields.html',
   styleUrl: './array-modifier-fields.scss',
 })

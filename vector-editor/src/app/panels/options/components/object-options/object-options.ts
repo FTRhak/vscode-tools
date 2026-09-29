@@ -16,7 +16,7 @@ interface OptionsDraft {
 
 @Component({
   selector: 'object-options',
-  imports: [FormField],
+  standalone: false,
   templateUrl: './object-options.html',
   styleUrl: './object-options.scss',
 })

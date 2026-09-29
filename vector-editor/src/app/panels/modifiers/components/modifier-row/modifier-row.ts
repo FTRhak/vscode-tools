@@ -1,24 +1,12 @@
-import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, input } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
 import { Modifier, VectorObject } from '@vector-editor/core';
-
-import { ArrayModifierFields } from '../array-modifier-fields/array-modifier-fields';
-import { BevelModifierFields } from '../bevel-modifier-fields/bevel-modifier-fields';
-import { BooleanModifierFields } from '../boolean-modifier-fields/boolean-modifier-fields';
-import { MirrorModifierFields } from '../mirror-modifier-fields/mirror-modifier-fields';
 
 type BooleanOperation = 'union' | 'difference' | 'intersect';
 
 @Component({
   selector: 'app-modifier-row',
-  imports: [
-    ArrayModifierFields,
-    BevelModifierFields,
-    BooleanModifierFields,
-    CdkDragHandle,
-    MirrorModifierFields,
-  ],
+  standalone: false,
   templateUrl: './modifier-row.html',
   styleUrl: './modifier-row.scss',
 })

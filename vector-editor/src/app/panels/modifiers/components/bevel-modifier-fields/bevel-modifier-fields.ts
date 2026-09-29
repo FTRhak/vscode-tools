@@ -18,7 +18,7 @@ export interface BevelModifierPatch {
 
 @Component({
   selector: 'bevel-modifier-fields',
-  imports: [FormField],
+  standalone: false,
   templateUrl: './bevel-modifier-fields.html',
   styleUrl: './bevel-modifier-fields.scss',
 })

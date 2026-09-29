@@ -19,7 +19,7 @@ type HandleKey = 'x' | 'y';
 
 @Component({
   selector: 'anchor-options',
-  imports: [FormField],
+  standalone: false,
   templateUrl: './anchor-options.html',
   styleUrl: './anchor-options.scss',
 })

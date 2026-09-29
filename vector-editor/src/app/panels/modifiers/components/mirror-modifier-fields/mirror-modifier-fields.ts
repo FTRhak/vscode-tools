@@ -10,6 +10,7 @@ export interface MirrorModifierPatch {
 
 @Component({
   selector: 'mirror-modifier-fields',
+  standalone: false,
   templateUrl: './mirror-modifier-fields.html',
   styleUrl: './mirror-modifier-fields.scss',
 })

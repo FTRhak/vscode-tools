@@ -11,6 +11,7 @@ export interface BooleanModifierPatch {
 
 @Component({
   selector: 'boolean-modifier-fields',
+  standalone: false,
   templateUrl: './boolean-modifier-fields.html',
   styleUrl: './boolean-modifier-fields.scss',
 })
