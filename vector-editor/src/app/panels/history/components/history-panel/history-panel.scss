@@ -12,11 +12,13 @@
 }
 
 .history-list .chrome-button {
+  display: flex;
+  align-items: center;
   width: 100%;
   text-align: start;
 }
 
-.history-list .chrome-button[aria-current='step'] {
+.history-list .chrome-button[aria-selected='true'] {
   border-inline-start-width: 3px;
   border-inline-start-color: var(--accent);
 }

@@ -1,19 +1,17 @@
-<panel [panelName]="panelName">
+<panel [panelName]="panelName" icon="&#xe0f4;">
   @if (rows().length === 0) {
     <p>No history yet.</p>
   } @else {
-    <ol class="history-list">
+    <ol
+      class="history-list"
+      cdkListbox
+      [attr.aria-label]="panelName"
+      [cdkListboxValue]="selection()"
+      (cdkListboxValueChange)="jump($event.value[0])"
+    >
       @for (row of rows(); track row.index) {
-        <li>
-          <button
-            type="button"
-            class="chrome-button"
-            [class.is-future]="row.future"
-            [attr.aria-current]="row.current ? 'step' : null"
-            (click)="jump(row.index)"
-          >
-            {{ row.label }}
-          </button>
+        <li class="chrome-button" [class.is-future]="row.future" [cdkOption]="row.index">
+          {{ row.label }}
         </li>
       }
     </ol>

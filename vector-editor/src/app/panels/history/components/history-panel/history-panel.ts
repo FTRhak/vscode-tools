@@ -1,3 +1,4 @@
+import { CdkListbox, CdkOption } from '@angular/cdk/listbox';
 import { afterRenderEffect, Component, computed, ElementRef, inject } from '@angular/core';
 import { SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
@@ -6,12 +7,11 @@ import { SharedModule } from '@vector-editor/shared';
 interface HistoryRow {
   readonly index: number;
   readonly label: string;
-  readonly current: boolean;
   readonly future: boolean;
 }
 
 @Component({
-  imports: [SharedModule],
+  imports: [SharedModule, CdkListbox, CdkOption],
   selector: 'app-history-panel',
   templateUrl: './history-panel.html',
   styleUrl: './history-panel.scss',
@@ -28,9 +28,13 @@ export class HistoryPanel {
     return history.entries.map((entry, index) => ({
       index,
       label: entry.label,
-      current: index === history.index,
       future: index > history.index,
     }));
+  });
+
+  protected readonly selection = computed((): readonly number[] => {
+    const index = this.session.history().index;
+    return index < 0 ? [] : [index];
   });
 
   constructor() {
@@ -40,14 +44,14 @@ export class HistoryPanel {
         if (index < 0) {
           return;
         }
-        const current = this.host.nativeElement.querySelector('[aria-current="step"]');
+        const current = this.host.nativeElement.querySelector('[aria-selected="true"]');
         current?.scrollIntoView({ block: 'nearest' });
       },
     });
   }
 
-  protected jump(index: number): void {
-    if (index === this.session.history().index) {
+  protected jump(index: number | undefined): void {
+    if (index === undefined || index === this.session.history().index) {
       return;
     }
     this.bus.dispatch({ type: 'history.jump', index });

@@ -16,6 +16,8 @@ describe('HistoryPanel', () => {
     session = TestBed.inject(SessionService);
     bus = TestBed.inject(CommandBus);
     await fixture.whenStable();
+    fixture.nativeElement.querySelector('.panel-accordion-header').click();
+    await fixture.whenStable();
   });
 
   it('lists steps oldest first and jumps without activating the current row', async () => {
@@ -28,13 +30,13 @@ describe('HistoryPanel', () => {
     bus.dispatch({ type: 'history.undo' });
     await fixture.whenStable();
 
-    const buttons = [...fixture.nativeElement.querySelectorAll('button')] as HTMLButtonElement[];
+    const buttons = [...fixture.nativeElement.querySelectorAll('[role="option"]')] as HTMLElement[];
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       'New document',
       'Select',
       'Set transform',
     ]);
-    expect(buttons[1].getAttribute('aria-current')).toBe('step');
+    expect(buttons[1].getAttribute('aria-selected')).toBe('true');
     expect(buttons[0].classList.contains('is-future')).toBe(false);
     expect(buttons[2].classList.contains('is-future')).toBe(true);
     expect(fixture.nativeElement.textContent).not.toContain('No history yet.');
@@ -56,5 +58,6 @@ describe('HistoryPanel', () => {
     expect(session.history().index).toBe(2);
     expect(session.document()!.objects[0].transform.x).toBe(10);
     expect(buttons[2].classList.contains('is-future')).toBe(false);
+    expect(buttons[2].getAttribute('aria-selected')).toBe('true');
   });
 });
