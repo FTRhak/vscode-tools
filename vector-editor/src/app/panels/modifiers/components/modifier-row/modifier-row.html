@@ -2,40 +2,38 @@
   <div class="modifier-head">
     <button
       type="button"
-      class="chrome-button"
+      class="chrome-button modifier-action-button button-small button-icon"
       cdkDragHandle
       [attr.aria-label]="'Reorder ' + title()"
     >
       <i class="icon">&#xe0fe;</i>
     </button>
-    <h3>{{ title() }}</h3>
-    <button type="button" class="chrome-button" (click)="toggleEnabled()">
+    <h3 class="modifier-title">{{ title() }}</h3>
+    <button type="button" class="chrome-button button-small button-icon" (click)="toggleEnabled()">
       @if (modifier().enabled) {
         <i class="icon">&#xe0e0;</i>
       } @else {
         <i class="icon">&#xe0e1;</i>
       }
     </button>
-    <div class="modifier-actions">
-      <button
-        type="button"
-        class="chrome-button"
-        title="Apply modifier {{ title() }}"
-        [attr.aria-label]="'Apply ' + title()"
-        (click)="apply()"
-      >
-        <i class="icon">&#xe0fd;</i>
-      </button>
-      <button
-        type="button"
-        class="chrome-button"
-        title="Remove modifier {{ title() }}"
-        [attr.aria-label]="'Remove ' + title()"
-        (click)="remove()"
-      >
-        <i class="icon">&#xe0e7;</i>
-      </button>
-    </div>
+    <button
+      type="button"
+      class="chrome-button modifier-action-button button-small button-icon"
+      title="Apply modifier {{ title() }}"
+      [attr.aria-label]="'Apply ' + title()"
+      (click)="apply()"
+    >
+      <i class="icon">&#xe0fd;</i>
+    </button>
+    <button
+      type="button"
+      class="chrome-button modifier-action-button button-small button-icon"
+      title="Remove modifier {{ title() }}"
+      [attr.aria-label]="'Remove ' + title()"
+      (click)="remove()"
+    >
+      <i class="icon">&#xe0e7;</i>
+    </button>
   </div>
   @if (arrayModifier(); as array) {
     <array-modifier-fields [modifier]="array" (committed)="patch($event)" />

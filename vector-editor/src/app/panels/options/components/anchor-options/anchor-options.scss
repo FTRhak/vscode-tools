@@ -1,0 +1,27 @@
+:host {
+  display: block;
+}
+
+.options-form {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.options-form label {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+input[type='number'] {
+  width: 100%;
+  min-height: 1.75rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #1f1f1f;
+  color: var(--chrome-text);
+  font: inherit;
+  padding: 0.15rem 0.4rem;
+}

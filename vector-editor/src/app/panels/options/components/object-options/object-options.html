@@ -1,0 +1,86 @@
+<form class="options-form" (submit)="$event.preventDefault()">
+  <label>
+    Name
+    <input
+      type="text"
+      autocomplete="off"
+      spellcheck="false"
+      [formField]="optionsForm.name"
+      (blur)="commitName()"
+      (keydown.enter)="commitName($event)"
+    />
+  </label>
+  <p class="meta">Layer {{ layerName() }}</p>
+  <div class="checks">
+    <label>
+      <input
+        type="checkbox"
+        [checked]="visibleState() === true"
+        [indeterminate]="visibleState() === null"
+        (change)="commitFlag('visible', $event)"
+      />
+      Visible
+    </label>
+    <label>
+      <input
+        type="checkbox"
+        [checked]="lockedState() === true"
+        [indeterminate]="lockedState() === null"
+        (change)="commitFlag('locked', $event)"
+      />
+      Locked
+    </label>
+  </div>
+  <label>
+    X
+    <input
+      type="number"
+      step="any"
+      [formField]="optionsForm.x"
+      (blur)="commitNumber('x')"
+      (keydown.enter)="commitNumber('x', $event)"
+    />
+  </label>
+  <label>
+    Y
+    <input
+      type="number"
+      step="any"
+      [formField]="optionsForm.y"
+      (blur)="commitNumber('y')"
+      (keydown.enter)="commitNumber('y', $event)"
+    />
+  </label>
+  <label>
+    Rotation
+    <input
+      type="number"
+      step="any"
+      [formField]="optionsForm.rotation"
+      (blur)="commitNumber('rotation')"
+      (keydown.enter)="commitNumber('rotation', $event)"
+    />
+  </label>
+  <label>
+    Scale X
+    <input
+      type="number"
+      step="any"
+      [formField]="optionsForm.scaleX"
+      (blur)="commitNumber('scaleX')"
+      (keydown.enter)="commitNumber('scaleX', $event)"
+    />
+  </label>
+  <label>
+    Scale Y
+    <input
+      type="number"
+      step="any"
+      [formField]="optionsForm.scaleY"
+      (blur)="commitNumber('scaleY')"
+      (keydown.enter)="commitNumber('scaleY', $event)"
+    />
+  </label>
+  <p class="meta">Subpaths {{ subpathCount() }}</p>
+  <p class="meta">Anchors {{ anchorCount() }}</p>
+</form>

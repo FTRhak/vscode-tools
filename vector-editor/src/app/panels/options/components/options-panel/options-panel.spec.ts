@@ -16,6 +16,8 @@ describe('OptionsPanel', () => {
     session = TestBed.inject(SessionService);
     bus = TestBed.inject(CommandBus);
     await fixture.whenStable();
+    fixture.nativeElement.querySelector('.panel-accordion-header').click();
+    await fixture.whenStable();
   });
 
   it('shows nothing until an object is selected in object mode', async () => {

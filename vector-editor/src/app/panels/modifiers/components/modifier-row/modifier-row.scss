@@ -6,12 +6,29 @@
   border-radius: 4px;
 }
 
-.modifier-head,
-.modifier-actions {
+.modifier-head {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.4rem 0.75rem;
+  gap: 0.2rem;
+  justify-content: space-between;
+
+  .modifier-title {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0rem 0.5rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 7rem;
+    cursor: default;
+  }
+
+  .modifier-action-button {
+    flex: 0 0 auto;
+  }
 }
 
 h3 {
