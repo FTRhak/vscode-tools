@@ -26,6 +26,7 @@ import {
   deleteAnchors,
   insertPoint,
   setAnchorHandle,
+  setAnchorPointType,
   setAnchorPosition,
   translateAnchors,
 } from './model/edit-path';
@@ -125,6 +126,10 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
           command.position,
           command.breakLink,
         ),
+      );
+    case 'path.setAnchorType':
+      return replaceSource(state, command.objectId, (source) =>
+        setAnchorPointType(source, command.anchorIds, command.pointType),
       );
     case 'path.deleteAnchors':
       return applyDeleteAnchors(state, command);

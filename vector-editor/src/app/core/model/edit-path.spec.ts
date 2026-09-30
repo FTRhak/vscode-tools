@@ -1,8 +1,10 @@
 import { Anchor, Segment, SourcePath, Vec2 } from './types';
 import {
+  anchorPointType,
   deleteAnchors,
   insertPoint,
   setAnchorHandle,
+  setAnchorPointType,
   setAnchorPosition,
   translateAnchors,
 } from './edit-path';
@@ -55,6 +57,73 @@ describe('edit path', () => {
 
     expect(next.subpaths[0].anchors[0].handleOut).toEqual({ x: 9, y: 3 });
     expect(next.subpaths[0].anchors[0].handleIn).toEqual({ x: -4, y: 1 });
+  });
+
+  it('converts a line point into corner, smooth, and symmetric handles', () => {
+    const source = path(
+      [anchor('a', 0, 0, null, null), anchor('b', 90, 0, null, null)],
+      [segment('ab', 'line', 'a', 'b')],
+    );
+
+    const corner = setAnchorPointType(source, ['a'], 'corner');
+    expect(corner.subpaths[0].anchors[0]).toMatchObject({
+      handleIn: null,
+      handleOut: { x: 30, y: 0 },
+    });
+    expect(anchorPointType(corner.subpaths[0].anchors[0])).toBe('corner');
+    expect(corner.subpaths[0].segments[0].kind).toBe('cubic');
+    expect(corner.subpaths[0].anchors[1]).toBe(source.subpaths[0].anchors[1]);
+
+    const smooth = setAnchorPointType(source, ['a'], 'smooth');
+    expect(smooth.subpaths[0].anchors[0]).toMatchObject({
+      handleIn: { x: -32, y: 0 },
+      handleOut: { x: 30, y: 0 },
+    });
+    expect(anchorPointType(smooth.subpaths[0].anchors[0])).toBe('smooth');
+
+    const symmetric = setAnchorPointType(source, ['a'], 'symmetric');
+    expect(symmetric.subpaths[0].anchors[0]).toMatchObject({
+      handleIn: { x: -32, y: 0 },
+      handleOut: { x: 32, y: 0 },
+    });
+    expect(anchorPointType(symmetric.subpaths[0].anchors[0])).toBe('symmetric');
+    expect(setAnchorPointType(source, ['a'], 'line')).toBe(source);
+    expect(setAnchorPointType(source, [], 'smooth')).toBe(source);
+  });
+
+  it('aligns a corner into a smooth point and breaks a smooth point into a corner', () => {
+    const kink = path(
+      [anchor('a', 0, 0, { x: 0, y: -10 }, { x: 30, y: 0 }), anchor('b', 40, 0, null, null)],
+      [segment('ab', 'cubic', 'a', 'b')],
+    );
+    expect(anchorPointType(kink.subpaths[0].anchors[0])).toBe('corner');
+
+    const smooth = setAnchorPointType(kink, ['a'], 'smooth');
+    expect(smooth.subpaths[0].anchors[0]).toMatchObject({
+      handleIn: { x: -10, y: 0 },
+      handleOut: { x: 30, y: 0 },
+    });
+    expect(anchorPointType(smooth.subpaths[0].anchors[0])).toBe('smooth');
+    expect(smooth.subpaths[0].segments[0]).toBe(kink.subpaths[0].segments[0]);
+
+    const symmetric = setAnchorPointType(smooth, ['a'], 'symmetric');
+    expect(symmetric.subpaths[0].anchors[0]).toMatchObject({
+      handleIn: { x: -30, y: 0 },
+      handleOut: { x: 30, y: 0 },
+    });
+    expect(anchorPointType(symmetric.subpaths[0].anchors[0])).toBe('symmetric');
+
+    const corner = setAnchorPointType(symmetric, ['a'], 'corner');
+    expect(corner.subpaths[0].anchors[0]).toMatchObject({
+      handleIn: { x: -30, y: 0 },
+      handleOut: { x: 0, y: 30 },
+    });
+    expect(anchorPointType(corner.subpaths[0].anchors[0])).toBe('corner');
+
+    const line = setAnchorPointType(corner, ['a'], 'line');
+    expect(line.subpaths[0].anchors[0]).toMatchObject({ handleIn: null, handleOut: null });
+    expect(line.subpaths[0].segments[0].kind).toBe('line');
+    expect(anchorPointType(line.subpaths[0].anchors[0])).toBe('line');
   });
 
   it('creates a handle only when both coordinates are given', () => {
@@ -135,10 +204,7 @@ describe('edit path', () => {
 
   it('splits a cubic without changing the curve', () => {
     const source = path(
-      [
-        anchor('a', 0, 0, null, { x: 0, y: 100 }),
-        anchor('b', 100, 0, { x: 100, y: 100 }, null),
-      ],
+      [anchor('a', 0, 0, null, { x: 0, y: 100 }), anchor('b', 100, 0, { x: 100, y: 100 }, null)],
       [segment('ab', 'cubic', 'a', 'b')],
     );
 

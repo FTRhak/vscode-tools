@@ -1,3 +1,4 @@
+import type { AnchorPointType } from '../../core/model/edit-path';
 import type { ModifierKind, ModifierPatch } from '../../core/model/modifier-edits';
 import type { Document, ObjectTransform, Vec2 } from '../../core/model/types';
 
@@ -58,6 +59,12 @@ export type Command =
       readonly position: Partial<Vec2>;
       readonly breakLink: boolean;
       readonly gesture?: TranslateGesture;
+    }
+  | {
+      readonly type: 'path.setAnchorType';
+      readonly objectId: string;
+      readonly anchorIds: readonly string[];
+      readonly pointType: AnchorPointType;
     }
   | {
       readonly type: 'path.deleteAnchors';

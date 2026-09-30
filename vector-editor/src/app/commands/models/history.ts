@@ -76,6 +76,8 @@ export function historyLabel(command: Command): string | null {
       return 'Set anchor';
     case 'path.setHandle':
       return command.gesture ? 'Move handle' : 'Set handle';
+    case 'path.setAnchorType':
+      return 'Set point type';
     case 'path.deleteAnchors':
       return 'Delete anchors';
     case 'path.insertPoint':

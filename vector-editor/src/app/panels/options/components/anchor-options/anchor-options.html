@@ -1,8 +1,15 @@
-<div class="point-info">
-  <span>Type</span>
-  <span>{{ selectedPointType() }}</span>
-</div>
 <form class="options-form" (submit)="$event.preventDefault()">
+  <label>
+    Type
+    <select [value]="pointTypeValue()" (change)="commitPointType($event)">
+      @if (pointTypeValue() === 'mixed') {
+        <option value="mixed" disabled>Mixed</option>
+      }
+      @for (option of pointTypeOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
   <label>
     X
     <input

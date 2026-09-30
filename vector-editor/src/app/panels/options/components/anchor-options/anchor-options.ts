@@ -1,7 +1,7 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
-import { Anchor, SessionService } from '@vector-editor/core';
+import { Anchor, AnchorPointType, SessionService, anchorPointType } from '@vector-editor/core';
 
 interface AnchorDraft {
   readonly x: number | null;
@@ -17,6 +17,13 @@ interface AnchorDraft {
 type AnchorKey = 'x' | 'y';
 type HandleKey = 'x' | 'y';
 
+const POINT_TYPE_OPTIONS: readonly { readonly value: AnchorPointType; readonly label: string }[] = [
+  { value: 'corner', label: 'Corner' },
+  { value: 'smooth', label: 'Smooth' },
+  { value: 'symmetric', label: 'Symmetric' },
+  { value: 'line', label: 'Line' },
+];
+
 @Component({
   selector: 'anchor-options',
   standalone: false,
@@ -31,7 +38,9 @@ export class AnchorOptions {
 
   protected readonly showAnchorDelta = computed(() => this.selectedAnchors().length > 1);
 
-  protected readonly selectedPointType = computed(() => pointTypeLabel(this.selectedAnchors()));
+  protected readonly pointTypeOptions = POINT_TYPE_OPTIONS;
+
+  protected readonly pointTypeValue = computed(() => sharedPointType(this.selectedAnchors()));
 
   private readonly anchorDraftSource = computed(() => draftFromAnchors(this.selectedAnchors()), {
     equal: sameAnchorDraft,
@@ -39,6 +48,28 @@ export class AnchorOptions {
 
   protected readonly anchorDraft = linkedSignal(() => this.anchorDraftSource());
   protected readonly anchorForm = form(this.anchorDraft);
+
+  protected commitPointType(event: Event): void {
+    const select = event.target;
+    if (!(select instanceof HTMLSelectElement)) {
+      return;
+    }
+    const pointType = select.value;
+    if (!isPointType(pointType)) {
+      return;
+    }
+    const anchors = this.selectedAnchors();
+    const objectId = this.session.activeObjectId();
+    if (!objectId || anchors.length === 0 || sharedPointType(anchors) === pointType) {
+      return;
+    }
+    this.bus.dispatch({
+      type: 'path.setAnchorType',
+      objectId,
+      anchorIds: anchors.map((anchor) => anchor.id),
+      pointType,
+    });
+  }
 
   protected commitAnchor(key: AnchorKey, event?: Event): void {
     if (event instanceof KeyboardEvent) {
@@ -204,60 +235,17 @@ function sharedAnchor<T>(items: readonly Anchor[], read: (anchor: Anchor) => T |
   return value;
 }
 
-type PointType = 'corner' | 'smooth' | 'symmetric' | 'line';
-
-const POINT_TYPE_LABEL: Record<PointType, string> = {
-  corner: 'Corner',
-  smooth: 'Smooth',
-  symmetric: 'Symmetric',
-  line: 'Line',
-};
-
-const COLLINEAR_TOLERANCE = 0.02;
-
-function pointTypeLabel(anchors: readonly Anchor[]): string {
+function sharedPointType(anchors: readonly Anchor[]): AnchorPointType | 'mixed' | '' {
   const first = anchors[0];
   if (!first) {
     return '';
   }
-
-  const type = pointTypeOf(first);
-  const label = POINT_TYPE_LABEL[type];
-  return anchors.every((anchor) => pointTypeOf(anchor) === type) ? label : 'Mixed';
+  const type = anchorPointType(first);
+  return anchors.every((anchor) => anchorPointType(anchor) === type) ? type : 'mixed';
 }
 
-function pointTypeOf(anchor: Anchor): PointType {
-  const inward = handleOffset(anchor.position, anchor.handleIn);
-  const outward = handleOffset(anchor.position, anchor.handleOut);
-  if (!inward && !outward) {
-    return 'line';
-  }
-  if (!inward || !outward) {
-    return 'corner';
-  }
-  const inLength = Math.hypot(inward.x, inward.y);
-  const outLength = Math.hypot(outward.x, outward.y);
-  const scale = inLength * outLength;
-  const cross = inward.x * outward.y - inward.y * outward.x;
-  const dot = inward.x * outward.x + inward.y * outward.y;
-  if (Math.abs(cross) > COLLINEAR_TOLERANCE * scale || dot >= 0) {
-    return 'corner';
-  }
-  const longest = Math.max(inLength, outLength);
-  const delta = Math.abs(inLength - outLength);
-  return delta <= Math.max(0.01, 0.01 * longest) ? 'symmetric' : 'smooth';
-}
-
-function handleOffset(
-  position: Anchor['position'],
-  handle: Anchor['handleIn'],
-): Anchor['position'] | null {
-  if (!handle) {
-    return null;
-  }
-  const x = handle.x - position.x;
-  const y = handle.y - position.y;
-  return Math.hypot(x, y) <= 1e-6 ? null : { x, y };
+function isPointType(value: string): value is AnchorPointType {
+  return value === 'corner' || value === 'smooth' || value === 'symmetric' || value === 'line';
 }
 
 function sharedHandle(handles: readonly Anchor['handleIn'][], key: HandleKey): number | null {

@@ -173,7 +173,28 @@ describe('OptionsPanel', () => {
     await fixture.whenStable();
 
     expect(text()).toContain('Type');
-    expect(text()).toContain('Corner');
+    expect(typeField().value).toBe('corner');
+  });
+
+  it('changes the selected point type', async () => {
+    bus.dispatch({ type: 'document.new' });
+    const object = session.document()!.objects[0];
+    const anchor = object.source.subpaths[0].anchors[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.select', target: 'anchor', ids: [anchor.id], op: 'replace' });
+    await fixture.whenStable();
+
+    const select = typeField();
+    select.value = 'line';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    await fixture.whenStable();
+
+    const updated = session.document()!.objects[0].source.subpaths[0].anchors[0];
+    expect(updated.handleIn).toBeNull();
+    expect(updated.handleOut).toBeNull();
+    expect(typeField().value).toBe('line');
+    expect(session.history().entries.at(-1)?.label).toBe('Set point type');
   });
 
   it('writes an anchor coordinate and moves its handles with it', async () => {
@@ -211,6 +232,14 @@ describe('OptionsPanel', () => {
       throw new Error(`${label} button is missing`);
     }
     return match;
+  }
+
+  function typeField(): HTMLSelectElement {
+    const select = fixture.nativeElement.querySelector('select');
+    if (!(select instanceof HTMLSelectElement)) {
+      throw new Error('Type field is missing');
+    }
+    return select;
   }
 
   function field(label: string): HTMLInputElement {

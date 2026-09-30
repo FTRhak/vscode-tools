@@ -21,7 +21,9 @@ export {
   objectsInPaintOrder,
   objectsOnLayer,
   reorderLayer,
+  anchorPointType,
   setAnchorHandle,
+  setAnchorPointType,
   setAnchorPosition,
   setObjectStyle,
   sourceToPathData,
@@ -32,6 +34,7 @@ export {
 } from './model';
 export type {
   Anchor,
+  AnchorPointType,
   Document,
   DocumentSize,
   Layer,

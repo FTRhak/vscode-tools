@@ -21,10 +21,13 @@ export {
   deleteAnchors,
   INSERT_POINT_MARGIN,
   insertPoint,
+  anchorPointType,
   setAnchorHandle,
+  setAnchorPointType,
   setAnchorPosition,
   translateAnchors,
 } from './edit-path';
+export type { AnchorPointType } from './edit-path';
 export {
   isInteractionLocked,
   layersFrontToBack,
