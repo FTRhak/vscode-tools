@@ -37,6 +37,7 @@ import {
 } from './model/modifier-edits';
 import { isInteractionLocked, layersFrontToBack } from './model/paint-order';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
+import { identityTransform, matrixFromTransform, transformSource } from './io/matrix';
 import { rotationOriginDocument, transformWithRotationOrigin } from './model/transform';
 import { Document, ObjectTransform, SourcePath, VectorObject, ViewportCamera } from './model/types';
 
@@ -131,6 +132,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyTransform(state, command);
     case 'object.setRotationOrigin':
       return applyRotationOrigin(state, command);
+    case 'object.applyTransform':
+      return applyBakedTransform(state, command);
     case 'object.setFlags':
       return applyFlags(state, command);
     case 'object.duplicate':
@@ -631,6 +634,39 @@ function applyRotationOrigin(
     return next ? { ...object, transform: next } : object;
   });
   return document === state.document ? state : { ...state, document };
+}
+
+function applyBakedTransform(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'object.applyTransform' }>,
+): SessionSlice {
+  const current = state.document;
+  if (!current) {
+    return state;
+  }
+  const document = mapObjects(current, [command.id], (object) => {
+    if (isInteractionLocked(current, object) || isIdentityTransform(object.transform)) {
+      return object;
+    }
+    return {
+      ...object,
+      source: transformSource(object.source, matrixFromTransform(object.transform)),
+      transform: identityTransform,
+    };
+  });
+  return document === current ? state : { ...state, document };
+}
+
+function isIdentityTransform(transform: ObjectTransform): boolean {
+  return (
+    transform.x === identityTransform.x &&
+    transform.y === identityTransform.y &&
+    transform.rotation === identityTransform.rotation &&
+    transform.scaleX === identityTransform.scaleX &&
+    transform.scaleY === identityTransform.scaleY &&
+    transform.originX === identityTransform.originX &&
+    transform.originY === identityTransform.originY
+  );
 }
 
 function applyFlags(

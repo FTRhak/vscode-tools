@@ -83,6 +83,7 @@ export type Command =
       readonly y?: number;
       readonly gesture?: TranslateGesture;
     }
+  | { readonly type: 'object.applyTransform'; readonly id: string }
   | {
       readonly type: 'object.setFlags';
       readonly ids: readonly string[];

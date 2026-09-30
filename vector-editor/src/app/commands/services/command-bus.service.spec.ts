@@ -161,6 +161,59 @@ describe('CommandBus', () => {
     expect(session.document()!.objects[0].transform).toMatchObject({ x: 0, y: 0, rotation: 15 });
   });
 
+  it('bakes the transform into path coordinates and resets it', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    const anchor = session.document()!.objects[0].source.subpaths[0].anchors[0];
+    bus.dispatch({
+      type: 'object.setTransform',
+      ids: [id],
+      transform: { x: 15, y: -3, rotation: 0, scaleX: 2, scaleY: 1 },
+    });
+
+    bus.dispatch({ type: 'object.applyTransform', id });
+
+    const baked = session.document()!.objects[0];
+    expect(baked.transform).toEqual({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      originX: 0,
+      originY: 0,
+    });
+    expect(baked.source.subpaths[0].anchors[0].position).toEqual({
+      x: anchor.position.x * 2 + 15,
+      y: anchor.position.y - 3,
+    });
+    expect(baked.source.subpaths[0].anchors[0].handleOut).toEqual({
+      x: anchor.handleOut!.x * 2 + 15,
+      y: anchor.handleOut!.y - 3,
+    });
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[0].transform).toMatchObject({ x: 15, y: -3, scaleX: 2 });
+    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual(
+      anchor.position,
+    );
+  });
+
+  it('does not bake an identity or locked transform', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    const recorded = session.history().entries.length;
+    bus.dispatch({ type: 'object.applyTransform', id });
+    expect(session.history().entries).toHaveLength(recorded);
+
+    bus.dispatch({ type: 'object.setFlags', ids: [id], locked: true });
+    bus.dispatch({ type: 'object.setTransform', ids: [id], transform: { x: 9 } });
+    const afterLock = session.history().entries.length;
+    bus.dispatch({ type: 'object.applyTransform', id });
+    expect(session.document()!.objects[0].transform.x).toBe(9);
+    expect(session.history().entries).toHaveLength(afterLock);
+  });
+
   it('patches only the transform fields that were sent', () => {
     bus.dispatch({ type: 'document.new' });
     const id = session.document()!.objects[0].id;

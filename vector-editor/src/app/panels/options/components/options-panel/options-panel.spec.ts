@@ -126,6 +126,43 @@ describe('OptionsPanel', () => {
     expect(field('Pivot Y').value).toBe('0');
   });
 
+  it('applies the transform into the path and clears the transform fields', async () => {
+    bus.dispatch({ type: 'document.new' });
+    const object = session.document()!.objects[0];
+    const anchor = object.source.subpaths[0].anchors[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    await fixture.whenStable();
+
+    const apply = button('Apply');
+    expect(apply.disabled).toBe(true);
+
+    const input = field('X');
+    input.value = '12';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    );
+    await fixture.whenStable();
+
+    expect(apply.disabled).toBe(false);
+    apply.click();
+    await fixture.whenStable();
+
+    const baked = session.document()!.objects[0];
+    expect(baked.transform).toEqual({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      originX: 0,
+      originY: 0,
+    });
+    expect(baked.source.subpaths[0].anchors[0].position.x).toBe(anchor.position.x + 12);
+    expect(field('X').value).toBe('0');
+    expect(apply.disabled).toBe(true);
+  });
+
   it('writes an anchor coordinate and moves its handles with it', async () => {
     bus.dispatch({ type: 'document.new' });
     const object = session.document()!.objects[0];
@@ -151,6 +188,16 @@ describe('OptionsPanel', () => {
 
   function text(): string {
     return fixture.nativeElement.textContent ?? '';
+  }
+
+  function button(label: string): HTMLButtonElement {
+    const match = [...fixture.nativeElement.querySelectorAll('button')].find((item) =>
+      item.textContent?.includes(label),
+    );
+    if (!(match instanceof HTMLButtonElement)) {
+      throw new Error(`${label} button is missing`);
+    }
+    return match;
   }
 
   function field(label: string): HTMLInputElement {

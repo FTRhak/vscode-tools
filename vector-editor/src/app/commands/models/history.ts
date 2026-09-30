@@ -53,6 +53,8 @@ export function historyLabel(command: Command): string | null {
       return 'Set transform';
     case 'object.setRotationOrigin':
       return command.gesture ? 'Move rotation origin' : 'Set rotation origin';
+    case 'object.applyTransform':
+      return 'Apply transform';
     case 'object.duplicate':
       return 'Duplicate';
     case 'object.setFlags':

@@ -1,7 +1,14 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
-import { rotationOriginDocument, SessionService, VectorObject } from '@vector-editor/core';
+import {
+  Document,
+  isInteractionLocked,
+  ObjectTransform,
+  rotationOriginDocument,
+  SessionService,
+  VectorObject,
+} from '@vector-editor/core';
 
 type TransformKey = 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY';
 type PivotAxis = 'x' | 'y';
@@ -71,6 +78,22 @@ export class ObjectOptions {
     shared(this.selectedObjects(), (object) => object.locked),
   );
 
+  protected readonly canApplyTransform = computed(() => {
+    const document = this.session.document();
+    const object = this.activeObject();
+    return !!document && !!object && hasEditableTransform(document, object);
+  });
+
+  private readonly resettableObjects = computed(() => {
+    const document = this.session.document();
+    if (!document) {
+      return [];
+    }
+    return this.selectedObjects().filter((object) => hasEditableTransform(document, object));
+  });
+
+  protected readonly canResetTransform = computed(() => this.resettableObjects().length > 0);
+
   private readonly draftSource = computed(() => draftFrom(this.selectedObjects()), {
     equal: sameDraft,
   });
@@ -132,6 +155,26 @@ export class ObjectOptions {
     });
   }
 
+  protected applyTransform(): void {
+    const object = this.activeObject();
+    if (!object || !this.canApplyTransform()) {
+      return;
+    }
+    this.bus.dispatch({ type: 'object.applyTransform', id: object.id });
+  }
+
+  protected resetTransform(): void {
+    const objects = this.resettableObjects();
+    if (objects.length === 0) {
+      return;
+    }
+    this.bus.dispatch({
+      type: 'object.setTransform',
+      ids: objects.map((object) => object.id),
+      transform: identityTransform,
+    });
+  }
+
   protected commitFlag(flag: 'visible' | 'locked', event: Event): void {
     const input = event.target;
     if (!(input instanceof HTMLInputElement)) {
@@ -147,6 +190,26 @@ export class ObjectOptions {
       [flag]: input.checked,
     });
   }
+}
+
+const identityTransform: ObjectTransform = {
+  x: 0,
+  y: 0,
+  rotation: 0,
+  scaleX: 1,
+  scaleY: 1,
+  originX: 0,
+  originY: 0,
+};
+
+function hasEditableTransform(document: Document, object: VectorObject): boolean {
+  if (isInteractionLocked(document, object)) {
+    return false;
+  }
+  const transform = object.transform;
+  return (Object.keys(identityTransform) as (keyof ObjectTransform)[]).some(
+    (key) => transform[key] !== identityTransform[key],
+  );
 }
 
 function draftFrom(objects: readonly VectorObject[]): OptionsDraft {

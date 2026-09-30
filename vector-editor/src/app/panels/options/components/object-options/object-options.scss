@@ -1,5 +1,15 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.object-options-head {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.2rem;
+  justify-content: flex-end;
 }
 
 .options-form {
@@ -43,6 +53,10 @@ input[type='checkbox'] {
   accent-color: #8eb4ff;
   width: 1rem;
   height: 1rem;
+}
+
+.apply-transform {
+  justify-self: start;
 }
 
 .meta {

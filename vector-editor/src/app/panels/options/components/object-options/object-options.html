@@ -1,3 +1,25 @@
+<div class="object-options-head">
+  <button
+    type="button"
+    class="chrome-button button-small button-icon"
+    title="Reset transform"
+    [attr.aria-label]="'Reset transform'"
+    [disabled]="!canResetTransform()"
+    (click)="resetTransform()"
+  >
+    <i class="icon">&#xe0ef;</i>
+  </button>
+  <button
+    type="button"
+    class="chrome-button button-small button-icon apply-transform"
+    title="Apply transform"
+    [attr.aria-label]="'Apply transform'"
+    [disabled]="!canApplyTransform()"
+    (click)="applyTransform()"
+  >
+    <i class="icon">&#xe0fd;</i>
+  </button>
+</div>
 <form class="options-form" (submit)="$event.preventDefault()">
   <label>
     Name
@@ -101,6 +123,4 @@
       (keydown.enter)="commitNumber('scaleY', $event)"
     />
   </label>
-  <p class="meta">Subpaths {{ subpathCount() }}</p>
-  <p class="meta">Anchors {{ anchorCount() }}</p>
 </form>
