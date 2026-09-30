@@ -421,7 +421,144 @@ describe('Viewport', () => {
       y: 200,
     });
   });
+
+  it('shows the snap control at the top and toggles snapping from the magnet', async () => {
+    const bar = canvas().querySelector('[data-snap-bar]') as HTMLElement;
+    expect(bar).not.toBeNull();
+    expect(bar.getAttribute('aria-label')).toBe('Snapping');
+    const magnet = canvas().querySelector('.snap-magnet') as HTMLButtonElement;
+    expect(magnet.getAttribute('aria-pressed')).toBe('false');
+    expect(magnet.getAttribute('data-snap-mode')).toBe('off');
+
+    magnet.click();
+    await fixture.whenStable();
+    expect(magnet.getAttribute('data-snap-mode')).toBe('grid_100');
+    expect(magnet.getAttribute('aria-pressed')).toBe('true');
+
+    magnet.click();
+    await fixture.whenStable();
+    expect(magnet.getAttribute('data-snap-mode')).toBe('off');
+  });
+
+  it('snaps an object move onto whole numbers', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    await chooseSnap(fixture, 'grid_100');
+
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointermove', 484.4, 424.6);
+    pointer(canvas(), 'pointerup', 484.4, 424.6);
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].transform).toMatchObject({ x: 10, y: 1 });
+  });
+
+  it('snaps an anchor move onto the grid in edit mode', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const object = session.document()!.objects[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.setTool', tool: 'direct-select' });
+    await chooseSnap(fixture, 'grid_010');
+    await fixture.whenStable();
+
+    pointer(canvas(), 'pointerdown', 474, 274);
+    pointer(canvas(), 'pointermove', 494.26, 274.44);
+    pointer(canvas(), 'pointerup', 494.26, 274.44);
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual({
+      x: 470.3,
+      y: 250.4,
+    });
+  });
+
+  it('snaps a moving object to another object on the same layer', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'object.duplicate', ids: [id] });
+    await chooseSnap(fixture, 'object');
+    await fixture.whenStable();
+
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointermove', 454, 404);
+    pointer(canvas(), 'pointerup', 454, 404);
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[1].transform).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it('snaps an edited anchor to another object on the same layer', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const original = session.document()!.objects[0];
+    bus.dispatch({ type: 'object.duplicate', ids: [original.id] });
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [original.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.setTool', tool: 'direct-select' });
+    await chooseSnap(fixture, 'object');
+    await fixture.whenStable();
+
+    pointer(canvas(), 'pointerdown', 474, 274);
+    pointer(canvas(), 'pointermove', 494, 294);
+    pointer(canvas(), 'pointerup', 494, 294);
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual({
+      x: 474,
+      y: 274,
+    });
+  });
+
+  it('snaps to objects on other layers only in layer mode', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'object.duplicate', ids: [id] });
+    bus.dispatch({ type: 'layer.add' });
+    const current = session.document()!;
+    const copyId = current.objects[1].id;
+    const otherLayerId = current.layers.at(-1)!.id;
+    bus.dispatch({
+      type: 'document.replace',
+      document: {
+        ...current,
+        objects: current.objects.map((object) =>
+          object.id === copyId ? { ...object, layerId: otherLayerId } : object,
+        ),
+      },
+    });
+    await chooseSnap(fixture, 'object');
+    await fixture.whenStable();
+
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointermove', 454, 404);
+    pointer(canvas(), 'pointerup', 454, 404);
+    await fixture.whenStable();
+    expect(session.document()!.objects[1].transform).toMatchObject({ x: 4, y: 4 });
+
+    bus.dispatch({ type: 'history.undo' });
+    await chooseSnap(fixture, 'layer');
+    pointer(canvas(), 'pointerdown', 474, 424);
+    pointer(canvas(), 'pointermove', 454, 404);
+    pointer(canvas(), 'pointerup', 454, 404);
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[1].transform).toMatchObject({ x: 0, y: 0 });
+  });
 });
+
+async function chooseSnap(
+  fixture: ComponentFixture<Viewport>,
+  mode: string,
+): Promise<void> {
+  const host = fixture.nativeElement as HTMLElement;
+  (host.querySelector('.snap-element') as HTMLButtonElement).click();
+  await fixture.whenStable();
+  const choice = host.querySelector(`[data-snap-choice="${mode}"]`) as HTMLButtonElement | null;
+  if (!choice) {
+    throw new Error(`Missing snap mode ${mode}`);
+  }
+  choice.click();
+  await fixture.whenStable();
+}
 
 function pointer(target: HTMLElement, type: string, x: number, y: number): void {
   target.dispatchEvent(

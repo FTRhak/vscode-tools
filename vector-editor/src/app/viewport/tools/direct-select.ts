@@ -67,6 +67,7 @@ export function updateDirectDrag(
     readonly clientY: number;
     readonly altKey: boolean;
     readonly localPoint: Vec2;
+    readonly localDelta?: Vec2 | null;
     readonly zoom: number;
     readonly transform: ObjectTransform;
     readonly selectedAnchorIds: readonly string[];
@@ -121,17 +122,20 @@ function moveAnchors(
   input: {
     readonly clientX: number;
     readonly clientY: number;
+    readonly localDelta?: Vec2 | null;
     readonly zoom: number;
     readonly transform: ObjectTransform;
     readonly selectedAnchorIds: readonly string[];
   },
 ): readonly Command[] {
   const zoom = input.zoom || 1;
-  const local = documentDeltaToLocal(
-    input.transform,
-    (input.clientX - drag.lastX) / zoom,
-    (input.clientY - drag.lastY) / zoom,
-  );
+  const local =
+    input.localDelta ??
+    documentDeltaToLocal(
+      input.transform,
+      (input.clientX - drag.lastX) / zoom,
+      (input.clientY - drag.lastY) / zoom,
+    );
   drag.lastX = input.clientX;
   drag.lastY = input.clientY;
   if (!local || (local.x === 0 && local.y === 0) || input.selectedAnchorIds.length === 0) {

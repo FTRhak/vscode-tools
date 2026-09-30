@@ -11,8 +11,29 @@ import {
   wheelZoomFactor,
   zoomAtPoint,
 } from './camera';
-import { DocumentRect, documentToLocal, hitTestObject, objectsInRect } from './hit-test';
+import {
+  DocumentRect,
+  documentDeltaToLocal,
+  documentToLocal,
+  hitTestObject,
+  localToDocument,
+  objectsInRect,
+} from './hit-test';
 import { formatObjectTransform, sceneFromDocument } from './scene';
+import { SnapBar } from './snap-bar/snap-bar';
+import {
+  SNAP_THRESHOLD_PX,
+  SnapMode,
+  SnapSource,
+  anchorById,
+  anchorSnapSources,
+  collectSnapTargets,
+  gridStep,
+  objectSnapSources,
+  snapToGrid,
+  snapToPoints,
+  snapTranslation,
+} from './snap';
 import {
   beginDirectDrag,
   DirectDrag,
@@ -42,6 +63,7 @@ interface SelectGesture {
   moved: boolean;
   mode: 'pending' | 'move' | 'marquee';
   moveSent: boolean;
+  snapSources: readonly SnapSource[] | null;
 }
 
 const GESTURE_THRESHOLD_PX = 4;
@@ -66,6 +88,7 @@ const GESTURE_THRESHOLD_PX = 4;
     '(pointerleave)': 'onPointerLeave()',
     '(auxclick)': 'onAuxClick($event)',
   },
+  imports: [SnapBar],
   templateUrl: './viewport.html',
   styleUrl: './viewport.scss',
 })
@@ -82,6 +105,9 @@ export class Viewport {
   private direct: DirectDrag | null = null;
   private pen: PenDrag | null = null;
   private spaceHeld = false;
+  private editSnapSources: readonly SnapSource[] | null = null;
+
+  protected readonly snapMode = signal<SnapMode>('off');
 
   protected readonly panning = signal(false);
   protected readonly moving = signal(false);
@@ -343,6 +369,7 @@ export class Viewport {
       moved: false,
       mode: 'pending',
       moveSent: false,
+      snapSources: null,
     };
     this.host.nativeElement.focus();
     this.host.nativeElement.setPointerCapture?.(event.pointerId);
@@ -366,6 +393,7 @@ export class Viewport {
       }
     }
     if (gesture.mode === 'move') {
+      this.ensureObjectSnapSources(gesture);
       this.translateSelection(event, gesture);
       return;
     }
@@ -376,6 +404,10 @@ export class Viewport {
 
   private translateSelection(event: PointerEvent, gesture: SelectGesture): void {
     const zoom = this.session.viewport().zoom || 1;
+    if (this.snapMode() !== 'off' && gesture.snapSources && gesture.snapSources.length > 0) {
+      this.translateSnapped(event, gesture, zoom);
+      return;
+    }
     const dx = (event.clientX - gesture.lastX) / zoom;
     const dy = (event.clientY - gesture.lastY) / zoom;
     gesture.lastX = event.clientX;
@@ -383,6 +415,52 @@ export class Viewport {
     if (dx === 0 && dy === 0) {
       return;
     }
+    this.dispatchTranslation(gesture, dx, dy);
+  }
+
+  private ensureObjectSnapSources(gesture: SelectGesture): void {
+    if (gesture.snapSources) {
+      return;
+    }
+    const document = this.session.document();
+    if (!document || !gesture.hitId) {
+      gesture.snapSources = [];
+      return;
+    }
+    const ids = new Set(this.session.selectedObjectIds());
+    ids.add(gesture.hitId);
+    const moving = document.objects.filter((object) => ids.has(object.id));
+    gesture.snapSources = objectSnapSources(moving, gesture.hitId);
+  }
+
+  private translateSnapped(event: PointerEvent, gesture: SelectGesture, zoom: number): void {
+    const sources = gesture.snapSources;
+    const document = this.session.document();
+    if (!sources || sources.length === 0 || !document || !gesture.hitId) {
+      return;
+    }
+    const primary = document.objects.find((object) => object.id === gesture.hitId);
+    if (!primary) {
+      return;
+    }
+    const movingIds = new Set(this.session.selectedObjectIds());
+    movingIds.add(gesture.hitId);
+    const rawDelta = {
+      x: (event.clientX - gesture.originX) / zoom,
+      y: (event.clientY - gesture.originY) / zoom,
+    };
+    const applied = this.snappedDelta(rawDelta, sources, movingIds, primary.layerId);
+    const dx = sources[0].start.x + applied.x - primary.transform.x;
+    const dy = sources[0].start.y + applied.y - primary.transform.y;
+    gesture.lastX = event.clientX;
+    gesture.lastY = event.clientY;
+    if (dx === 0 && dy === 0) {
+      return;
+    }
+    this.dispatchTranslation(gesture, dx, dy);
+  }
+
+  private dispatchTranslation(gesture: SelectGesture, dx: number, dy: number): void {
     const gestureKind: TranslateGesture = gesture.moveSent ? 'continue' : 'begin';
     gesture.moveSent = true;
     this.moving.set(true);
@@ -394,6 +472,89 @@ export class Viewport {
       dy,
       gesture: gestureKind,
     });
+  }
+
+  private editLocalDelta(drag: DirectDrag, event: PointerEvent, object: VectorObject): Vec2 | null {
+    if (this.snapMode() === 'off' || drag.hit?.kind !== 'anchor' || !drag.canMove) {
+      return null;
+    }
+    if (!this.editSnapSources) {
+      this.editSnapSources = anchorSnapSources(
+        object,
+        this.session.selectedAnchorIds(),
+        drag.hit.anchorId,
+      );
+    }
+    const sources = this.editSnapSources;
+    if (sources.length === 0) {
+      return null;
+    }
+    const zoom = this.session.viewport().zoom || 1;
+    const rawDelta = {
+      x: (event.clientX - drag.originX) / zoom,
+      y: (event.clientY - drag.originY) / zoom,
+    };
+    const applied = this.snappedDelta(rawDelta, sources, new Set([object.id]), object.layerId);
+    const position = anchorById(object, drag.hit.anchorId);
+    if (!position) {
+      return null;
+    }
+    const current = localToDocument(object.transform, position);
+    const primary = sources[0];
+    return documentDeltaToLocal(
+      object.transform,
+      primary.start.x + applied.x - current.x,
+      primary.start.y + applied.y - current.y,
+    );
+  }
+
+  private snappedHandlePoint(drag: DirectDrag, object: VectorObject, localPoint: Vec2): Vec2 {
+    if (this.snapMode() === 'off' || drag.hit?.kind !== 'handle') {
+      return localPoint;
+    }
+    const snapped = this.snapAbsolute(
+      localToDocument(object.transform, localPoint),
+      new Set([object.id]),
+      object.layerId,
+    );
+    return documentToLocal(object.transform, snapped) ?? localPoint;
+  }
+
+  private snappedDelta(
+    rawDelta: Vec2,
+    sources: readonly SnapSource[],
+    excludeIds: ReadonlySet<string>,
+    layerId: string,
+  ): Vec2 {
+    const mode = this.snapMode();
+    const document = this.session.document();
+    if (!document || mode === 'off') {
+      return rawDelta;
+    }
+    const targets =
+      mode === 'object' || mode === 'layer'
+        ? collectSnapTargets(document, mode, excludeIds, layerId)
+        : [];
+    const zoom = this.session.viewport().zoom || 1;
+    return snapTranslation(rawDelta, sources, mode, targets, SNAP_THRESHOLD_PX / zoom);
+  }
+
+  private snapAbsolute(point: Vec2, excludeIds: ReadonlySet<string>, layerId: string): Vec2 {
+    const mode = this.snapMode();
+    const step = gridStep(mode);
+    if (step !== null) {
+      return snapToGrid(point, step);
+    }
+    const document = this.session.document();
+    if (!document || (mode !== 'object' && mode !== 'layer')) {
+      return point;
+    }
+    const zoom = this.session.viewport().zoom || 1;
+    return snapToPoints(
+      point,
+      collectSnapTargets(document, mode, excludeIds, layerId),
+      SNAP_THRESHOLD_PX / zoom,
+    );
   }
 
   private finishSelect(event: PointerEvent): void {
@@ -431,6 +592,7 @@ export class Viewport {
   }
 
   private beginDirect(event: PointerEvent): void {
+    this.editSnapSources = null;
     if (this.session.mode() !== 'edit') {
       return;
     }
@@ -468,15 +630,17 @@ export class Viewport {
     if (!drag || !object) {
       return;
     }
-    const localPoint = documentToLocal(object.transform, this.pointerToDocument(event));
-    if (!localPoint) {
+    const pointer = documentToLocal(object.transform, this.pointerToDocument(event));
+    if (!pointer) {
       return;
     }
+    const localPoint = this.snappedHandlePoint(drag, object, pointer);
     const commands = updateDirectDrag(drag, {
       clientX: event.clientX,
       clientY: event.clientY,
       altKey: event.altKey,
       localPoint,
+      localDelta: this.editLocalDelta(drag, event, object),
       zoom: this.session.viewport().zoom,
       transform: object.transform,
       selectedAnchorIds: this.session.selectedAnchorIds(),
@@ -498,6 +662,7 @@ export class Viewport {
   private finishDirect(event: PointerEvent): void {
     const drag = this.direct;
     this.direct = null;
+    this.editSnapSources = null;
     this.moving.set(false);
     const rect =
       drag?.mode === 'marquee' ? this.marqueeRect(drag.originX, drag.originY, event) : null;

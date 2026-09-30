@@ -1,0 +1,47 @@
+<button
+  type="button"
+  class="snap-magnet"
+  [attr.aria-pressed]="enabled()"
+  [attr.data-snap-mode]="mode()"
+  aria-label="Toggle snapping"
+  title="Snapping"
+  (click)="toggle()"
+>
+  <svg class="snap-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+    <path
+      fill="currentColor"
+      d="M4 2.2h2.2v5.15a1.8 1.8 0 0 0 3.6 0V2.2H12v5.15a4 4 0 0 1-8 0V2.2z"
+    />
+    <path fill="#e5484d" d="M4 2.2h2.2V4.5H4z" />
+    <path fill="#f4f4f4" d="M9.8 2.2H12V4.5H9.8z" />
+  </svg>
+</button>
+<button
+  type="button"
+  class="snap-element"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="menuOpen()"
+  [attr.aria-label]="'Snap mode, ' + label()"
+  (click)="toggleMenu()"
+>
+  <span>{{ label() }}</span>
+  <svg class="snap-caret" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+    <path fill="currentColor" d="M0 0h10L5 6z" />
+  </svg>
+</button>
+@if (menuOpen()) {
+  <div class="snap-menu" role="menu" aria-label="Snap mode">
+    @for (option of modes; track option.id) {
+      <button
+        type="button"
+        role="menuitemradio"
+        [attr.data-snap-choice]="option.id"
+        [attr.aria-checked]="mode() === option.id"
+        (click)="choose(option.id)"
+      >
+        <span>{{ option.label }}</span>
+        <span class="snap-hint">{{ option.hint }}</span>
+      </button>
+    }
+  </div>
+}
