@@ -524,6 +524,31 @@ describe('CommandBus', () => {
     expect(session.history().entries.at(-1)?.label).toBe('Reorder layer');
   });
 
+  it('deletes a layer with its objects and leaves a locked layer in place', () => {
+    bus.dispatch({ type: 'document.new' });
+    const backId = session.document()!.layers[0].id;
+    const childId = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [childId], op: 'replace' });
+
+    bus.dispatch({ type: 'layer.add' });
+    const frontId = session.selectedLayerId()!;
+    bus.dispatch({ type: 'path.add', layerId: frontId });
+    const keptId = session.document()!.objects.at(-1)!.id;
+
+    bus.dispatch({ type: 'layer.delete', id: backId });
+    expect(session.document()!.layers.map((layer) => layer.id)).toEqual([frontId]);
+    expect(session.document()!.objects.map((object) => object.id)).toEqual([keptId]);
+    expect(session.selectedObjectIds()).toEqual([keptId]);
+    expect(session.selectedLayerId()).toBe(frontId);
+    expect(session.history().entries.at(-1)?.label).toBe('Delete layer');
+
+    bus.dispatch({ type: 'layer.update', id: frontId, locked: true });
+    const recorded = session.history().entries.length;
+    bus.dispatch({ type: 'layer.delete', id: frontId });
+    expect(session.document()!.layers).toHaveLength(1);
+    expect(session.history().entries).toHaveLength(recorded);
+  });
+
   it('adds a path on the selected layer and draws the pen there', () => {
     bus.dispatch({ type: 'document.new' });
     const backId = session.document()!.layers[0].id;

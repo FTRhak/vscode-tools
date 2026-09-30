@@ -84,6 +84,16 @@ export class OutlinerPanel {
     return deletableObjectIds(document, this.session.selectedObjectIds()).length > 0;
   });
 
+  protected readonly canDeleteLayer = computed(() => {
+    const document = this.session.document();
+    const layerId = this.session.selectedLayerId();
+    if (!document || !layerId) {
+      return false;
+    }
+    const layer = document.layers.find((item) => item.id === layerId);
+    return layer !== undefined && !layer.locked;
+  });
+
   protected readonly canAddPath = computed(() => {
     const document = this.session.document();
     const layerId = this.session.selectedLayerId();
@@ -117,6 +127,14 @@ export class OutlinerPanel {
       return;
     }
     this.bus.dispatch({ type: 'object.delete', ids });
+  }
+
+  protected deleteSelectedLayer(): void {
+    const layerId = this.session.selectedLayerId();
+    if (!layerId || !this.canDeleteLayer()) {
+      return;
+    }
+    this.bus.dispatch({ type: 'layer.delete', id: layerId });
   }
 
   protected addPath(): void {

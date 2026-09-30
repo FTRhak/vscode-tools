@@ -19,6 +19,30 @@ export function deletableObjectIds(document: Document, ids: readonly string[]): 
   return result;
 }
 
+export function deleteLayer(
+  document: Document,
+  layerId: string,
+): { readonly document: Document; readonly removedIds: readonly string[] } | null {
+  const layer = document.layers.find((item) => item.id === layerId);
+  if (!layer || layer.locked) {
+    return null;
+  }
+  const removedIds = document.objects
+    .filter((object) => object.layerId === layerId)
+    .map((object) => object.id);
+  const removed = new Set(removedIds);
+  return {
+    document: {
+      ...document,
+      layers: document.layers.filter((item) => item.id !== layerId),
+      objects: document.objects
+        .filter((object) => !removed.has(object.id))
+        .map((object) => withoutDeletedOperands(object, removed)),
+    },
+    removedIds,
+  };
+}
+
 export function deleteObjects(
   document: Document,
   ids: readonly string[],

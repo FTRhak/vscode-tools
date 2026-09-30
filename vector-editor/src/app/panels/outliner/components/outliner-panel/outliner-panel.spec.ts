@@ -164,6 +164,46 @@ describe('OutlinerPanel', () => {
     expect(deleteButton().disabled).toBe(true);
   });
 
+  it('deletes the selected layer and every object on it', async () => {
+    bus.dispatch({ type: 'document.new' });
+    await fixture.whenStable();
+    const firstId = session.document()!.layers[0].id;
+    const childId = session.document()!.objects[0].id;
+
+    bus.dispatch({ type: 'layer.add' });
+    await fixture.whenStable();
+    const secondId = session.selectedLayerId();
+    bus.dispatch({ type: 'path.add', layerId: secondId! });
+    await fixture.whenStable();
+    const keptId = session.document()!.objects.at(-1)!.id;
+
+    objectRow('Path').click();
+    layerRow(firstId).click();
+    await fixture.whenStable();
+    expect(session.selectedObjectIds()).toEqual([childId]);
+    expect(deleteLayerButton().disabled).toBe(false);
+
+    deleteLayerButton().click();
+    await fixture.whenStable();
+
+    expect(session.document()!.layers.map((layer) => layer.id)).toEqual([secondId]);
+    expect(session.document()!.objects.map((object) => object.id)).toEqual([keptId]);
+    expect(session.selectedObjectIds()).toEqual([]);
+    expect(session.selectedLayerId()).toBe(secondId);
+  });
+
+  it('does not delete a locked layer', async () => {
+    bus.dispatch({ type: 'document.new' });
+    await fixture.whenStable();
+    const layerId = session.document()!.layers[0].id;
+    bus.dispatch({ type: 'layer.update', id: layerId, locked: true });
+    await fixture.whenStable();
+
+    expect(deleteLayerButton().disabled).toBe(true);
+    expect(session.document()!.layers).toHaveLength(1);
+    expect(session.document()!.objects).toHaveLength(1);
+  });
+
   it('hides an object from its eye without selecting the row', async () => {
     bus.dispatch({ type: 'document.new' });
     await fixture.whenStable();
@@ -232,6 +272,14 @@ describe('OutlinerPanel', () => {
     const button = fixture.nativeElement.querySelector('.delete-object');
     if (!(button instanceof HTMLButtonElement)) {
       throw new Error('Delete button is missing');
+    }
+    return button;
+  }
+
+  function deleteLayerButton(): HTMLButtonElement {
+    const button = fixture.nativeElement.querySelector('.delete-layer');
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error('Delete layer button is missing');
     }
     return button;
   }

@@ -20,7 +20,7 @@ import {
   setObjectStyle,
   updateLayer,
 } from './model/document-edits';
-import { deleteObjects } from './model/delete-objects';
+import { deleteLayer, deleteObjects } from './model/delete-objects';
 import { duplicateObjects } from './model/duplicate-objects';
 import {
   deleteAnchors,
@@ -163,6 +163,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyDocument(state, (document) => updateLayer(document, command.id, command));
     case 'layer.reorder':
       return applyDocument(state, (document) => reorderLayer(document, command.id, command.index));
+    case 'layer.delete':
+      return applyDeleteLayer(state, command);
     case 'pen.begin':
       return applyPenBegin(state, command);
     case 'pen.addPoint':
@@ -718,13 +720,35 @@ function applyDelete(
   if (!result) {
     return state;
   }
-  const removed = new Set(result.removedIds);
+  return withoutRemovedObjects(state, result.document, result.removedIds);
+}
+
+function applyDeleteLayer(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'layer.delete' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const result = deleteLayer(state.document, command.id);
+  if (!result) {
+    return state;
+  }
+  return withoutRemovedObjects(state, result.document, result.removedIds);
+}
+
+function withoutRemovedObjects(
+  state: SessionSlice,
+  document: Document,
+  removedIds: readonly string[],
+): SessionSlice {
+  const removed = new Set(removedIds);
   const selectedObjectIds = state.selection.selectedObjectIds.filter((id) => !removed.has(id));
   const activeKept =
     state.selection.activeObjectId !== null && !removed.has(state.selection.activeObjectId);
   return {
     ...state,
-    document: result.document,
+    document,
     penObjectId:
       state.penObjectId !== null && !removed.has(state.penObjectId) ? state.penObjectId : null,
     selection: {

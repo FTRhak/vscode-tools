@@ -1,5 +1,5 @@
 import { Document, Modifier, VectorObject } from '@vector-editor/core';
-import { deleteObjects } from './delete-objects';
+import { deleteLayer, deleteObjects } from './delete-objects';
 
 describe('deleteObjects', () => {
   it('removes unlocked objects and a boolean that used one as an operand', () => {
@@ -39,6 +39,43 @@ describe('deleteObjects', () => {
 
     expect(deleteObjects(document, [locked.id, onLockedLayer.id])).toBeNull();
     expect(deleteObjects(doc([object('path')]), [])).toBeNull();
+  });
+});
+
+describe('deleteLayer', () => {
+  it('removes the layer, including locked children, and booleans that used them', () => {
+    const child = { ...object('child'), locked: true };
+    const other = object('other', [
+      {
+        id: 'bool',
+        type: 'boolean',
+        operation: 'difference',
+        operandId: child.id,
+        enabled: true,
+      },
+    ]);
+    const document: Document = {
+      ...doc([child]),
+      layers: [
+        { id: 'layer', name: 'Layer', visible: true, locked: false, order: 0 },
+        { id: 'front', name: 'Front', visible: true, locked: false, order: 1 },
+      ],
+      objects: [child, { ...other, layerId: 'front' }],
+    };
+
+    const result = deleteLayer(document, 'layer');
+
+    expect(result?.removedIds).toEqual([child.id]);
+    expect(result?.document.layers.map((layer) => layer.id)).toEqual(['front']);
+    expect(result?.document.objects.map((item) => item.id)).toEqual([other.id]);
+    expect(result?.document.objects[0]?.modifiers).toEqual([]);
+    expect(result?.document.objects[0]).toEqual({ ...other, layerId: 'front', modifiers: [] });
+  });
+
+  it('leaves a locked or missing layer in place', () => {
+    const document = doc([object('path')], true);
+    expect(deleteLayer(document, 'layer')).toBeNull();
+    expect(deleteLayer(doc([object('path')]), 'missing')).toBeNull();
   });
 });
 

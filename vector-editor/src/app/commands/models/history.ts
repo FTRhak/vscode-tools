@@ -99,6 +99,8 @@ export function historyLabel(command: Command): string | null {
       return null;
     case 'layer.reorder':
       return 'Reorder layer';
+    case 'layer.delete':
+      return 'Delete layer';
     case 'path.add':
       return 'Add path';
     case 'pen.begin':

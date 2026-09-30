@@ -15,7 +15,7 @@ export {
   setObjectStyle,
   updateLayer,
 } from './document-edits';
-export { deleteObjects, deletableObjectIds } from './delete-objects';
+export { deleteLayer, deleteObjects, deletableObjectIds } from './delete-objects';
 export { duplicateObjects, DUPLICATE_OFFSET } from './duplicate-objects';
 export { deleteAnchors, setAnchorHandle, setAnchorPosition, translateAnchors } from './edit-path';
 export {

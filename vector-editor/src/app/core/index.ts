@@ -9,6 +9,7 @@ export {
   defaultDocumentWidth,
   DUPLICATE_OFFSET,
   deleteAnchors,
+  deleteLayer,
   deleteObjects,
   deletableObjectIds,
   duplicateObjects,

@@ -116,6 +116,7 @@ export type Command =
       readonly locked?: boolean;
     }
   | { readonly type: 'layer.reorder'; readonly id: string; readonly index: number }
+  | { readonly type: 'layer.delete'; readonly id: string }
   | { readonly type: 'path.add'; readonly layerId: string }
   | { readonly type: 'pen.begin'; readonly position: Vec2 }
   | { readonly type: 'pen.addPoint'; readonly objectId: string; readonly position: Vec2 }

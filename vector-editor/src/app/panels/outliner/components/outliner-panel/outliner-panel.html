@@ -23,6 +23,16 @@
       >
         <i class="icon" aria-hidden="true">&#xe0e7;</i>
       </button>
+      <button
+        type="button"
+        class="chrome-button button-small button-icon delete-layer"
+        title="Delete layer"
+        aria-label="Delete layer"
+        [disabled]="!canDeleteLayer()"
+        (click)="deleteSelectedLayer()"
+      >
+        <i class="icon" aria-hidden="true">&#xe0e7;</i>
+      </button>
     </div>
     <div class="tree" role="tree" aria-label="Layers" (keydown)="onTreeKeydown($event)">
       @for (layer of layers(); track layer.id) {
