@@ -1,14 +1,11 @@
 import { Component, computed, ElementRef, inject, signal } from '@angular/core';
-import { layersFrontToBack, objectsOnLayer, SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
-import { SharedModule } from '@vector-editor/shared';
+import { layersFrontToBack, objectsOnLayer, SessionService } from '@vector-editor/core';
 import { OutlinerLayer, OutlinerObject, TreeRow } from '../../models';
-import { OutlinerLayerRow } from '../outliner-layer-row/outliner-layer-row';
-import { OutlinerObjectRow } from '../outliner-object-row/outliner-object-row';
 
 @Component({
   selector: 'app-outliner-panel',
-  imports: [SharedModule, OutlinerLayerRow, OutlinerObjectRow],
+  standalone: false,
   templateUrl: './outliner-panel.html',
   styleUrl: './outliner-panel.scss',
 })

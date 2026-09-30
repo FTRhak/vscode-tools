@@ -55,9 +55,18 @@
   font: inherit;
   font-size: 0.85rem;
   padding: 0.1rem 0.25rem;
+  cursor: text;
+
 }
 
-.layer-name:focus {
+span.layer-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+input.layer-name:focus {
   border-color: var(--line);
   background: #1f1f1f;
 }

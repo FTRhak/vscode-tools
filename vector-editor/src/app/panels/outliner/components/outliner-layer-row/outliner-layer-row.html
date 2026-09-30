@@ -40,17 +40,23 @@
     }
   </span>
 </button>
-<input
-  class="layer-name"
-  type="text"
-  autocomplete="off"
-  spellcheck="false"
-  [value]="layer().name"
-  [attr.aria-label]="'Rename ' + layer().name"
-  (keydown)="$event.stopPropagation()"
-  (blur)="rename($event)"
-  (keydown.enter)="rename($event)"
-/>
+@if (editing()) {
+  <input
+    #nameInput
+    class="layer-name"
+    type="text"
+    autocomplete="off"
+    spellcheck="false"
+    [value]="layer().name"
+    [attr.aria-label]="'Rename ' + layer().name"
+    (keydown)="$event.stopPropagation()"
+    (blur)="finishRename($event)"
+    (keydown.enter)="finishRename($event)"
+    (keydown.escape)="cancelRename($event)"
+  />
+} @else {
+  <span class="layer-name" (dblclick)="startRename($event)">{{ layer().name }}</span>
+}
 <button
   type="button"
   class="icon-button"

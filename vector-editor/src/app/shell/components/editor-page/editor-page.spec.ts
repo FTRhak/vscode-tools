@@ -73,17 +73,50 @@ describe('EditorPage', () => {
   }
 
   function paintedPath(root: ParentNode): Element | null {
+    const surface =
+      root instanceof Element && root.matches('[data-viewport]')
+        ? root.querySelector(':scope > svg')
+        : root;
+    if (!surface) {
+      return null;
+    }
     return (
-      [...root.querySelectorAll('path')].find(
+      [...surface.querySelectorAll('path')].find(
         (item) => item.getAttribute('fill') !== 'none' || item.getAttribute('stroke') !== 'none',
       ) ?? null
     );
   }
 
-  function layerNames(): HTMLInputElement[] {
+  function layerNameLabels(): HTMLElement[] {
     return [...fixture.nativeElement.querySelectorAll('.layer-name')].filter(
-      (input): input is HTMLInputElement => input instanceof HTMLInputElement,
+      (element): element is HTMLElement => element instanceof HTMLElement,
     );
+  }
+
+  function layerNameText(): string[] {
+    return layerNameLabels().map((element) =>
+      element instanceof HTMLInputElement ? element.value : (element.textContent?.trim() ?? ''),
+    );
+  }
+
+  function openPanel(name: string): void {
+    const header = fixture.nativeElement.querySelector(
+      `.${name}-accordion-item .panel-accordion-header`,
+    );
+    if (!(header instanceof HTMLButtonElement)) {
+      throw new Error(`${name} header is missing`);
+    }
+    if (header.getAttribute('aria-expanded') !== 'true') {
+      header.click();
+    }
+  }
+
+  function buttonByTitle(title: string): HTMLButtonElement {
+    const button = fixture.nativeElement.querySelector(`[title="${title}"]`);
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error(`${title} button is missing`);
+    }
+    return button;
   }
 
   function buttonByLabel(label: string): HTMLButtonElement {
@@ -296,21 +329,29 @@ describe('EditorPage', () => {
 
   it('adds, renames, and reorders a layer, then hides the object', async () => {
     await createDocument();
-
-    buttonByText('Add layer').click();
+    openPanel('outliner');
     await fixture.whenStable();
-    const names = layerNames();
-    expect(names[0]?.value).toBe('Layer 2');
 
-    names[0].value = 'Ink';
-    names[0].dispatchEvent(new Event('blur', { bubbles: true }));
+    buttonByTitle('Add layer').click();
     await fixture.whenStable();
-    expect(layerNames()[0]?.value).toBe('Ink');
+    expect(layerNameText()[0]).toBe('Layer 2');
+
+    layerNameLabels()[0]?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    await fixture.whenStable();
+    const input = layerNameLabels()[0];
+    if (!(input instanceof HTMLInputElement)) {
+      throw new Error('Layer name input is missing');
+    }
+    input.value = 'Ink';
+    input.dispatchEvent(new Event('blur', { bubbles: true }));
+    await fixture.whenStable();
+    expect(layerNameText()[0]).toBe('Ink');
 
     buttonByLabel('Move Ink backward').click();
     await fixture.whenStable();
-    expect(layerNames().map((input) => input.value)).toEqual(['Layer', 'Ink']);
+    expect(layerNameText()).toEqual(['Layer', 'Ink']);
 
+    openPanel('preview');
     buttonByLabel('Hide Path').click();
     await fixture.whenStable();
     expect(paintedPath(canvas())).toBeNull();

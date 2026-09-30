@@ -3,6 +3,7 @@ import { OutlinerObject } from '../../models';
 
 @Component({
   selector: 'app-outliner-object-row',
+  standalone: false,
   host: {
     class: 'tree-row object-row',
     role: 'treeitem',

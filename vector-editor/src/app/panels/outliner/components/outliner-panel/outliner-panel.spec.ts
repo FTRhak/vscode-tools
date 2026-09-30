@@ -165,9 +165,16 @@ describe('OutlinerPanel', () => {
   it('leaves the tree focus in place when an arrow is pressed in the layer name', async () => {
     bus.dispatch({ type: 'document.new' });
     await fixture.whenStable();
+    const name = fixture.nativeElement.querySelector('.layer-name');
+    if (!(name instanceof HTMLElement)) {
+      throw new Error('Layer name is missing');
+    }
+
+    name.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    await fixture.whenStable();
     const input = fixture.nativeElement.querySelector('.layer-name');
     if (!(input instanceof HTMLInputElement)) {
-      throw new Error('Layer name is missing');
+      throw new Error('Layer name input is missing');
     }
 
     input.dispatchEvent(

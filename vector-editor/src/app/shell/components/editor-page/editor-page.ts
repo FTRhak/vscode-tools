@@ -4,7 +4,7 @@ import { PanelColorModule } from '@vector-editor/panels/color';
 import { HistoryPanel } from '@vector-editor/panels/history';
 import { PanelModifiersModule } from '@vector-editor/panels/modifiers';
 import { PanelOptionsModule } from '@vector-editor/panels/options';
-import { OutlinerPanel } from '@vector-editor/panels/outliner';
+import { OutlinerModule } from '@vector-editor/panels/outliner';
 import { PanelPreviewModule } from '@vector-editor/panels/preview';
 import { SwatchesPanel } from '@vector-editor/panels/swatches';
 import { ToolsPanel } from '@vector-editor/panels/tools';
@@ -22,7 +22,7 @@ import { TopBar } from '../top-bar/top-bar';
     NewDocumentDialog,
     SaveDialog,
     Viewport,
-    OutlinerPanel,
+    OutlinerModule,
     PanelOptionsModule,
     PanelModifiersModule,
     ToolsPanel,
