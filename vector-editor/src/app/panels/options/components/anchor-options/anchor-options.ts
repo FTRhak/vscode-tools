@@ -31,6 +31,8 @@ export class AnchorOptions {
 
   protected readonly showAnchorDelta = computed(() => this.selectedAnchors().length > 1);
 
+  protected readonly selectedPointType = computed(() => pointTypeLabel(this.selectedAnchors()));
+
   private readonly anchorDraftSource = computed(() => draftFromAnchors(this.selectedAnchors()), {
     equal: sameAnchorDraft,
   });
@@ -200,6 +202,62 @@ function sharedAnchor<T>(items: readonly Anchor[], read: (anchor: Anchor) => T |
     return null;
   }
   return value;
+}
+
+type PointType = 'corner' | 'smooth' | 'symmetric' | 'line';
+
+const POINT_TYPE_LABEL: Record<PointType, string> = {
+  corner: 'Corner',
+  smooth: 'Smooth',
+  symmetric: 'Symmetric',
+  line: 'Line',
+};
+
+const COLLINEAR_TOLERANCE = 0.02;
+
+function pointTypeLabel(anchors: readonly Anchor[]): string {
+  const first = anchors[0];
+  if (!first) {
+    return '';
+  }
+
+  const type = pointTypeOf(first);
+  const label = POINT_TYPE_LABEL[type];
+  return anchors.every((anchor) => pointTypeOf(anchor) === type) ? label : 'Mixed';
+}
+
+function pointTypeOf(anchor: Anchor): PointType {
+  const inward = handleOffset(anchor.position, anchor.handleIn);
+  const outward = handleOffset(anchor.position, anchor.handleOut);
+  if (!inward && !outward) {
+    return 'line';
+  }
+  if (!inward || !outward) {
+    return 'corner';
+  }
+  const inLength = Math.hypot(inward.x, inward.y);
+  const outLength = Math.hypot(outward.x, outward.y);
+  const scale = inLength * outLength;
+  const cross = inward.x * outward.y - inward.y * outward.x;
+  const dot = inward.x * outward.x + inward.y * outward.y;
+  if (Math.abs(cross) > COLLINEAR_TOLERANCE * scale || dot >= 0) {
+    return 'corner';
+  }
+  const longest = Math.max(inLength, outLength);
+  const delta = Math.abs(inLength - outLength);
+  return delta <= Math.max(0.01, 0.01 * longest) ? 'symmetric' : 'smooth';
+}
+
+function handleOffset(
+  position: Anchor['position'],
+  handle: Anchor['handleIn'],
+): Anchor['position'] | null {
+  if (!handle) {
+    return null;
+  }
+  const x = handle.x - position.x;
+  const y = handle.y - position.y;
+  return Math.hypot(x, y) <= 1e-6 ? null : { x, y };
 }
 
 function sharedHandle(handles: readonly Anchor['handleIn'][], key: HandleKey): number | null {

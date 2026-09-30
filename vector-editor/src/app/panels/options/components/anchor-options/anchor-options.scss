@@ -2,6 +2,15 @@
   display: block;
 }
 
+.point-info {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.85rem;
+}
+
 .options-form {
   display: grid;
   gap: 0.45rem;

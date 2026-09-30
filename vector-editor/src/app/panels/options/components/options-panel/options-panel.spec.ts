@@ -163,6 +163,19 @@ describe('OptionsPanel', () => {
     expect(apply.disabled).toBe(true);
   });
 
+  it('prints the type of the selected path point', async () => {
+    bus.dispatch({ type: 'document.new' });
+    const object = session.document()!.objects[0];
+    const anchor = object.source.subpaths[0].anchors[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.select', target: 'anchor', ids: [anchor.id], op: 'replace' });
+    await fixture.whenStable();
+
+    expect(text()).toContain('Type');
+    expect(text()).toContain('Corner');
+  });
+
   it('writes an anchor coordinate and moves its handles with it', async () => {
     bus.dispatch({ type: 'document.new' });
     const object = session.document()!.objects[0];
