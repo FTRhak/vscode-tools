@@ -1,6 +1,11 @@
 import { Component, computed, ElementRef, inject, signal } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { layersFrontToBack, objectsOnLayer, SessionService } from '@vector-editor/core';
+import {
+  deletableObjectIds,
+  layersFrontToBack,
+  objectsOnLayer,
+  SessionService,
+} from '@vector-editor/core';
 import { OutlinerLayer, OutlinerObject, TreeRow } from '../../models';
 
 @Component({
@@ -71,6 +76,14 @@ export class OutlinerPanel {
     return rows;
   });
 
+  protected readonly canDelete = computed(() => {
+    const document = this.session.document();
+    if (!document) {
+      return false;
+    }
+    return deletableObjectIds(document, this.session.selectedObjectIds()).length > 0;
+  });
+
   protected readonly canAddPath = computed(() => {
     const document = this.session.document();
     const layerId = this.session.selectedLayerId();
@@ -92,6 +105,18 @@ export class OutlinerPanel {
 
   protected addLayer(): void {
     this.bus.dispatch({ type: 'layer.add' });
+  }
+
+  protected deleteSelected(): void {
+    const document = this.session.document();
+    if (!document) {
+      return;
+    }
+    const ids = deletableObjectIds(document, this.session.selectedObjectIds());
+    if (ids.length === 0) {
+      return;
+    }
+    this.bus.dispatch({ type: 'object.delete', ids });
   }
 
   protected addPath(): void {

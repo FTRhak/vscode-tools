@@ -57,6 +57,8 @@ export function historyLabel(command: Command): string | null {
       return 'Apply transform';
     case 'object.duplicate':
       return 'Duplicate';
+    case 'object.delete':
+      return 'Delete';
     case 'object.setFlags':
       if (command.name !== undefined) {
         return 'Rename';

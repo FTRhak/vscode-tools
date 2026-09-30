@@ -20,6 +20,7 @@ import {
   setObjectStyle,
   updateLayer,
 } from './model/document-edits';
+import { deleteObjects } from './model/delete-objects';
 import { duplicateObjects } from './model/duplicate-objects';
 import {
   deleteAnchors,
@@ -138,6 +139,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyFlags(state, command);
     case 'object.duplicate':
       return applyDuplicate(state, command);
+    case 'object.delete':
+      return applyDelete(state, command);
     case 'style.set':
       return applyDocument(state, (document) =>
         setObjectStyle(document, command.objectIds, {
@@ -700,6 +703,38 @@ function applyDuplicate(
       selectedObjectIds: result.newIds,
       selectedAnchorIds: [],
       selectedSegmentIds: [],
+    },
+  };
+}
+
+function applyDelete(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'object.delete' }>,
+): SessionSlice {
+  if (!state.document || command.ids.length === 0) {
+    return state;
+  }
+  const result = deleteObjects(state.document, command.ids);
+  if (!result) {
+    return state;
+  }
+  const removed = new Set(result.removedIds);
+  const selectedObjectIds = state.selection.selectedObjectIds.filter((id) => !removed.has(id));
+  const activeKept =
+    state.selection.activeObjectId !== null && !removed.has(state.selection.activeObjectId);
+  return {
+    ...state,
+    document: result.document,
+    penObjectId:
+      state.penObjectId !== null && !removed.has(state.penObjectId) ? state.penObjectId : null,
+    selection: {
+      ...state.selection,
+      activeObjectId: activeKept
+        ? state.selection.activeObjectId
+        : (selectedObjectIds.at(-1) ?? null),
+      selectedObjectIds,
+      selectedAnchorIds: activeKept ? state.selection.selectedAnchorIds : [],
+      selectedSegmentIds: activeKept ? state.selection.selectedSegmentIds : [],
     },
   };
 }

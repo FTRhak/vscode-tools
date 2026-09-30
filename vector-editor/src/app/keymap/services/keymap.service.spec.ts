@@ -197,6 +197,38 @@ describe('KeymapService', () => {
     expect(onRadio.defaultPrevented).toBe(true);
   });
 
+  it('deletes the selected path when Delete is pressed on the viewport', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'object.duplicate', ids: [id] });
+    const copyId = session.selectedObjectIds()[0];
+    const viewport = document.createElement('div');
+    viewport.setAttribute('data-viewport', '');
+    document.body.append(viewport);
+
+    const deleted = key('Delete');
+    viewport.dispatchEvent(deleted);
+    expect(deleted.defaultPrevented).toBe(true);
+    expect(session.document()!.objects.map((object) => object.id)).toEqual([id]);
+    expect(session.selectedObjectIds()).toEqual([]);
+    expect(copyId).not.toBe(id);
+
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [id], op: 'replace' });
+    const away = key('Delete');
+    document.dispatchEvent(away);
+    expect(away.defaultPrevented).toBe(false);
+    expect(session.document()!.objects).toHaveLength(1);
+
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    const anchorId = session.document()!.objects[0].source.subpaths[0].anchors[0].id;
+    bus.dispatch({ type: 'session.select', target: 'anchor', ids: [anchorId], op: 'replace' });
+    viewport.dispatchEvent(key('Delete'));
+    expect(session.document()!.objects).toHaveLength(1);
+    expect(session.document()!.objects[0].source.subpaths[0].anchors).toHaveLength(3);
+
+    viewport.remove();
+  });
+
   it('does not duplicate when nothing is selected', () => {
     bus.dispatch({ type: 'document.new' });
 

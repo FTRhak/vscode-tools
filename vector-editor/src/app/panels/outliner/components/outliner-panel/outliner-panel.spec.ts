@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
+import { OutlinerModule } from '../../outliner.module';
 import { OutlinerPanel } from './outliner-panel';
 
 describe('OutlinerPanel', () => {
@@ -10,7 +11,7 @@ describe('OutlinerPanel', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OutlinerPanel],
+      imports: [OutlinerModule],
     }).compileComponents();
     fixture = TestBed.createComponent(OutlinerPanel);
     session = TestBed.inject(SessionService);
@@ -146,6 +147,23 @@ describe('OutlinerPanel', () => {
     expect(layerItem(firstId).getAttribute('aria-selected')).toBe('true');
   });
 
+  it('deletes the selected path from the button', async () => {
+    bus.dispatch({ type: 'document.new' });
+    await fixture.whenStable();
+    expect(deleteButton().disabled).toBe(true);
+
+    objectRow('Path').click();
+    await fixture.whenStable();
+    expect(deleteButton().disabled).toBe(false);
+
+    deleteButton().click();
+    await fixture.whenStable();
+
+    expect(session.document()!.objects).toHaveLength(0);
+    expect(session.selectedObjectIds()).toEqual([]);
+    expect(deleteButton().disabled).toBe(true);
+  });
+
   it('hides an object from its eye without selecting the row', async () => {
     bus.dispatch({ type: 'document.new' });
     await fixture.whenStable();
@@ -208,6 +226,14 @@ describe('OutlinerPanel', () => {
       throw new Error('Layer row is missing');
     }
     return row;
+  }
+
+  function deleteButton(): HTMLButtonElement {
+    const button = fixture.nativeElement.querySelector('.delete-object');
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error('Delete button is missing');
+    }
+    return button;
   }
 
   function addPathButton(): HTMLButtonElement {

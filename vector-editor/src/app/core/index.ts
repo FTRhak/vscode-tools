@@ -9,6 +9,8 @@ export {
   defaultDocumentWidth,
   DUPLICATE_OFFSET,
   deleteAnchors,
+  deleteObjects,
+  deletableObjectIds,
   duplicateObjects,
   isInteractionLocked,
   layersFrontToBack,

@@ -92,6 +92,7 @@ export type Command =
       readonly locked?: boolean;
     }
   | { readonly type: 'object.duplicate'; readonly ids: readonly string[] }
+  | { readonly type: 'object.delete'; readonly ids: readonly string[] }
   | {
       readonly type: 'style.set';
       readonly objectIds: readonly string[];

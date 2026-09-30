@@ -13,6 +13,16 @@
       >
         Add path
       </button>
+      <button
+        type="button"
+        class="chrome-button button-small button-icon delete-object"
+        title="Delete object"
+        aria-label="Delete object"
+        [disabled]="!canDelete()"
+        (click)="deleteSelected()"
+      >
+        <i class="icon" aria-hidden="true">&#xe0e7;</i>
+      </button>
     </div>
     <div class="tree" role="tree" aria-label="Layers" (keydown)="onTreeKeydown($event)">
       @for (layer of layers(); track layer.id) {

@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { DestroyRef, inject, Service } from '@angular/core';
 import { Command, CommandBus, EditorTool, oppositeMode } from '@vector-editor/commands';
-import { SessionService } from '@vector-editor/core';
+import { deletableObjectIds, SessionService } from '@vector-editor/core';
 import { FileActions } from '../../shell/services/file-actions.service';
 
 const toolKeys: Readonly<Record<string, EditorTool>> = {
@@ -105,7 +105,7 @@ export class KeymapService {
     }
 
     if (key === 'delete' || key === 'x') {
-      return this.deleteAnchors();
+      return this.deleteSelection(event);
     }
 
     const tool = toolKeys[key];
@@ -130,6 +130,17 @@ export class KeymapService {
     };
   }
 
+  private deleteSelection(event: KeyboardEvent): Command | null {
+    const anchors = this.deleteAnchors();
+    if (anchors) {
+      return anchors;
+    }
+    if (event.key.toLowerCase() !== 'delete' || !isViewportTarget(event.target)) {
+      return null;
+    }
+    return this.deleteObjects();
+  }
+
   private deleteAnchors(): Command | null {
     if (this.session.mode() !== 'edit') {
       return null;
@@ -140,6 +151,18 @@ export class KeymapService {
       return null;
     }
     return { type: 'path.deleteAnchors', objectId, anchorIds };
+  }
+
+  private deleteObjects(): Command | null {
+    const document = this.session.document();
+    if (!document || this.session.mode() !== 'object') {
+      return null;
+    }
+    const ids = deletableObjectIds(document, this.session.selectedObjectIds());
+    if (ids.length === 0) {
+      return null;
+    }
+    return { type: 'object.delete', ids };
   }
 }
 

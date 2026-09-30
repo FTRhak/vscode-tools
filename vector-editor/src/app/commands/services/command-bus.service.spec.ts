@@ -297,6 +297,30 @@ describe('CommandBus', () => {
     expect(session.selectedObjectIds()).toEqual([original.id]);
   });
 
+  it('deletes the selected path and restores it with undo', () => {
+    bus.dispatch({ type: 'document.new' });
+    const original = session.document()!.objects[0];
+    bus.dispatch({ type: 'object.duplicate', ids: [original.id] });
+    const copyId = session.document()!.objects[1].id;
+    bus.dispatch({
+      type: 'session.select',
+      target: 'object',
+      ids: [original.id, copyId],
+      op: 'replace',
+    });
+    bus.dispatch({ type: 'object.setFlags', ids: [original.id], locked: true });
+    bus.dispatch({ type: 'object.delete', ids: [original.id, copyId] });
+
+    expect(session.document()!.objects.map((object) => object.id)).toEqual([original.id]);
+    expect(session.selectedObjectIds()).toEqual([original.id]);
+    expect(session.activeObjectId()).toBe(original.id);
+    expect(session.history().entries.at(-1)?.label).toBe('Delete');
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects.map((object) => object.id)).toEqual([original.id, copyId]);
+    expect(session.selectedObjectIds()).toEqual([original.id, copyId]);
+  });
+
   it('clears anchors on a mode change without recording history', () => {
     bus.dispatch({ type: 'document.new' });
     const object = session.document()!.objects[0];
