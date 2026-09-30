@@ -1,5 +1,6 @@
 export {
   addLayer,
+  addPath,
   addSwatch,
   applySwatch,
   createId,

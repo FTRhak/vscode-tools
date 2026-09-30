@@ -35,6 +35,7 @@ export type Command =
       readonly ids: readonly string[];
       readonly op: SelectOperation;
     }
+  | { readonly type: 'session.selectLayer'; readonly id: string }
   | {
       readonly type: 'path.translateAnchors';
       readonly objectId: string;
@@ -106,6 +107,7 @@ export type Command =
       readonly locked?: boolean;
     }
   | { readonly type: 'layer.reorder'; readonly id: string; readonly index: number }
+  | { readonly type: 'path.add'; readonly layerId: string }
   | { readonly type: 'pen.begin'; readonly position: Vec2 }
   | { readonly type: 'pen.addPoint'; readonly objectId: string; readonly position: Vec2 }
   | {

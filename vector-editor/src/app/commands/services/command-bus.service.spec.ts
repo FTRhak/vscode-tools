@@ -407,10 +407,45 @@ describe('CommandBus', () => {
     bus.dispatch({ type: 'layer.add' });
     const front = session.document()!.layers.find((layer) => layer.id !== backId);
     expect(front).toMatchObject({ name: 'Layer 2', order: 1 });
+    expect(session.selectedLayerId()).toBe(front!.id);
     bus.dispatch({ type: 'layer.reorder', id: front!.id, index: 1 });
     expect(session.document()!.layers.find((layer) => layer.id === front!.id)?.order).toBe(0);
     expect(session.document()!.layers.find((layer) => layer.id === backId)?.order).toBe(1);
     expect(session.history().entries.at(-1)?.label).toBe('Reorder layer');
+  });
+
+  it('adds a path on the selected layer and draws the pen there', () => {
+    bus.dispatch({ type: 'document.new' });
+    const backId = session.document()!.layers[0].id;
+    expect(session.selectedLayerId()).toBe(backId);
+    const recorded = session.history().entries.length;
+
+    bus.dispatch({ type: 'session.selectLayer', id: 'missing' });
+    expect(session.selectedLayerId()).toBe(backId);
+    expect(session.history().entries).toHaveLength(recorded);
+
+    bus.dispatch({ type: 'layer.add' });
+    const frontId = session.selectedLayerId();
+    expect(frontId).not.toBe(backId);
+    bus.dispatch({ type: 'session.selectLayer', id: backId });
+    expect(session.history().entries.at(-1)?.label).toBe('Add layer');
+
+    bus.dispatch({ type: 'path.add', layerId: backId });
+    const added = session.document()!.objects.at(-1);
+    expect(added).toMatchObject({ name: 'Path 2', layerId: backId });
+    expect(session.selectedObjectIds()).toEqual([added!.id]);
+    expect(session.selectedLayerId()).toBe(backId);
+    expect(session.history().entries.at(-1)?.label).toBe('Add path');
+
+    bus.dispatch({ type: 'layer.update', id: backId, locked: true });
+    const beforeLocked = session.history().entries.length;
+    bus.dispatch({ type: 'path.add', layerId: backId });
+    expect(session.document()!.objects).toHaveLength(2);
+    expect(session.history().entries).toHaveLength(beforeLocked);
+
+    bus.dispatch({ type: 'session.selectLayer', id: frontId! });
+    bus.dispatch({ type: 'pen.begin', position: { x: 8, y: 9 } });
+    expect(session.document()!.objects.at(-1)?.layerId).toBe(frontId);
   });
 
   it('does not move an object on a locked layer', () => {

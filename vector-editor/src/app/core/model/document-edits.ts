@@ -1,8 +1,32 @@
 import { createId } from './create-id';
 import { layersFrontToBack } from './paint-order';
-import { Document, Layer, Style, Swatch } from './types';
+import {
+  Anchor,
+  Document,
+  Layer,
+  ObjectTransform,
+  Segment,
+  Style,
+  Swatch,
+  VectorObject,
+} from './types';
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/;
+
+const identityTransform: ObjectTransform = {
+  x: 0,
+  y: 0,
+  rotation: 0,
+  scaleX: 1,
+  scaleY: 1,
+};
+
+const pathStyle: Style = {
+  fill: '#c5d4f0',
+  stroke: '#1a1a1a',
+  strokeWidth: 4,
+  fillRule: 'nonzero',
+};
 
 export interface StylePatch {
   readonly fill?: string | null;
@@ -154,6 +178,91 @@ export function reorderLayer(document: Document, id: string, index: number): Doc
     return { ...layer, order };
   });
   return changed ? { ...document, layers } : document;
+}
+
+export function addPath(
+  document: Document,
+  layerId: string,
+): { readonly document: Document; readonly objectId: string } | null {
+  const layer = document.layers.find((item) => item.id === layerId);
+  if (!layer || layer.locked || !layer.visible) {
+    return null;
+  }
+  const bounds = pathBounds(document);
+  if (!bounds) {
+    return null;
+  }
+  const anchors = [
+    corner(bounds.x, bounds.y),
+    corner(bounds.x + bounds.width, bounds.y),
+    corner(bounds.x + bounds.width, bounds.y + bounds.height),
+    corner(bounds.x, bounds.y + bounds.height),
+  ];
+  const objectId = createId();
+  const object: VectorObject = {
+    id: objectId,
+    name: nextSeriesName(
+      document.objects.map((item) => item.name),
+      'Path',
+    ),
+    layerId,
+    visible: true,
+    locked: false,
+    source: {
+      subpaths: [
+        {
+          closed: true,
+          anchors,
+          segments: [
+            line(anchors[0], anchors[1]),
+            line(anchors[1], anchors[2]),
+            line(anchors[2], anchors[3]),
+            line(anchors[3], anchors[0]),
+          ],
+        },
+      ],
+    },
+    style: pathStyle,
+    transform: identityTransform,
+    modifiers: [],
+  };
+  return { document: { ...document, objects: [...document.objects, object] }, objectId };
+}
+
+function pathBounds(
+  document: Document,
+): { x: number; y: number; width: number; height: number } | null {
+  const box = document.viewBox;
+  const width = Math.min(200, box.width / 2);
+  const height = Math.min(140, box.height / 2);
+  if (!(width > 0) || !(height > 0)) {
+    return null;
+  }
+  const shift = (document.objects.length % 6) * 24;
+  return {
+    x: box.x + (box.width - width) / 2 + shift,
+    y: box.y + (box.height - height) / 2 + shift,
+    width,
+    height,
+  };
+}
+
+function corner(x: number, y: number): Anchor {
+  return {
+    id: createId(),
+    position: { x, y },
+    handleIn: null,
+    handleOut: null,
+  };
+}
+
+function line(from: Anchor, to: Anchor): Segment {
+  return {
+    id: createId(),
+    kind: 'line',
+    fromId: from.id,
+    toId: to.id,
+  };
 }
 
 function nextStyle(

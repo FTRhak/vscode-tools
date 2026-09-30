@@ -7,6 +7,7 @@ export {
 export type { DocumentSize } from './create-document';
 export {
   addLayer,
+  addPath,
   addSwatch,
   applySwatch,
   nextSeriesName,

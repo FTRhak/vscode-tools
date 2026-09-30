@@ -37,11 +37,15 @@ export interface PenPoint {
   readonly anchorId: string;
 }
 
-export function beginPenObject(document: Document, position: Vec2): PenObject | null {
+export function beginPenObject(
+  document: Document,
+  position: Vec2,
+  layerId?: string,
+): PenObject | null {
   if (!finitePoint(position)) {
     return null;
   }
-  const layer = [...document.layers].sort((left, right) => left.order - right.order)[0];
+  const layer = penLayer(document, layerId);
   if (!layer || layer.locked || !layer.visible) {
     return null;
   }
@@ -160,6 +164,13 @@ export function finishPen(source: SourcePath, closed: boolean): SourcePath {
   const subpaths = source.subpaths.slice();
   subpaths[index] = next;
   return { ...source, subpaths };
+}
+
+function penLayer(document: Document, layerId: string | undefined) {
+  if (layerId !== undefined) {
+    return document.layers.find((layer) => layer.id === layerId);
+  }
+  return [...document.layers].sort((left, right) => left.order - right.order)[0];
 }
 
 function nextPathName(objects: readonly VectorObject[]): string {

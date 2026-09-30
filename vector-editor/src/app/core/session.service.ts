@@ -13,6 +13,7 @@ import { captureClipperHold, ClipperHold } from './eval/evaluate';
 import { createNewDocument } from './model/create-document';
 import {
   addLayer,
+  addPath,
   addSwatch,
   applySwatch,
   reorderLayer,
@@ -34,7 +35,7 @@ import {
   reorderModifier,
   updateModifier,
 } from './model/modifier-edits';
-import { isInteractionLocked } from './model/paint-order';
+import { isInteractionLocked, layersFrontToBack } from './model/paint-order';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
 import { Document, ObjectTransform, SourcePath, VectorObject, ViewportCamera } from './model/types';
 
@@ -46,6 +47,7 @@ export interface SessionSlice {
   readonly selection: SelectionState;
   readonly history: HistoryState;
   readonly penObjectId: string | null;
+  readonly selectedLayerId: string | null;
 }
 
 const initialSession: SessionSlice = {
@@ -56,6 +58,7 @@ const initialSession: SessionSlice = {
   selection: emptySelection,
   history: emptyHistory,
   penObjectId: null,
+  selectedLayerId: null,
 };
 
 type DocumentCommand = Exclude<
@@ -71,13 +74,16 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyTool(state, command.tool);
     case 'session.setEditSelectionKind':
       return applyEditSelectionKind(state, command.kind);
-    case 'document.new':
+    case 'document.new': {
+      const document = createNewDocument({ width: command.width, height: command.height });
       return {
         ...state,
-        document: createNewDocument({ width: command.width, height: command.height }),
+        document,
         selection: emptySelection,
         penObjectId: null,
+        selectedLayerId: defaultLayerId(document),
       };
+    }
     case 'document.replace':
       return {
         ...state,
@@ -85,6 +91,7 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
         mode: 'object',
         selection: emptySelection,
         penObjectId: null,
+        selectedLayerId: defaultLayerId(command.document),
       };
     case 'session.setViewport':
       return {
@@ -95,6 +102,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return command.target === 'anchor'
         ? applyAnchorSelect(state, command)
         : applySelect(state, command);
+    case 'session.selectLayer':
+      return applySelectLayer(state, command.id);
     case 'path.translateAnchors':
       return replaceSource(state, command.objectId, (source) =>
         translateAnchors(source, command.anchorIds, command.dx, command.dy),
@@ -138,7 +147,9 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
         applySwatch(document, command.swatchId, command.target, command.objectIds),
       );
     case 'layer.add':
-      return applyDocument(state, addLayer);
+      return applyAddLayer(state);
+    case 'path.add':
+      return applyAddPath(state, command.layerId);
     case 'layer.update':
       return applyDocument(state, (document) => updateLayer(document, command.id, command));
     case 'layer.reorder':
@@ -189,7 +200,7 @@ export function commitSession(state: SessionSlice, command: Command): SessionSli
     return jumpSession(state, command.index);
   }
 
-  const next = applySessionCommand(state, command);
+  const next = reconcileSelectedLayer(applySessionCommand(state, command));
   const label = historyLabel(command);
   if (!label) {
     return next;
@@ -227,6 +238,7 @@ export class SessionService {
     () => this.state().history.index < this.state().history.entries.length - 1,
   );
   readonly penObjectId = computed(() => this.state().penObjectId);
+  readonly selectedLayerId = computed(() => this.state().selectedLayerId);
   readonly clipperHold = this.clipperHoldState.asReadonly();
 
   apply(command: Command): void {
@@ -273,13 +285,15 @@ function undoSession(state: SessionSlice): SessionSlice {
   if (!entry || state.history.index < 0) {
     return state;
   }
-  return reconcilePen({
-    ...state,
-    document: entry.before.document,
-    mode: entry.before.mode,
-    selection: entry.before.selection,
-    history: { entries: state.history.entries, index: state.history.index - 1 },
-  });
+  return reconcileSelectedLayer(
+    reconcilePen({
+      ...state,
+      document: entry.before.document,
+      mode: entry.before.mode,
+      selection: entry.before.selection,
+      history: { entries: state.history.entries, index: state.history.index - 1 },
+    }),
+  );
 }
 
 function redoSession(state: SessionSlice): SessionSlice {
@@ -288,13 +302,15 @@ function redoSession(state: SessionSlice): SessionSlice {
   if (!entry) {
     return state;
   }
-  return reconcilePen({
-    ...state,
-    document: entry.after.document,
-    mode: entry.after.mode,
-    selection: entry.after.selection,
-    history: { entries: state.history.entries, index },
-  });
+  return reconcileSelectedLayer(
+    reconcilePen({
+      ...state,
+      document: entry.after.document,
+      mode: entry.after.mode,
+      selection: entry.after.selection,
+      history: { entries: state.history.entries, index },
+    }),
+  );
 }
 
 function jumpSession(state: SessionSlice, index: number): SessionSlice {
@@ -311,13 +327,15 @@ function jumpSession(state: SessionSlice, index: number): SessionSlice {
   if (!snapshot) {
     return state;
   }
-  return reconcilePen({
-    ...state,
-    document: snapshot.document,
-    mode: snapshot.mode,
-    selection: snapshot.selection,
-    history: { entries, index },
-  });
+  return reconcileSelectedLayer(
+    reconcilePen({
+      ...state,
+      document: snapshot.document,
+      mode: snapshot.mode,
+      selection: snapshot.selection,
+      history: { entries, index },
+    }),
+  );
 }
 
 function applyMode(state: SessionSlice, mode: SessionSlice['mode']): SessionSlice {
@@ -628,7 +646,11 @@ function applyPenBegin(
   if (!state.document) {
     return state;
   }
-  const created = beginPenObject(state.document, command.position);
+  const created = beginPenObject(
+    state.document,
+    command.position,
+    state.selectedLayerId ?? undefined,
+  );
   if (!created) {
     return state;
   }
@@ -796,6 +818,67 @@ function applyBakedModifier(
       selectedSegmentIds: [],
     },
   };
+}
+
+function applySelectLayer(state: SessionSlice, id: string): SessionSlice {
+  if (state.selectedLayerId === id) {
+    return state;
+  }
+  if (!state.document?.layers.some((layer) => layer.id === id)) {
+    return state;
+  }
+  return { ...state, selectedLayerId: id };
+}
+
+function applyAddLayer(state: SessionSlice): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const previousIds = new Set(state.document.layers.map((layer) => layer.id));
+  const document = addLayer(state.document);
+  const added = document.layers.find((layer) => !previousIds.has(layer.id));
+  if (!added) {
+    return state;
+  }
+  return { ...state, document, selectedLayerId: added.id };
+}
+
+function applyAddPath(state: SessionSlice, layerId: string): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const created = addPath(state.document, layerId);
+  if (!created) {
+    return state;
+  }
+  return {
+    ...state,
+    document: created.document,
+    selectedLayerId: layerId,
+    selection: {
+      ...state.selection,
+      activeObjectId: created.objectId,
+      selectedObjectIds: [created.objectId],
+      selectedAnchorIds: [],
+      selectedSegmentIds: [],
+    },
+  };
+}
+
+function defaultLayerId(document: Document): string | null {
+  return layersFrontToBack(document)[0]?.id ?? null;
+}
+
+function reconcileSelectedLayer(state: SessionSlice): SessionSlice {
+  const document = state.document;
+  if (!document) {
+    return state.selectedLayerId === null ? state : { ...state, selectedLayerId: null };
+  }
+  if (document.layers.some((layer) => layer.id === state.selectedLayerId)) {
+    return state;
+  }
+  const fallback = defaultLayerId(document);
+  return state.selectedLayerId === fallback ? state : { ...state, selectedLayerId: fallback };
 }
 
 function applyDocument(

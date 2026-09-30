@@ -6,6 +6,7 @@ export interface OutlinerLayer {
   readonly visible: boolean;
   readonly locked: boolean;
   readonly expanded: boolean;
+  readonly selected: boolean;
   readonly index: number;
   readonly canMoveForward: boolean;
   readonly canMoveBackward: boolean;

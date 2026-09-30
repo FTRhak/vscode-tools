@@ -1,0 +1,75 @@
+<button
+  type="button"
+  class="icon-button twist"
+  [attr.aria-label]="(layer().expanded ? 'Collapse ' : 'Expand ') + layer().name"
+  (click)="toggleExpanded($event)"
+>
+  @if (layer().expanded) {
+    <i class="icon" aria-hidden="true">&#xe0e9;</i>
+  } @else {
+    <i class="icon" aria-hidden="true">&#xe0ec;</i>
+  }
+</button>
+<button
+  type="button"
+  class="icon-button"
+  [attr.aria-label]="(layer().visible ? 'Hide ' : 'Show ') + layer().name"
+  [attr.aria-pressed]="layer().visible"
+  (click)="toggleVisibility($event)"
+>
+  <span aria-hidden="true">
+    @if (layer().visible) {
+      <i class="icon">&#xe0e0;</i>
+    } @else {
+      <i class="icon">&#xe0e1;</i>
+    }
+  </span>
+</button>
+<button
+  type="button"
+  class="icon-button"
+  [attr.aria-label]="(layer().locked ? 'Unlock ' : 'Lock ') + layer().name"
+  [attr.aria-pressed]="layer().locked"
+  (click)="toggleLock($event)"
+>
+  <span aria-hidden="true">
+    @if (layer().locked) {
+      <i class="icon">&#xe0e2;</i>
+    } @else {
+      <i class="icon">&#xe0e3;</i>
+    }
+  </span>
+</button>
+<input
+  class="layer-name"
+  type="text"
+  autocomplete="off"
+  spellcheck="false"
+  [value]="layer().name"
+  [attr.aria-label]="'Rename ' + layer().name"
+  (keydown)="$event.stopPropagation()"
+  (blur)="rename($event)"
+  (keydown.enter)="rename($event)"
+/>
+<button
+  type="button"
+  class="icon-button"
+  [attr.aria-label]="'Move ' + layer().name + ' forward'"
+  [disabled]="!layer().canMoveForward"
+  (click)="moveForward($event)"
+>
+  <span aria-hidden="true">
+    <i class="icon">&#xe0e4;</i>
+  </span>
+</button>
+<button
+  type="button"
+  class="icon-button"
+  [attr.aria-label]="'Move ' + layer().name + ' backward'"
+  [disabled]="!layer().canMoveBackward"
+  (click)="moveBackward($event)"
+>
+  <span aria-hidden="true">
+    <i class="icon">&#xe0e5;</i>
+  </span>
+</button>

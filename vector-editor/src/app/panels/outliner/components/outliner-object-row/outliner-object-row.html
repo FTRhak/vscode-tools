@@ -1,0 +1,31 @@
+<button
+  type="button"
+  class="icon-button"
+  [attr.aria-label]="(object().visible ? 'Hide ' : 'Show ') + object().name"
+  [attr.aria-pressed]="object().visible"
+  (click)="toggleVisibility($event)"
+>
+  <span aria-hidden="true">
+    @if (object().visible) {
+      <i class="icon">&#xe0e0;</i>
+    } @else {
+      <i class="icon">&#xe0e1;</i>
+    }
+  </span>
+</button>
+<button
+  type="button"
+  class="icon-button"
+  [attr.aria-label]="(object().locked ? 'Unlock ' : 'Lock ') + object().name"
+  [attr.aria-pressed]="object().locked"
+  (click)="toggleLock($event)"
+>
+  <span aria-hidden="true">
+    @if (object().locked) {
+      <i class="icon">&#xe0e2;</i>
+    } @else {
+      <i class="icon">&#xe0e3;</i>
+    }
+  </span>
+</button>
+<span class="object-name">{{ object().name }}</span>

@@ -1,4 +1,5 @@
 import { createNewDocument } from './create-document';
+import { addLayer } from './document-edits';
 import { Anchor, Segment, SourcePath, Vec2 } from './types';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './pen-path';
 
@@ -33,6 +34,25 @@ describe('pen path', () => {
     ).toBeNull();
     expect(
       beginPenObject({ ...document, layers: [{ ...layer, visible: false }] }, { x: 1, y: 1 }),
+    ).toBeNull();
+  });
+
+  it('starts the stroke on the requested layer', () => {
+    const document = addLayer(createNewDocument());
+    const front = document.layers.find((layer) => layer.order === 1);
+
+    const created = beginPenObject(document, { x: 4, y: 6 }, front?.id);
+    expect(created?.document.objects.at(-1)?.layerId).toBe(front?.id);
+    expect(beginPenObject(document, { x: 4, y: 6 }, 'missing')).toBeNull();
+    expect(
+      beginPenObject(
+        {
+          ...document,
+          layers: document.layers.map((layer) => ({ ...layer, locked: layer.id === front?.id })),
+        },
+        { x: 4, y: 6 },
+        front?.id,
+      ),
     ).toBeNull();
   });
 

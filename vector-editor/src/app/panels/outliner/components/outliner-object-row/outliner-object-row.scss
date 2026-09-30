@@ -1,0 +1,43 @@
+:host {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.2rem;
+  padding: 0.2rem 0.4rem 0.2rem 1.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  min-height: 1.75rem;
+}
+
+:host(.active) {
+  box-shadow: inset 3px 0 0 #8eb4ff;
+}
+
+:host([aria-selected='true']) {
+  background: #31456f;
+}
+
+.object-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-button {
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--chrome-text);
+  font: inherit;
+  line-height: 1;
+  min-height: 1.5rem;
+  min-width: 1.5rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--chrome-button-hover);
+}

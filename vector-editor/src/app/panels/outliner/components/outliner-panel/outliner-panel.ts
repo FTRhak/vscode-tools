@@ -3,11 +3,12 @@ import { layersFrontToBack, objectsOnLayer, SessionService } from '@vector-edito
 import { CommandBus } from '@vector-editor/commands';
 import { SharedModule } from '@vector-editor/shared';
 import { OutlinerLayer, OutlinerObject, TreeRow } from '../../models';
-
+import { OutlinerLayerRow } from '../outliner-layer-row/outliner-layer-row';
+import { OutlinerObjectRow } from '../outliner-object-row/outliner-object-row';
 
 @Component({
   selector: 'app-outliner-panel',
-  imports: [SharedModule],
+  imports: [SharedModule, OutlinerLayerRow, OutlinerObjectRow],
   templateUrl: './outliner-panel.html',
   styleUrl: './outliner-panel.scss',
 })
@@ -30,6 +31,7 @@ export class OutlinerPanel {
     }
     const collapsed = this.collapsedLayerIds();
     const selected = new Set(this.session.selectedObjectIds());
+    const selectedLayerId = this.session.selectedLayerId();
     const activeId = this.session.activeObjectId();
     const layers = layersFrontToBack(document).map((layer) => ({
       id: layer.id,
@@ -37,6 +39,7 @@ export class OutlinerPanel {
       visible: layer.visible,
       locked: layer.locked,
       expanded: !collapsed.has(layer.id),
+      selected: layer.id === selectedLayerId,
       objects: objectsOnLayer(document, layer.id)
         .slice()
         .reverse()
@@ -71,6 +74,16 @@ export class OutlinerPanel {
     return rows;
   });
 
+  protected readonly canAddPath = computed(() => {
+    const document = this.session.document();
+    const layerId = this.session.selectedLayerId();
+    if (!document || !layerId) {
+      return false;
+    }
+    const layer = document.layers.find((item) => item.id === layerId);
+    return layer !== undefined && layer.visible && !layer.locked;
+  });
+
   protected readonly activeFocusKey = computed(() => {
     const rows = this.focusableRows();
     const current = this.focusedKey();
@@ -82,6 +95,19 @@ export class OutlinerPanel {
 
   protected addLayer(): void {
     this.bus.dispatch({ type: 'layer.add' });
+  }
+
+  protected addPath(): void {
+    const layerId = this.session.selectedLayerId();
+    if (!layerId || !this.canAddPath()) {
+      return;
+    }
+    this.expandLayer(layerId);
+    this.bus.dispatch({ type: 'path.add', layerId });
+    const objectId = this.session.activeObjectId();
+    if (objectId) {
+      this.focusedKey.set(`object:${objectId}`);
+    }
   }
 
   protected toggleLayerFlag(layer: OutlinerLayer, flag: 'visible' | 'locked', event: Event): void {
@@ -131,6 +157,12 @@ export class OutlinerPanel {
   }
 
   protected onLayerClick(id: string): void {
+    this.focusedKey.set(`layer:${id}`);
+    this.bus.dispatch({ type: 'session.selectLayer', id });
+  }
+
+  protected onTwistClick(id: string, event: Event): void {
+    event.stopPropagation();
     this.toggleLayer(id);
   }
 
@@ -164,6 +196,11 @@ export class OutlinerPanel {
       this.focusRow(rows[nextIndex]?.key);
       return;
     }
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.onHorizontalArrow(rows, index, event.key);
+      return;
+    }
     if (event.key !== 'Enter') {
       return;
     }
@@ -173,7 +210,7 @@ export class OutlinerPanel {
       return;
     }
     if (row.kind === 'layer') {
-      this.toggleLayer(row.id);
+      this.bus.dispatch({ type: 'session.selectLayer', id: row.id });
       return;
     }
     this.bus.dispatch({
@@ -181,6 +218,48 @@ export class OutlinerPanel {
       target: 'object',
       ids: [row.id],
       op: 'replace',
+    });
+  }
+
+  private onHorizontalArrow(rows: readonly TreeRow[], index: number, key: string): void {
+    const row = rows[index];
+    if (!row) {
+      return;
+    }
+    if (row.kind === 'object') {
+      if (key === 'ArrowLeft') {
+        const parent = this.layers().find((layer) =>
+          layer.objects.some((object) => object.id === row.id),
+        );
+        this.focusRow(parent ? `layer:${parent.id}` : undefined);
+      }
+      return;
+    }
+    const expanded = this.layers().some((layer) => layer.id === row.id && layer.expanded);
+    if (key === 'ArrowRight') {
+      if (!expanded) {
+        this.toggleLayer(row.id);
+        return;
+      }
+      const child = rows[index + 1];
+      if (child?.kind === 'object') {
+        this.focusRow(child.key);
+      }
+      return;
+    }
+    if (expanded) {
+      this.toggleLayer(row.id);
+    }
+  }
+
+  private expandLayer(id: string): void {
+    this.collapsedLayerIds.update((current) => {
+      if (!current.has(id)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.delete(id);
+      return next;
     });
   }
 

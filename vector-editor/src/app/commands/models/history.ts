@@ -93,6 +93,8 @@ export function historyLabel(command: Command): string | null {
       return null;
     case 'layer.reorder':
       return 'Reorder layer';
+    case 'path.add':
+      return 'Add path';
     case 'pen.begin':
     case 'pen.addPoint':
     case 'pen.setHandles':
@@ -115,6 +117,7 @@ export function historyLabel(command: Command): string | null {
     case 'session.setTool':
     case 'session.setViewport':
     case 'session.setEditSelectionKind':
+    case 'session.selectLayer':
     case 'history.undo':
     case 'history.redo':
     case 'history.jump':

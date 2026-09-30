@@ -1,6 +1,7 @@
 import { createNewDocument } from './create-document';
 import {
   addLayer,
+  addPath,
   addSwatch,
   applySwatch,
   nextSeriesName,
@@ -68,6 +69,47 @@ describe('document edits', () => {
     expect(reordered.layers.find((layer) => layer.id === frontId)?.order).toBe(0);
     expect(reordered.layers.find((layer) => layer.id === backId)?.order).toBe(1);
     expect(reorderLayer(reordered, frontId, 99)).toBe(reordered);
+  });
+
+  it('adds a closed path on the requested layer', () => {
+    const document = createNewDocument();
+    const layerId = document.layers[0].id;
+
+    expect(addPath(document, 'missing')).toBeNull();
+    expect(
+      addPath({ ...document, layers: [{ ...document.layers[0], locked: true }] }, layerId),
+    ).toBeNull();
+    expect(
+      addPath({ ...document, layers: [{ ...document.layers[0], visible: false }] }, layerId),
+    ).toBeNull();
+
+    const created = addPath(document, layerId);
+    const object = created?.document.objects.at(-1);
+    expect(created?.objectId).toBe(object?.id);
+    expect(object).toMatchObject({
+      name: 'Path 2',
+      layerId,
+      visible: true,
+      locked: false,
+      style: { fill: '#c5d4f0', stroke: '#1a1a1a', strokeWidth: 4 },
+    });
+    expect(object?.source.subpaths).toEqual([
+      {
+        closed: true,
+        anchors: [
+          expect.objectContaining({ position: { x: 524, y: 354 } }),
+          expect.objectContaining({ position: { x: 724, y: 354 } }),
+          expect.objectContaining({ position: { x: 724, y: 494 } }),
+          expect.objectContaining({ position: { x: 524, y: 494 } }),
+        ],
+        segments: [
+          expect.objectContaining({ kind: 'line' }),
+          expect.objectContaining({ kind: 'line' }),
+          expect.objectContaining({ kind: 'line' }),
+          expect.objectContaining({ kind: 'line' }),
+        ],
+      },
+    ]);
   });
 });
 

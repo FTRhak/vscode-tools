@@ -16,6 +16,8 @@ describe('OutlinerPanel', () => {
     session = TestBed.inject(SessionService);
     bus = TestBed.inject(CommandBus);
     await fixture.whenStable();
+    openPanel();
+    await fixture.whenStable();
   });
 
   it('selects the object from its row and with Enter', async () => {
@@ -74,6 +76,76 @@ describe('OutlinerPanel', () => {
     expect(layer.tabIndex).toBe(-1);
   });
 
+  it('selects a layer and adds a path on it', async () => {
+    bus.dispatch({ type: 'document.new' });
+    await fixture.whenStable();
+    const firstId = session.document()!.layers[0].id;
+    expect(session.selectedLayerId()).toBe(firstId);
+    expect(layerItem(firstId).getAttribute('aria-selected')).toBe('true');
+
+    bus.dispatch({ type: 'layer.add' });
+    await fixture.whenStable();
+    const secondId = session.selectedLayerId();
+    expect(secondId).not.toBe(firstId);
+    expect(layerItem(secondId!).getAttribute('aria-selected')).toBe('true');
+
+    layerRow(firstId).click();
+    await fixture.whenStable();
+    expect(session.selectedLayerId()).toBe(firstId);
+
+    addPathButton().click();
+    await fixture.whenStable();
+    const created = session.document()!.objects.at(-1);
+    expect(created).toMatchObject({ name: 'Path 2', layerId: firstId });
+    expect(session.selectedObjectIds()).toEqual([created!.id]);
+    expect(objectRow('Path 2').getAttribute('aria-selected')).toBe('true');
+
+    bus.dispatch({ type: 'layer.update', id: firstId, locked: true });
+    await fixture.whenStable();
+    expect(addPathButton().disabled).toBe(true);
+  });
+
+  it('collapses a layer from its twist without changing the selected layer', async () => {
+    bus.dispatch({ type: 'document.new' });
+    bus.dispatch({ type: 'layer.add' });
+    await fixture.whenStable();
+    const selectedId = session.selectedLayerId();
+    const firstId = session.document()!.layers[0].id;
+    const twist = layerItem(firstId).querySelector('.twist');
+    if (!(twist instanceof HTMLButtonElement)) {
+      throw new Error('Twist is missing');
+    }
+
+    twist.click();
+    await fixture.whenStable();
+
+    expect(session.selectedLayerId()).toBe(selectedId);
+    expect(layerItem(firstId).getAttribute('aria-expanded')).toBe('false');
+    expect(layerItem(firstId).querySelector('.object-name')).toBeNull();
+  });
+
+  it('selects the focused layer with Enter', async () => {
+    bus.dispatch({ type: 'document.new' });
+    bus.dispatch({ type: 'layer.add' });
+    await fixture.whenStable();
+    const firstId = session.document()!.layers[0].id;
+    const tree = fixture.nativeElement.querySelector('[role="tree"]');
+    if (!(tree instanceof HTMLElement)) {
+      throw new Error('Layer tree is missing');
+    }
+
+    tree.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
+    );
+    tree.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    );
+    await fixture.whenStable();
+
+    expect(session.selectedLayerId()).toBe(firstId);
+    expect(layerItem(firstId).getAttribute('aria-selected')).toBe('true');
+  });
+
   it('hides an object from its eye without selecting the row', async () => {
     bus.dispatch({ type: 'document.new' });
     await fixture.whenStable();
@@ -106,6 +178,38 @@ describe('OutlinerPanel', () => {
     expect(objectRow('Path').tabIndex).toBe(-1);
     expect(input.closest('[role="treeitem"]')?.getAttribute('tabindex')).toBe('0');
   });
+
+  function openPanel(): void {
+    const header = fixture.nativeElement.querySelector('.panel-accordion-header');
+    if (!(header instanceof HTMLButtonElement)) {
+      throw new Error('Outliner header is missing');
+    }
+    header.click();
+  }
+
+  function layerItem(id: string): HTMLElement {
+    const item = fixture.nativeElement.querySelector(`[data-tree-key="layer:${id}"]`);
+    if (!(item instanceof HTMLElement)) {
+      throw new Error('Layer row is missing');
+    }
+    return item;
+  }
+
+  function layerRow(id: string): HTMLElement {
+    const row = layerItem(id).querySelector('.layer-row');
+    if (!(row instanceof HTMLElement)) {
+      throw new Error('Layer row is missing');
+    }
+    return row;
+  }
+
+  function addPathButton(): HTMLButtonElement {
+    const button = fixture.nativeElement.querySelector('.add-path');
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error('Add path button is missing');
+    }
+    return button;
+  }
 
   function objectRow(name: string): HTMLElement {
     const row = [...fixture.nativeElement.querySelectorAll('[role="treeitem"]')].find((item) => {
