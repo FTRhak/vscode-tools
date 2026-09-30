@@ -172,7 +172,40 @@ describe('CommandBus', () => {
       rotation: 0,
       scaleX: 1,
       scaleY: 1,
+      originX: 0,
+      originY: 0,
     });
+  });
+
+  it('places the rotation origin in document space and undoes a drag as one step', () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({
+      type: 'object.setRotationOrigin',
+      ids: [id],
+      x: 30,
+      y: 10,
+      gesture: 'begin',
+    });
+    bus.dispatch({
+      type: 'object.setRotationOrigin',
+      ids: [id],
+      x: 30,
+      y: 18,
+      gesture: 'continue',
+    });
+
+    expect(session.document()!.objects[0].transform).toMatchObject({
+      x: 0,
+      y: 0,
+      originX: 30,
+      originY: 18,
+    });
+    expect(
+      session.history().entries.filter((entry) => entry.label === 'Move rotation origin'),
+    ).toHaveLength(1);
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[0].transform).toMatchObject({ originX: 0, originY: 0 });
   });
 
   it('does not move a locked object', () => {
@@ -567,7 +600,15 @@ describe('CommandBus', () => {
     expect(baked.modifiers.map((modifier) => modifier.type)).toEqual(['mirror']);
     expect(baked.source.subpaths.length).toBeGreaterThan(1);
     expect(baked.source.subpaths[0]?.anchors[0]?.id).not.toBe(anchorId);
-    expect(baked.transform).toEqual({ x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 });
+    expect(baked.transform).toEqual({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      originX: 0,
+      originY: 0,
+    });
     expect(session.selectedAnchorIds()).toEqual([]);
     expect(session.history().entries.at(-1)?.label).toBe('Apply modifier');
 

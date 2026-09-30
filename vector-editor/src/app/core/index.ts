@@ -20,6 +20,8 @@ export {
   setAnchorPosition,
   setObjectStyle,
   sourceToPathData,
+  rotationOriginDocument,
+  transformWithRotationOrigin,
   translateAnchors,
   updateLayer,
 } from './model';

@@ -24,6 +24,7 @@ export {
   objectsOnLayer,
 } from './paint-order';
 export { sourceToPathData } from './path-data';
+export { rotationOriginDocument, transformWithRotationOrigin } from './transform';
 export type {
   Anchor,
   Document,

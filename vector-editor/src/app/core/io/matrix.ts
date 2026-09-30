@@ -17,6 +17,8 @@ export const identityTransform: ObjectTransform = {
   rotation: 0,
   scaleX: 1,
   scaleY: 1,
+  originX: 0,
+  originY: 0,
 };
 
 export function multiplyMatrix(left: Matrix, right: Matrix): Matrix {
@@ -54,7 +56,11 @@ export function applyMatrix(matrix: Matrix, point: Vec2): Vec2 {
 
 export function matrixFromTransform(transform: ObjectTransform): Matrix {
   const scale = matrix(transform.scaleX, 0, 0, transform.scaleY, 0, 0);
-  const rotation = rotateMatrix(transform.rotation);
+  const rotation = rotateMatrix(
+    transform.rotation,
+    transform.originX * transform.scaleX,
+    transform.originY * transform.scaleY,
+  );
   const translation = translateMatrix(transform.x, transform.y);
   return multiplyMatrix(translation, multiplyMatrix(rotation, scale));
 }

@@ -1,5 +1,5 @@
 import { createNewDocument, Document, VectorObject } from '@vector-editor/core';
-import { hitTestObject, objectsInRect } from './hit-test';
+import { hitTestObject, localToDocument, objectsInRect } from './hit-test';
 
 describe('hitTestObject', () => {
   it('hits the interior of the new-document curve and misses the outside', () => {
@@ -36,21 +36,43 @@ describe('hitTestObject', () => {
   it('follows translation, rotation, and a zero scale', () => {
     const moved = {
       ...square('moved'),
-      transform: { x: 100, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: 100, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     };
     const turned = {
       ...square('turned'),
       style: { ...square('turned').style, stroke: null, strokeWidth: 0 },
-      transform: { x: 0, y: 0, rotation: 90, scaleX: 1, scaleY: 1 },
+      transform: { x: 0, y: 0, rotation: 90, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     };
     const flat = {
       ...square('flat'),
-      transform: { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 1 },
+      transform: { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 1, originX: 0, originY: 0 },
     };
 
     expect(hitTestObject(doc([moved]), { x: 105, y: 5 }, 1)).toBe('moved');
     expect(hitTestObject(doc([turned]), { x: -5, y: 5 }, 1)).toBe('turned');
     expect(hitTestObject(doc([flat]), { x: 5, y: 5 }, 1)).toBeNull();
+  });
+
+  it('rotates a square around its center instead of the local origin', () => {
+    const turned = {
+      ...square('turned'),
+      style: { ...square('turned').style, stroke: null, strokeWidth: 0 },
+      transform: {
+        x: 0,
+        y: 0,
+        rotation: 90,
+        scaleX: 1,
+        scaleY: 1,
+        originX: 5,
+        originY: 5,
+      },
+    };
+
+    expect(localToDocument(turned.transform, { x: 5, y: 5 })).toEqual({ x: 5, y: 5 });
+    expect(localToDocument(turned.transform, { x: 10, y: 5 }).x).toBeCloseTo(5);
+    expect(localToDocument(turned.transform, { x: 10, y: 5 }).y).toBeCloseTo(10);
+    expect(hitTestObject(doc([turned]), { x: 5, y: 5 }, 1)).toBe('turned');
+    expect(hitTestObject(doc([turned]), { x: -5, y: 5 }, 1)).toBeNull();
   });
 
   it('hits an array copy and ignores the gap between copies', () => {
@@ -159,7 +181,7 @@ function square(id: string): VectorObject {
       ],
     },
     style: { fill: '#cccccc', stroke: '#111111', strokeWidth: 4, fillRule: 'nonzero' },
-    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers: [],
   };
 }

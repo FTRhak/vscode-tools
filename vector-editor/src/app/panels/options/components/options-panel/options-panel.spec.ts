@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
+import { PanelOptionsModule } from '../../options.module';
 import { OptionsPanel } from './options-panel';
 
 describe('OptionsPanel', () => {
@@ -10,7 +11,7 @@ describe('OptionsPanel', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OptionsPanel],
+      imports: [PanelOptionsModule],
     }).compileComponents();
     fixture = TestBed.createComponent(OptionsPanel);
     session = TestBed.inject(SessionService);
@@ -62,6 +63,8 @@ describe('OptionsPanel', () => {
       rotation: 0,
       scaleX: 1,
       scaleY: 1,
+      originX: 0,
+      originY: 0,
     });
   });
 
@@ -80,6 +83,47 @@ describe('OptionsPanel', () => {
 
     expect(session.history().entries).toHaveLength(recorded);
     expect(session.document()!.objects[0].transform.x).toBe(12);
+  });
+
+  it('sets the rotation pivot in document coordinates and keeps it fixed while rotating', async () => {
+    bus.dispatch({ type: 'document.new' });
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [id], op: 'replace' });
+    await fixture.whenStable();
+
+    const pivotX = field('Pivot X');
+    pivotX.value = '40';
+    pivotX.dispatchEvent(new Event('input', { bubbles: true }));
+    pivotX.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    );
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].transform).toMatchObject({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      originX: 40,
+      originY: 0,
+    });
+
+    const rotation = field('Rotation');
+    rotation.value = '90';
+    rotation.dispatchEvent(new Event('input', { bubbles: true }));
+    rotation.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    );
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].transform).toMatchObject({
+      x: 0,
+      y: 0,
+      rotation: 90,
+      originX: 40,
+      originY: 0,
+    });
+    expect(field('Pivot X').value).toBe('40');
+    expect(field('Pivot Y').value).toBe('0');
   });
 
   it('writes an anchor coordinate and moves its handles with it', async () => {

@@ -208,8 +208,8 @@ describe('Viewport', () => {
 
     expect(session.selectedObjectIds()).toEqual([id]);
 
-    pointer(canvas(), 'pointerdown', 24, 24);
-    pointer(canvas(), 'pointerup', 24, 24);
+    pointer(canvas(), 'pointerdown', 140, 60);
+    pointer(canvas(), 'pointerup', 140, 60);
     await fixture.whenStable();
 
     expect(session.selectedObjectIds()).toEqual([]);
@@ -543,12 +543,54 @@ describe('Viewport', () => {
 
     expect(session.document()!.objects[1].transform).toMatchObject({ x: 0, y: 0 });
   });
+
+  it('draws the rotation origin and drags it without moving the object', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const id = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [id], op: 'replace' });
+    await fixture.whenStable();
+
+    const marker = canvas().querySelector('.rotation-origin circle');
+    expect(marker?.getAttribute('cx')).toBe('0');
+    expect(marker?.getAttribute('cy')).toBe('0');
+
+    pointer(canvas(), 'pointerdown', 24, 24);
+    pointer(canvas(), 'pointermove', 124, 74);
+    pointer(canvas(), 'pointermove', 224, 74);
+    pointer(canvas(), 'pointerup', 224, 74);
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].transform).toMatchObject({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      originX: 200,
+      originY: 50,
+    });
+    expect(canvas().querySelector('.rotation-origin circle')?.getAttribute('cx')).toBe('200');
+    expect(session.history().entries.at(-1)?.label).toBe('Move rotation origin');
+
+    bus.dispatch({ type: 'object.setTransform', ids: [id], transform: { rotation: 90 } });
+    await fixture.whenStable();
+
+    const transform = canvas()
+      .querySelector('.selection')
+      ?.parentElement?.getAttribute('transform');
+    expect(transform).toContain('rotate(90 200 50)');
+    expect(canvas().querySelector('.rotation-origin circle')?.getAttribute('cx')).toBe('200');
+    expect(canvas().querySelector('.rotation-origin circle')?.getAttribute('cy')).toBe('50');
+
+    bus.dispatch({ type: 'history.undo' });
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[0].transform).toMatchObject({
+      rotation: 0,
+      originX: 0,
+      originY: 0,
+    });
+  });
 });
 
-async function chooseSnap(
-  fixture: ComponentFixture<Viewport>,
-  mode: string,
-): Promise<void> {
+async function chooseSnap(fixture: ComponentFixture<Viewport>, mode: string): Promise<void> {
   const host = fixture.nativeElement as HTMLElement;
   (host.querySelector('.snap-element') as HTMLButtonElement).click();
   await fixture.whenStable();

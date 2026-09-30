@@ -59,7 +59,7 @@ function object(id: string, modifiers: readonly Modifier[] = []): VectorObject {
     locked: false,
     source: { subpaths: [] },
     style: { fill: '#fff', stroke: null, strokeWidth: 1, fillRule: 'nonzero' },
-    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers,
   };
 }

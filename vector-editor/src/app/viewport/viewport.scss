@@ -77,6 +77,15 @@ svg {
   pointer-events: none;
 }
 
+.rotation-origin,
+.rotation-origin circle,
+.rotation-origin line {
+  fill: none;
+  stroke: #c2410c;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
 .marquee {
   fill: rgb(29 78 216 / 12%);
   stroke: #1d4ed8;

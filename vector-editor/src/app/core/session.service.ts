@@ -37,6 +37,7 @@ import {
 } from './model/modifier-edits';
 import { isInteractionLocked, layersFrontToBack } from './model/paint-order';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
+import { rotationOriginDocument, transformWithRotationOrigin } from './model/transform';
 import { Document, ObjectTransform, SourcePath, VectorObject, ViewportCamera } from './model/types';
 
 export interface SessionSlice {
@@ -128,6 +129,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyTranslate(state, command);
     case 'object.setTransform':
       return applyTransform(state, command);
+    case 'object.setRotationOrigin':
+      return applyRotationOrigin(state, command);
     case 'object.setFlags':
       return applyFlags(state, command);
     case 'object.duplicate':
@@ -604,6 +607,32 @@ function applyTransform(
   return document === state.document ? state : { ...state, document };
 }
 
+function applyRotationOrigin(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'object.setRotationOrigin' }>,
+): SessionSlice {
+  const current = state.document;
+  if (!current) {
+    return state;
+  }
+  const document = mapObjects(current, command.ids, (object) => {
+    if (isInteractionLocked(current, object)) {
+      return object;
+    }
+    const present = rotationOriginDocument(object.transform);
+    const point = {
+      x: command.x ?? present.x,
+      y: command.y ?? present.y,
+    };
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+      return object;
+    }
+    const next = transformWithRotationOrigin(object.transform, point);
+    return next ? { ...object, transform: next } : object;
+  });
+  return document === state.document ? state : { ...state, document };
+}
+
 function applyFlags(
   state: SessionSlice,
   command: Extract<Command, { type: 'object.setFlags' }>,
@@ -760,7 +789,7 @@ function reconcilePen(state: SessionSlice): SessionSlice {
 function withTransform(object: VectorObject, patch: Partial<ObjectTransform>): VectorObject {
   const transform = { ...object.transform };
   let changed = false;
-  for (const key of ['x', 'y', 'rotation', 'scaleX', 'scaleY'] as const) {
+  for (const key of ['x', 'y', 'rotation', 'scaleX', 'scaleY', 'originX', 'originY'] as const) {
     const value = patch[key];
     if (value !== undefined && value !== transform[key]) {
       transform[key] = value;

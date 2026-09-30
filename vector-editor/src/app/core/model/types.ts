@@ -46,6 +46,8 @@ export interface ObjectTransform {
   readonly rotation: number;
   readonly scaleX: number;
   readonly scaleY: number;
+  readonly originX: number;
+  readonly originY: number;
 }
 
 export interface Style {

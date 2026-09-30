@@ -280,14 +280,14 @@ export function documentToLocal(transform: ObjectTransform, point: Vec2): Vec2 |
   if (transform.scaleX === 0 || transform.scaleY === 0) {
     return null;
   }
-  const dx = point.x - transform.x;
-  const dy = point.y - transform.y;
+  const dx = point.x - transform.x - transform.originX * transform.scaleX;
+  const dy = point.y - transform.y - transform.originY * transform.scaleY;
   const radians = (-transform.rotation * Math.PI) / 180;
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
   return {
-    x: (dx * cos - dy * sin) / transform.scaleX,
-    y: (dx * sin + dy * cos) / transform.scaleY,
+    x: transform.originX + (dx * cos - dy * sin) / transform.scaleX,
+    y: transform.originY + (dx * sin + dy * cos) / transform.scaleY,
   };
 }
 
@@ -305,14 +305,14 @@ export function documentDeltaToLocal(
 }
 
 export function localToDocument(transform: ObjectTransform, point: Vec2): Vec2 {
-  const scaledX = point.x * transform.scaleX;
-  const scaledY = point.y * transform.scaleY;
+  const dx = (point.x - transform.originX) * transform.scaleX;
+  const dy = (point.y - transform.originY) * transform.scaleY;
   const radians = (transform.rotation * Math.PI) / 180;
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
   return {
-    x: transform.x + scaledX * cos - scaledY * sin,
-    y: transform.y + scaledX * sin + scaledY * cos,
+    x: transform.x + transform.originX * transform.scaleX + dx * cos - dy * sin,
+    y: transform.y + transform.originY * transform.scaleY + dx * sin + dy * cos,
   };
 }
 

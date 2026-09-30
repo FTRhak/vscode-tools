@@ -51,6 +51,8 @@ export function historyLabel(command: Command): string | null {
       return 'Move';
     case 'object.setTransform':
       return 'Set transform';
+    case 'object.setRotationOrigin':
+      return command.gesture ? 'Move rotation origin' : 'Set rotation origin';
     case 'object.duplicate':
       return 'Duplicate';
     case 'object.setFlags':
@@ -159,6 +161,9 @@ function styleLabel(command: Extract<Command, { type: 'style.set' }>): string {
 function gestureContinues(command: Command, label: string | undefined): boolean {
   if (command.type === 'object.translate' && command.gesture === 'continue') {
     return label === 'Move';
+  }
+  if (command.type === 'object.setRotationOrigin' && command.gesture === 'continue') {
+    return label === 'Move rotation origin';
   }
   if (command.type === 'path.translateAnchors' && command.gesture === 'continue') {
     return label === 'Move anchors';

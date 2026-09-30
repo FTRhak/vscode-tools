@@ -34,6 +34,23 @@
           }
         </g>
       }
+      @for (origin of rotationOrigins(); track origin.id) {
+        <g class="rotation-origin" pointer-events="none">
+          <circle [attr.cx]="origin.x" [attr.cy]="origin.y" [attr.r]="origin.radius" />
+          <line
+            [attr.x1]="origin.x - origin.arm"
+            [attr.y1]="origin.y"
+            [attr.x2]="origin.x + origin.arm"
+            [attr.y2]="origin.y"
+          />
+          <line
+            [attr.x1]="origin.x"
+            [attr.y1]="origin.y - origin.arm"
+            [attr.x2]="origin.x"
+            [attr.y2]="origin.y + origin.arm"
+          />
+        </g>
+      }
       @if (anchorOverlay(); as overlay) {
         <g [attr.transform]="overlay.transform" pointer-events="none">
           @for (handle of overlay.handles; track handle.id) {

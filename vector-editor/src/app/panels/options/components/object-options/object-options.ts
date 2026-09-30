@@ -1,15 +1,18 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
-import { ObjectTransform, SessionService, VectorObject } from '@vector-editor/core';
+import { rotationOriginDocument, SessionService, VectorObject } from '@vector-editor/core';
 
-type TransformKey = keyof ObjectTransform;
+type TransformKey = 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY';
+type PivotAxis = 'x' | 'y';
 
 interface OptionsDraft {
   readonly name: string;
   readonly x: number | null;
   readonly y: number | null;
   readonly rotation: number | null;
+  readonly pivotX: number | null;
+  readonly pivotY: number | null;
   readonly scaleX: number | null;
   readonly scaleY: number | null;
 }
@@ -110,6 +113,25 @@ export class ObjectOptions {
     });
   }
 
+  protected commitPivot(axis: PivotAxis, event?: Event): void {
+    if (event instanceof KeyboardEvent) {
+      event.preventDefault();
+    }
+    const value = axis === 'x' ? this.draft().pivotX : this.draft().pivotY;
+    const objects = this.selectedObjects();
+    if (typeof value !== 'number' || !Number.isFinite(value) || objects.length === 0) {
+      return;
+    }
+    if (value === shared(objects, (object) => rotationOriginDocument(object.transform)[axis])) {
+      return;
+    }
+    this.bus.dispatch({
+      type: 'object.setRotationOrigin',
+      ids: objects.map((object) => object.id),
+      [axis]: value,
+    });
+  }
+
   protected commitFlag(flag: 'visible' | 'locked', event: Event): void {
     const input = event.target;
     if (!(input instanceof HTMLInputElement)) {
@@ -133,6 +155,8 @@ function draftFrom(objects: readonly VectorObject[]): OptionsDraft {
     x: shared(objects, (object) => object.transform.x),
     y: shared(objects, (object) => object.transform.y),
     rotation: shared(objects, (object) => object.transform.rotation),
+    pivotX: shared(objects, (object) => rotationOriginDocument(object.transform).x),
+    pivotY: shared(objects, (object) => rotationOriginDocument(object.transform).y),
     scaleX: shared(objects, (object) => object.transform.scaleX),
     scaleY: shared(objects, (object) => object.transform.scaleY),
   };
@@ -144,6 +168,8 @@ function sameDraft(left: OptionsDraft, right: OptionsDraft): boolean {
     left.x === right.x &&
     left.y === right.y &&
     left.rotation === right.rotation &&
+    left.pivotX === right.pivotX &&
+    left.pivotY === right.pivotY &&
     left.scaleX === right.scaleX &&
     left.scaleY === right.scaleY
   );

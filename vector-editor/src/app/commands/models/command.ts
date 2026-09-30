@@ -77,6 +77,13 @@ export type Command =
       readonly transform: Partial<ObjectTransform>;
     }
   | {
+      readonly type: 'object.setRotationOrigin';
+      readonly ids: readonly string[];
+      readonly x?: number;
+      readonly y?: number;
+      readonly gesture?: TranslateGesture;
+    }
+  | {
       readonly type: 'object.setFlags';
       readonly ids: readonly string[];
       readonly name?: string;

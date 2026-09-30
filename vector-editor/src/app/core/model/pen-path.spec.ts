@@ -15,7 +15,7 @@ describe('pen path', () => {
       name: 'Path 2',
       layerId: document.layers[0].id,
       style: { fill: null, stroke: '#1a1a1a', strokeWidth: 4, fillRule: 'nonzero' },
-      transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+      transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     });
     expect(object?.source.subpaths).toEqual([
       {

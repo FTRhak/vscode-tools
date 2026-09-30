@@ -1,6 +1,14 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } from '@angular/core';
 import { CommandBus, TranslateGesture } from '@vector-editor/commands';
-import { isInteractionLocked, SessionService, Vec2, VectorObject } from '@vector-editor/core';
+import {
+  Document,
+  isInteractionLocked,
+  objectsInPaintOrder,
+  rotationOriginDocument,
+  SessionService,
+  Vec2,
+  VectorObject,
+} from '@vector-editor/core';
 import { anchorsInRect } from './anchor-hit';
 import {
   ARTBOARD_FIT_PADDING,
@@ -66,6 +74,15 @@ interface SelectGesture {
   snapSources: readonly SnapSource[] | null;
 }
 
+interface OriginGesture {
+  readonly pointerId: number;
+  readonly objectId: string;
+  readonly originClientX: number;
+  readonly originClientY: number;
+  moved: boolean;
+  sent: boolean;
+}
+
 const GESTURE_THRESHOLD_PX = 4;
 
 @Component({
@@ -102,6 +119,7 @@ export class Viewport {
   private fittedDocumentId: string | null = null;
   private pan: PanGesture | null = null;
   private select: SelectGesture | null = null;
+  private originDrag: OriginGesture | null = null;
   private direct: DirectDrag | null = null;
   private pen: PenDrag | null = null;
   private spaceHeld = false;
@@ -127,6 +145,28 @@ export class Viewport {
   });
 
   protected readonly selectedIds = computed(() => new Set(this.session.selectedObjectIds()));
+
+  protected readonly rotationOrigins = computed(() => {
+    if (this.session.tool() === 'pen') {
+      return [];
+    }
+    const document = this.session.document();
+    if (!document) {
+      return [];
+    }
+    const selected = new Set(this.session.selectedObjectIds());
+    if (selected.size === 0) {
+      return [];
+    }
+    const zoom = this.session.viewport().zoom || 1;
+    return objectsInPaintOrder(document).flatMap((object) => {
+      if (!selected.has(object.id)) {
+        return [];
+      }
+      const point = rotationOriginDocument(object.transform);
+      return [{ id: object.id, x: point.x, y: point.y, radius: 5 / zoom, arm: 8 / zoom }];
+    });
+  });
 
   protected readonly anchorOverlay = computed(() => {
     if (this.session.mode() !== 'edit') {
@@ -233,6 +273,10 @@ export class Viewport {
       this.moveDirect(event);
       return;
     }
+    if (this.originDrag && event.pointerId === this.originDrag.pointerId) {
+      this.moveOrigin(event);
+      return;
+    }
     if (this.select && event.pointerId === this.select.pointerId) {
       this.moveSelect(event);
       return;
@@ -251,6 +295,10 @@ export class Viewport {
     }
     if (this.direct && event.pointerId === this.direct.pointerId) {
       this.finishDirect(event);
+      return;
+    }
+    if (this.originDrag && event.pointerId === this.originDrag.pointerId) {
+      this.finishOrigin();
       return;
     }
     if (this.select && event.pointerId === this.select.pointerId) {
@@ -343,6 +391,20 @@ export class Viewport {
       return;
     }
     const point = this.pointerToDocument(event);
+    const origin = this.hitRotationOrigin(document, point);
+    if (origin) {
+      this.originDrag = {
+        pointerId: event.pointerId,
+        objectId: origin.id,
+        originClientX: event.clientX,
+        originClientY: event.clientY,
+        moved: false,
+        sent: false,
+      };
+      this.host.nativeElement.focus();
+      this.host.nativeElement.setPointerCapture?.(event.pointerId);
+      return;
+    }
     const hitId = hitTestObject(
       document,
       point,
@@ -555,6 +617,71 @@ export class Viewport {
       collectSnapTargets(document, mode, excludeIds, layerId),
       SNAP_THRESHOLD_PX / zoom,
     );
+  }
+
+  private hitRotationOrigin(document: Document, point: Vec2): VectorObject | null {
+    const selected = new Set(this.session.selectedObjectIds());
+    const zoom = this.session.viewport().zoom || 1;
+    const radius = 8 / zoom;
+    const ordered = objectsInPaintOrder(document);
+    for (let index = ordered.length - 1; index >= 0; index -= 1) {
+      const object = ordered[index];
+      if (!object || !selected.has(object.id) || isInteractionLocked(document, object)) {
+        continue;
+      }
+      const origin = rotationOriginDocument(object.transform);
+      if (Math.hypot(point.x - origin.x, point.y - origin.y) <= radius) {
+        return object;
+      }
+    }
+    return null;
+  }
+
+  private moveOrigin(event: PointerEvent): void {
+    const drag = this.originDrag;
+    if (!drag) {
+      return;
+    }
+    const distance = Math.hypot(
+      event.clientX - drag.originClientX,
+      event.clientY - drag.originClientY,
+    );
+    if (!drag.moved) {
+      if (distance < GESTURE_THRESHOLD_PX) {
+        return;
+      }
+      drag.moved = true;
+    }
+    const document = this.session.document();
+    const object = document?.objects.find((item) => item.id === drag.objectId);
+    if (!document || !object || isInteractionLocked(document, object)) {
+      return;
+    }
+    const point = this.snapAbsolute(
+      this.pointerToDocument(event),
+      new Set([object.id]),
+      object.layerId,
+    );
+    const current = rotationOriginDocument(object.transform);
+    if (current.x === point.x && current.y === point.y) {
+      return;
+    }
+    this.moving.set(true);
+    this.bus.dispatch({
+      type: 'object.setRotationOrigin',
+      ids: [object.id],
+      x: point.x,
+      y: point.y,
+      gesture: drag.sent ? 'continue' : 'begin',
+    });
+    drag.sent = true;
+  }
+
+  private finishOrigin(): void {
+    const drag = this.originDrag;
+    this.originDrag = null;
+    this.moving.set(false);
+    this.release(drag?.pointerId);
   }
 
   private finishSelect(event: PointerEvent): void {

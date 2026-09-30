@@ -571,6 +571,8 @@ function readTransform(value: unknown): ObjectTransform {
     rotation: finiteField(value, 'rotation', 0),
     scaleX: finiteField(value, 'scaleX', 1),
     scaleY: finiteField(value, 'scaleY', 1),
+    originX: finiteField(value, 'originX', 0),
+    originY: finiteField(value, 'originY', 0),
   };
 }
 

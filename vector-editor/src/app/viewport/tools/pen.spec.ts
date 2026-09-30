@@ -7,6 +7,8 @@ const identity: ObjectTransform = {
   rotation: 0,
   scaleX: 1,
   scaleY: 1,
+  originX: 0,
+  originY: 0,
 };
 
 describe('pen tool', () => {

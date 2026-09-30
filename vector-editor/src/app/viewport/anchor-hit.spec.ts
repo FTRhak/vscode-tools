@@ -1,7 +1,7 @@
 import { ObjectTransform, SourcePath } from '@vector-editor/core';
 import { anchorHitRadius, hitTestAnchor } from './anchor-hit';
 
-const identity: ObjectTransform = { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 };
+const identity: ObjectTransform = { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 };
 
 describe('hitTestAnchor', () => {
   const source: SourcePath = {

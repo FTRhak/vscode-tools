@@ -227,6 +227,8 @@ describe('exportSvg', () => {
       rotation: 0,
       scaleX: 1,
       scaleY: 1,
+      originX: 0,
+      originY: 0,
     });
     expect(result.document.objects[0]?.source.subpaths[0]?.anchors[0]?.position).toEqual({
       x: 15,
@@ -329,6 +331,8 @@ describe('exportSvg', () => {
       rotation: 0,
       scaleX: 1,
       scaleY: 1,
+      originX: 0,
+      originY: 0,
     });
     const operand = object(
       'operand',
@@ -337,7 +341,7 @@ describe('exportSvg', () => {
       true,
       false,
       squareSource('operand'),
-      { x: 2, y: 2, rotation: 0, scaleX: 1, scaleY: 1 },
+      { x: 2, y: 2, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     );
     const document: Document = {
       ...sampleDocument(),
@@ -468,7 +472,7 @@ function sampleDocument(): Document {
             },
           ],
         },
-        { x: 5, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+        { x: 5, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
       ),
       object(
         'object-2',
@@ -493,7 +497,7 @@ function sampleDocument(): Document {
             },
           ],
         },
-        { x: 0, y: 0, rotation: 90, scaleX: 1, scaleY: 1 },
+        { x: 0, y: 0, rotation: 90, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
       ),
     ],
   };

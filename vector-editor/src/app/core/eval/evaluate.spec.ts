@@ -212,7 +212,7 @@ describe('bevel and boolean', () => {
       owner,
       {
         ...shape('operand', squarePath('operand', 0, 0, 4), []),
-        transform: { x: 3, y: 3, rotation: 0, scaleX: 1, scaleY: 1 },
+        transform: { x: 3, y: 3, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
       },
     ])[0];
     const movedHole = [...(moved?.subpaths ?? [])].sort(
@@ -264,7 +264,7 @@ describe('bevel and boolean', () => {
         ...shape('owner', squarePath('owner', 0, 0, 4), [
           booleanOp('cut', 'difference', 'operand'),
         ]),
-        transform: { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 1 },
+        transform: { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 1, originX: 0, originY: 0 },
       },
       operand,
     ])[0];
@@ -435,7 +435,7 @@ function shape(id: string, source: SourcePath, modifiers: readonly Modifier[]): 
     locked: false,
     source,
     style: { fill: '#cccccc', stroke: null, strokeWidth: 1, fillRule: 'nonzero' },
-    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 },
+    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers,
   };
 }

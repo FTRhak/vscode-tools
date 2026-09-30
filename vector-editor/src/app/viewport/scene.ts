@@ -46,7 +46,12 @@ export function sceneFromDocument(document: Document, hold: ClipperHold | null =
 
 export function formatObjectTransform(transform: ObjectTransform): string {
   const translate = `translate(${transform.x} ${transform.y})`;
-  const rotate = `rotate(${transform.rotation})`;
+  const centerX = transform.originX * transform.scaleX;
+  const centerY = transform.originY * transform.scaleY;
+  const rotate =
+    centerX === 0 && centerY === 0
+      ? `rotate(${transform.rotation})`
+      : `rotate(${transform.rotation} ${centerX} ${centerY})`;
   const scale = `scale(${transform.scaleX} ${transform.scaleY})`;
   return `${translate} ${rotate} ${scale}`;
 }

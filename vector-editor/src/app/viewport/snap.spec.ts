@@ -126,7 +126,7 @@ function sampleObject(
       ],
     },
     style: { fill: null, stroke: '#000', strokeWidth: 1, fillRule: 'nonzero' },
-    transform: { x, y, rotation: 0, scaleX: 1, scaleY: 1 },
+    transform: { x, y, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers: [],
   };
 }
