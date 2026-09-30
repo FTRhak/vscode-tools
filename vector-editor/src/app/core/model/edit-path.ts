@@ -49,6 +49,38 @@ export function setAnchorHandle(
   return mapAnchors(source, ids, (anchor) => withHandle(anchor, slot, position, breakLink));
 }
 
+export const INSERT_POINT_MARGIN = 1e-4;
+
+export interface InsertedPoint {
+  readonly source: SourcePath;
+  readonly anchorId: string;
+}
+
+export function insertPoint(
+  source: SourcePath,
+  segmentId: string,
+  t: number,
+): InsertedPoint | null {
+  if (!Number.isFinite(t) || t <= INSERT_POINT_MARGIN || t >= 1 - INSERT_POINT_MARGIN) {
+    return null;
+  }
+  for (let index = 0; index < source.subpaths.length; index += 1) {
+    const subpath = source.subpaths[index];
+    const segmentIndex = subpath.segments.findIndex((segment) => segment.id === segmentId);
+    if (segmentIndex < 0) {
+      continue;
+    }
+    const inserted = insertOnSubpath(subpath, segmentIndex, t);
+    if (!inserted) {
+      return null;
+    }
+    const subpaths = source.subpaths.slice();
+    subpaths[index] = inserted.subpath;
+    return { source: { ...source, subpaths }, anchorId: inserted.anchorId };
+  }
+  return null;
+}
+
 export function deleteAnchors(source: SourcePath, ids: readonly string[]): SourcePath {
   if (ids.length === 0) {
     return source;
@@ -228,6 +260,103 @@ function samePoint(left: Vec2 | null, right: Vec2 | null): boolean {
     return false;
   }
   return left.x === right.x && left.y === right.y;
+}
+
+function insertOnSubpath(
+  subpath: Subpath,
+  segmentIndex: number,
+  t: number,
+): { readonly subpath: Subpath; readonly anchorId: string } | null {
+  const segment = subpath.segments[segmentIndex];
+  if (!segment) {
+    return null;
+  }
+  const fromIndex = subpath.anchors.findIndex((anchor) => anchor.id === segment.fromId);
+  const toIndex = subpath.anchors.findIndex((anchor) => anchor.id === segment.toId);
+  const from = fromIndex < 0 ? undefined : subpath.anchors[fromIndex];
+  const to = toIndex < 0 ? undefined : subpath.anchors[toIndex];
+  if (!from || !to || from.id === to.id) {
+    return null;
+  }
+  const split = segment.kind === 'line' ? splitLine(from, to, t) : splitCubic(from, to, t);
+  const anchorId = createId();
+  const anchors = subpath.anchors.slice();
+  anchors[fromIndex] = split.from;
+  anchors[toIndex] = split.to;
+  anchors.splice(fromIndex + 1, 0, {
+    id: anchorId,
+    position: split.position,
+    handleIn: split.handleIn,
+    handleOut: split.handleOut,
+  });
+  const segments = subpath.segments.slice();
+  segments.splice(
+    segmentIndex,
+    1,
+    { id: createId(), kind: segment.kind, fromId: from.id, toId: anchorId },
+    { id: createId(), kind: segment.kind, fromId: anchorId, toId: to.id },
+  );
+  return {
+    subpath: { ...subpath, anchors, segments },
+    anchorId,
+  };
+}
+
+function splitLine(
+  from: Anchor,
+  to: Anchor,
+  t: number,
+): {
+  readonly from: Anchor;
+  readonly to: Anchor;
+  readonly position: Vec2;
+  readonly handleIn: Vec2 | null;
+  readonly handleOut: Vec2 | null;
+} {
+  return {
+    from,
+    to,
+    position: lerp(from.position, to.position, t),
+    handleIn: null,
+    handleOut: null,
+  };
+}
+
+function splitCubic(
+  from: Anchor,
+  to: Anchor,
+  t: number,
+): {
+  readonly from: Anchor;
+  readonly to: Anchor;
+  readonly position: Vec2;
+  readonly handleIn: Vec2 | null;
+  readonly handleOut: Vec2 | null;
+} {
+  const p0 = from.position;
+  const p1 = from.handleOut ?? from.position;
+  const p2 = to.handleIn ?? to.position;
+  const p3 = to.position;
+  const p01 = lerp(p0, p1, t);
+  const p12 = lerp(p1, p2, t);
+  const p23 = lerp(p2, p3, t);
+  const p012 = lerp(p01, p12, t);
+  const p123 = lerp(p12, p23, t);
+  const position = lerp(p012, p123, t);
+  return {
+    from: { ...from, handleOut: p01 },
+    to: { ...to, handleIn: p23 },
+    position,
+    handleIn: p012,
+    handleOut: p123,
+  };
+}
+
+function lerp(start: Vec2, end: Vec2, t: number): Vec2 {
+  return {
+    x: start.x + (end.x - start.x) * t,
+    y: start.y + (end.y - start.y) * t,
+  };
 }
 
 function validPartial(position: Partial<Vec2>): boolean {

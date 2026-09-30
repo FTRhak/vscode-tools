@@ -81,6 +81,10 @@ export class KeymapService {
       return { type: 'object.duplicate', ids };
     }
 
+    if (!event.ctrlKey && !event.altKey && !event.metaKey && (key === '+' || key === '=')) {
+      return { type: 'session.setTool', tool: 'add-point' };
+    }
+
     if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
       return null;
     }

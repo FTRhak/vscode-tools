@@ -24,6 +24,7 @@ import { deleteLayer, deleteObjects } from './model/delete-objects';
 import { duplicateObjects } from './model/duplicate-objects';
 import {
   deleteAnchors,
+  insertPoint,
   setAnchorHandle,
   setAnchorPosition,
   translateAnchors,
@@ -127,6 +128,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       );
     case 'path.deleteAnchors':
       return applyDeleteAnchors(state, command);
+    case 'path.insertPoint':
+      return applyInsertPoint(state, command);
     case 'object.translate':
       return applyTranslate(state, command);
     case 'object.setTransform':
@@ -464,6 +467,36 @@ function applyDeleteAnchors(
   const selection = sameIds(state.selection.selectedAnchorIds, selectedAnchorIds)
     ? state.selection
     : { ...state.selection, selectedAnchorIds };
+  return { ...state, document, selection };
+}
+
+function applyInsertPoint(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'path.insertPoint' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const object = state.document.objects.find((item) => item.id === command.objectId);
+  if (!object || isInteractionLocked(state.document, object)) {
+    return state;
+  }
+  const inserted = insertPoint(object.source, command.segmentId, command.t);
+  if (!inserted) {
+    return state;
+  }
+  const document = mapObjects(state.document, [command.objectId], (item) => ({
+    ...item,
+    source: inserted.source,
+  }));
+  const selection =
+    state.selection.activeObjectId === command.objectId
+      ? {
+          ...state.selection,
+          selectedAnchorIds: [inserted.anchorId],
+          selectedSegmentIds: [],
+        }
+      : state.selection;
   return { ...state, document, selection };
 }
 

@@ -48,6 +48,7 @@ import {
   finishDirectDrag,
   updateDirectDrag,
 } from './tools/direct-select';
+import { addPointHitRadius, hitTestSegment } from './tools/add-point';
 import { PenDrag, penPreviewData, startPen, updatePenDrag } from './tools/pen';
 
 interface PanGesture {
@@ -95,6 +96,7 @@ const GESTURE_THRESHOLD_PX = 4;
     '[class.moving]': 'moving()',
     '[class.direct]': 'directCursor()',
     '[class.pen]': 'penTool()',
+    '[class.add-point]': 'addPointTool()',
     '(pointerdown)': 'onPointerDown($event)',
     '(pointermove)': 'onPointerMove($event)',
     '(pointerup)': 'onPointerUp($event)',
@@ -135,6 +137,7 @@ export class Viewport {
     () => this.editing() && this.session.tool() === 'direct-select',
   );
   protected readonly penTool = computed(() => this.session.tool() === 'pen');
+  protected readonly addPointTool = computed(() => this.session.tool() === 'add-point');
   private readonly penHover = signal<Vec2 | null>(null);
   private readonly penDragging = signal(false);
   protected readonly activeId = this.session.activeObjectId;
@@ -251,6 +254,10 @@ export class Viewport {
     }
     if (this.session.tool() === 'pen') {
       this.beginPen(event);
+      return;
+    }
+    if (this.session.tool() === 'add-point') {
+      this.beginAddPoint(event);
       return;
     }
     if (this.session.tool() === 'direct-select') {
@@ -804,6 +811,43 @@ export class Viewport {
     for (const command of finishDirectDrag(drag, { shiftKey: event.shiftKey, anchorIds })) {
       this.bus.dispatch(command);
     }
+  }
+
+  private beginAddPoint(event: PointerEvent): void {
+    this.host.nativeElement.focus();
+    const document = this.session.document();
+    const object = this.activeObject();
+    if (
+      !document ||
+      !object ||
+      this.session.mode() !== 'edit' ||
+      isInteractionLocked(document, object)
+    ) {
+      return;
+    }
+    const localPoint = documentToLocal(object.transform, this.pointerToDocument(event));
+    if (!localPoint) {
+      return;
+    }
+    const hit = hitTestSegment(
+      object.source,
+      localPoint,
+      addPointHitRadius(
+        this.session.viewport().zoom,
+        object.transform,
+        object.style.strokeWidth,
+        object.style.stroke !== null,
+      ),
+    );
+    if (!hit) {
+      return;
+    }
+    this.bus.dispatch({
+      type: 'path.insertPoint',
+      objectId: object.id,
+      segmentId: hit.segmentId,
+      t: hit.t,
+    });
   }
 
   private beginPen(event: PointerEvent): void {

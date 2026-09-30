@@ -17,7 +17,14 @@ export {
 } from './document-edits';
 export { deleteLayer, deleteObjects, deletableObjectIds } from './delete-objects';
 export { duplicateObjects, DUPLICATE_OFFSET } from './duplicate-objects';
-export { deleteAnchors, setAnchorHandle, setAnchorPosition, translateAnchors } from './edit-path';
+export {
+  deleteAnchors,
+  INSERT_POINT_MARGIN,
+  insertPoint,
+  setAnchorHandle,
+  setAnchorPosition,
+  translateAnchors,
+} from './edit-path';
 export {
   isInteractionLocked,
   layersFrontToBack,

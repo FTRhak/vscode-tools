@@ -12,7 +12,8 @@
 }
 
 :host.direct,
-:host.pen {
+:host.pen,
+:host.add-point {
   cursor: crosshair;
 }
 

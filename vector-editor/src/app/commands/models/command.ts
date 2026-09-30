@@ -5,7 +5,7 @@ export type ColorSlot = 'fill' | 'stroke';
 
 export type EditorMode = 'object' | 'edit';
 
-export type EditorTool = 'select' | 'direct-select' | 'pen';
+export type EditorTool = 'select' | 'direct-select' | 'pen' | 'add-point';
 
 export type SelectOperation = 'replace' | 'add' | 'toggle' | 'clear';
 
@@ -63,6 +63,12 @@ export type Command =
       readonly type: 'path.deleteAnchors';
       readonly objectId: string;
       readonly anchorIds: readonly string[];
+    }
+  | {
+      readonly type: 'path.insertPoint';
+      readonly objectId: string;
+      readonly segmentId: string;
+      readonly t: number;
     }
   | {
       readonly type: 'object.translate';

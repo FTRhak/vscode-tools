@@ -9,6 +9,8 @@ export {
   defaultDocumentWidth,
   DUPLICATE_OFFSET,
   deleteAnchors,
+  INSERT_POINT_MARGIN,
+  insertPoint,
   deleteLayer,
   deleteObjects,
   deletableObjectIds,

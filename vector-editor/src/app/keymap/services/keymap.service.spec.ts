@@ -229,6 +229,19 @@ describe('KeymapService', () => {
     viewport.remove();
   });
 
+  it('selects the add point tool from + and =', () => {
+    document.dispatchEvent(key('='));
+    expect(session.tool()).toBe('add-point');
+
+    bus.dispatch({ type: 'session.setTool', tool: 'select' });
+    document.dispatchEvent(key('+', { shiftKey: true }));
+    expect(session.tool()).toBe('add-point');
+
+    bus.dispatch({ type: 'session.setTool', tool: 'select' });
+    document.dispatchEvent(key('=', { ctrlKey: true }));
+    expect(session.tool()).toBe('select');
+  });
+
   it('does not duplicate when nothing is selected', () => {
     bus.dispatch({ type: 'document.new' });
 

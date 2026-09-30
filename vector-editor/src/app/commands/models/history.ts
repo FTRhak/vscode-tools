@@ -78,6 +78,8 @@ export function historyLabel(command: Command): string | null {
       return command.gesture ? 'Move handle' : 'Set handle';
     case 'path.deleteAnchors':
       return 'Delete anchors';
+    case 'path.insertPoint':
+      return 'Add point';
     case 'style.set':
       return styleLabel(command);
     case 'swatch.add':

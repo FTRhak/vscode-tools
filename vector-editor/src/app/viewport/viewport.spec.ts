@@ -287,6 +287,60 @@ describe('Viewport', () => {
     expect(moved.handleIn).toEqual(anchor.handleIn);
   });
 
+  it('adds a point on the active path in edit mode', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const object = session.document()!.objects[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.setTool', tool: 'add-point' });
+    await fixture.whenStable();
+    expect(canvas().classList.contains('add-point')).toBe(true);
+
+    pointer(canvas(), 'pointerdown', 687.75, 266.5);
+    pointer(canvas(), 'pointerup', 687.75, 266.5);
+    await fixture.whenStable();
+
+    const subpath = session.document()!.objects[0].source.subpaths[0];
+    const added = subpath.anchors.find((anchor) => anchor.id === session.selectedAnchorIds()[0]);
+    expect(subpath.anchors).toHaveLength(5);
+    expect(subpath.segments).toHaveLength(5);
+    expect(added?.position.x).toBeCloseTo(663.75, 0);
+    expect(added?.position.y).toBeCloseTo(242.5, 0);
+    expect(session.history().entries.at(-1)?.label).toBe('Add point');
+
+    bus.dispatch({ type: 'history.undo' });
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].source.subpaths[0].anchors).toHaveLength(4);
+  });
+
+  it('does not add a point outside edit mode, on an anchor, off the path, or when locked', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const object = session.document()!.objects[0];
+    bus.dispatch({ type: 'session.select', target: 'object', ids: [object.id], op: 'replace' });
+    bus.dispatch({ type: 'session.setTool', tool: 'add-point' });
+
+    pointer(canvas(), 'pointerdown', 687.75, 266.5);
+    pointer(canvas(), 'pointerup', 687.75, 266.5);
+    await fixture.whenStable();
+    expect(session.mode()).toBe('object');
+    expect(session.document()!.objects[0].source.subpaths[0].anchors).toHaveLength(4);
+
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    pointer(canvas(), 'pointerdown', 474, 274);
+    pointer(canvas(), 'pointerup', 474, 274);
+    pointer(canvas(), 'pointerdown', 40, 40);
+    pointer(canvas(), 'pointerup', 40, 40);
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].source.subpaths[0].anchors).toHaveLength(4);
+
+    bus.dispatch({ type: 'object.setFlags', ids: [object.id], locked: true });
+    pointer(canvas(), 'pointerdown', 687.75, 266.5);
+    pointer(canvas(), 'pointerup', 687.75, 266.5);
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].source.subpaths[0].anchors).toHaveLength(4);
+    expect(session.document()!.objects[0].locked).toBe(true);
+  });
+
   it('does not enter edit mode when direct select is used in object mode', async () => {
     vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
     const document = session.document();
