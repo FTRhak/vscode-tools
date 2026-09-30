@@ -1,5 +1,10 @@
 export { createId } from './create-id';
-export { createNewDocument } from './create-document';
+export {
+  createNewDocument,
+  defaultDocumentHeight,
+  defaultDocumentWidth,
+} from './create-document';
+export type { DocumentSize } from './create-document';
 export {
   addLayer,
   addSwatch,

@@ -46,6 +46,12 @@ describe('CommandBus', () => {
     expect(session.tool()).toBe('pen');
   });
 
+  it('creates a document with the requested view size', () => {
+    bus.dispatch({ type: 'document.new', width: 640, height: 480 });
+
+    expect(session.document()?.viewBox).toEqual({ x: 0, y: 0, width: 640, height: 480 });
+  });
+
   it('replaces the document as one Open step and restores the previous session', () => {
     bus.dispatch({ type: 'document.new' });
     const original = session.document();

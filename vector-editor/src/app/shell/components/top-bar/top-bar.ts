@@ -38,8 +38,7 @@ export class TopBar {
   }
 
   protected newDocument(): void {
-    this.files.clearStatus();
-    this.bus.dispatch({ type: 'document.new' });
+    this.files.requestNew();
   }
 
   protected openFile(): void {

@@ -9,6 +9,7 @@ import { PanelPreviewModule } from '@vector-editor/panels/preview';
 import { SwatchesPanel } from '@vector-editor/panels/swatches';
 import { ToolsPanel } from '@vector-editor/panels/tools';
 import { Viewport } from '@vector-editor/viewport';
+import { NewDocumentDialog } from '../new-document-dialog/new-document-dialog';
 import { SaveDialog } from '../save-dialog/save-dialog';
 import { ToolRail } from '../tool-rail/tool-rail';
 import { TopBar } from '../top-bar/top-bar';
@@ -18,6 +19,7 @@ import { TopBar } from '../top-bar/top-bar';
   imports: [
     TopBar,
     ToolRail,
+    NewDocumentDialog,
     SaveDialog,
     Viewport,
     OutlinerPanel,

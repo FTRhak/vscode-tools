@@ -74,7 +74,7 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
     case 'document.new':
       return {
         ...state,
-        document: createNewDocument(),
+        document: createNewDocument({ width: command.width, height: command.height }),
         selection: emptySelection,
         penObjectId: null,
       };

@@ -16,7 +16,17 @@ const testStyle: Style = {
   fillRule: 'nonzero',
 };
 
-export function createNewDocument(): Document {
+export const defaultDocumentWidth = 1200;
+export const defaultDocumentHeight = 800;
+
+export interface DocumentSize {
+  readonly width?: number;
+  readonly height?: number;
+}
+
+export function createNewDocument(size: DocumentSize = {}): Document {
+  const width = positiveSize(size.width, defaultDocumentWidth);
+  const height = positiveSize(size.height, defaultDocumentHeight);
   const layerId = createId();
   const anchors = [
     anchor(point(450, 250), point(350, 180), point(550, 180)),
@@ -28,7 +38,7 @@ export function createNewDocument(): Document {
   return {
     id: createId(),
     name: 'Untitled',
-    viewBox: { x: 0, y: 0, width: 1200, height: 800 },
+    viewBox: { x: 0, y: 0, width, height },
     layers: [
       {
         id: layerId,
@@ -66,6 +76,10 @@ export function createNewDocument(): Document {
     ],
     swatches: [],
   };
+}
+
+function positiveSize(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
 function point(x: number, y: number): Vec2 {

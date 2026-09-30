@@ -1,0 +1,56 @@
+@if (open()) {
+  <div class="backdrop" (click)="cancel()">
+    <div
+      class="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="new-document-title"
+      cdkTrapFocus
+      cdkTrapFocusAutoCapture
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="cancel()"
+    >
+      <form (submit)="$event.preventDefault(); confirm()">
+        <h2 id="new-document-title">New document</h2>
+        <div class="fields">
+          <div class="field">
+            <label for="document-width">Width</label>
+            <input
+              id="document-width"
+              type="number"
+              inputmode="decimal"
+              step="any"
+              autocomplete="off"
+              [formField]="sizeForm.width"
+              [attr.aria-invalid]="fieldError('width') !== null"
+              [attr.aria-describedby]="fieldError('width') ? 'document-width-error' : null"
+            />
+            @if (fieldError('width'); as message) {
+              <p id="document-width-error" class="error" role="alert">{{ message }}</p>
+            }
+          </div>
+          <div class="field">
+            <label for="document-height">Height</label>
+            <input
+              id="document-height"
+              type="number"
+              inputmode="decimal"
+              step="any"
+              autocomplete="off"
+              [formField]="sizeForm.height"
+              [attr.aria-invalid]="fieldError('height') !== null"
+              [attr.aria-describedby]="fieldError('height') ? 'document-height-error' : null"
+            />
+            @if (fieldError('height'); as message) {
+              <p id="document-height-error" class="error" role="alert">{{ message }}</p>
+            }
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="chrome-button" (click)="cancel()">Cancel</button>
+          <button type="submit" class="chrome-button">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

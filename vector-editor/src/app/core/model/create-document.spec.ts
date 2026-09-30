@@ -38,4 +38,19 @@ describe('createNewDocument', () => {
   it('assigns a new document id on each call', () => {
     expect(createNewDocument().id).not.toBe(createNewDocument().id);
   });
+
+  it('uses the requested view size and falls back when a size is not positive', () => {
+    expect(createNewDocument({ width: 640, height: 480 }).viewBox).toEqual({
+      x: 0,
+      y: 0,
+      width: 640,
+      height: 480,
+    });
+    expect(createNewDocument({ width: 0, height: -20 }).viewBox).toEqual({
+      x: 0,
+      y: 0,
+      width: 1200,
+      height: 800,
+    });
+  });
 });

@@ -13,6 +13,7 @@ export class FileActions {
   private requestId = 0;
 
   readonly saveDialogOpen = signal(false);
+  readonly newDialogOpen = signal(false);
   readonly status = signal<string | null>(null);
 
   constructor() {
@@ -45,7 +46,7 @@ export class FileActions {
 
   cancelSave(): void {
     this.saveDialogOpen.set(false);
-    this.restoreFocus();
+    this.restoreFocus('[data-file-save]');
   }
 
   confirmSave(mode: SaveMode): void {
@@ -54,7 +55,23 @@ export class FileActions {
     if (current) {
       downloadSvg(this.documentRef, exportSvg(current, mode), fileName(current.name));
     }
-    this.restoreFocus();
+    this.restoreFocus('[data-file-save]');
+  }
+
+  requestNew(): void {
+    this.status.set(null);
+    this.newDialogOpen.set(true);
+  }
+
+  cancelNew(): void {
+    this.newDialogOpen.set(false);
+    this.restoreFocus('[data-file-new]');
+  }
+
+  confirmNew(width: number, height: number): void {
+    this.newDialogOpen.set(false);
+    this.bus.dispatch({ type: 'document.new', width, height });
+    this.restoreFocus('[data-file-new]');
   }
 
   clearStatus(): void {
@@ -84,8 +101,8 @@ export class FileActions {
     this.status.set(result.skipped > 0 ? `Skipped ${result.skipped} nodes.` : null);
   }
 
-  private restoreFocus(): void {
-    const button = this.documentRef.querySelector('[data-file-save]');
+  private restoreFocus(selector: string): void {
+    const button = this.documentRef.querySelector(selector);
     if (button instanceof HTMLElement) {
       button.focus();
     }

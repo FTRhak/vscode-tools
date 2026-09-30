@@ -4,6 +4,8 @@ export {
   applySwatch,
   createId,
   createNewDocument,
+  defaultDocumentHeight,
+  defaultDocumentWidth,
   DUPLICATE_OFFSET,
   deleteAnchors,
   duplicateObjects,
@@ -23,6 +25,7 @@ export {
 export type {
   Anchor,
   Document,
+  DocumentSize,
   Layer,
   Modifier,
   ObjectTransform,

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SessionService } from '@vector-editor/core';
 import { EditorPage } from './editor-page';
 
 describe('EditorPage', () => {
@@ -26,6 +27,13 @@ describe('EditorPage', () => {
       throw new Error('Canvas is missing');
     }
     return element;
+  }
+
+  async function createDocument(): Promise<void> {
+    buttonByText('New').click();
+    await fixture.whenStable();
+    buttonByText('Create').click();
+    await fixture.whenStable();
   }
 
   function buttonByText(label: string): HTMLButtonElement {
@@ -178,8 +186,7 @@ describe('EditorPage', () => {
     expect(buttonByText('Undo').disabled).toBe(true);
     expect(buttonByText('Redo').disabled).toBe(true);
 
-    buttonByText('New').click();
-    await fixture.whenStable();
+    await createDocument();
 
     expect(canvas().querySelector('.artboard')).not.toBeNull();
     expect(canvas().querySelector('path')?.getAttribute('d')).toContain('C ');
@@ -189,9 +196,52 @@ describe('EditorPage', () => {
     expect(buttonByText('Redo').disabled).toBe(true);
   });
 
-  it('opens the save dialog and closes it without writing', async () => {
+  it('asks for a size and creates that view box', async () => {
     buttonByText('New').click();
     await fixture.whenStable();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain('Width');
+    expect(dialog?.textContent).toContain('Height');
+    const width = dialog?.querySelector('#document-width');
+    const height = dialog?.querySelector('#document-height');
+    if (!(width instanceof HTMLInputElement) || !(height instanceof HTMLInputElement)) {
+      throw new Error('Size fields are missing');
+    }
+    expect(width.value).toBe('1200');
+    expect(height.value).toBe('800');
+
+    width.value = '640';
+    width.dispatchEvent(new Event('input', { bubbles: true }));
+    height.value = '480';
+    height.dispatchEvent(new Event('input', { bubbles: true }));
+    buttonByText('Create').click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(TestBed.inject(SessionService).document()?.viewBox).toEqual({
+      x: 0,
+      y: 0,
+      width: 640,
+      height: 480,
+    });
+    expect(document.activeElement).toBe(buttonByText('New'));
+  });
+
+  it('closes the new document dialog without creating', async () => {
+    buttonByText('New').click();
+    await fixture.whenStable();
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
+    dialog?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(canvas().querySelector('.artboard')).toBeNull();
+    expect(document.activeElement).toBe(buttonByText('New'));
+  });
+
+  it('opens the save dialog and closes it without writing', async () => {
+    await createDocument();
     buttonByText('Save').click();
     await fixture.whenStable();
 
@@ -212,8 +262,7 @@ describe('EditorPage', () => {
   });
 
   it('paints fill and stroke on the canvas and in preview', async () => {
-    buttonByText('New').click();
-    await fixture.whenStable();
+    await createDocument();
     objectName('Path')
       .closest('[role="treeitem"]')
       ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -246,8 +295,7 @@ describe('EditorPage', () => {
   });
 
   it('adds, renames, and reorders a layer, then hides the object', async () => {
-    buttonByText('New').click();
-    await fixture.whenStable();
+    await createDocument();
 
     buttonByText('Add layer').click();
     await fixture.whenStable();

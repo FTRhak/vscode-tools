@@ -21,7 +21,7 @@ export type Command =
   | { readonly type: 'session.setMode'; readonly mode: EditorMode }
   | { readonly type: 'session.setTool'; readonly tool: EditorTool }
   | { readonly type: 'session.setEditSelectionKind'; readonly kind: EditSelectionKind }
-  | { readonly type: 'document.new' }
+  | { readonly type: 'document.new'; readonly width?: number; readonly height?: number }
   | { readonly type: 'document.replace'; readonly document: Document }
   | {
       readonly type: 'session.setViewport';
