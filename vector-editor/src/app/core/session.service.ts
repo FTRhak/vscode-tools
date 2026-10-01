@@ -17,8 +17,10 @@ import {
   addSwatch,
   applySwatch,
   createGradient,
+  deleteGradient,
   reorderLayer,
   setObjectStyle,
+  updateGradient,
   updateLayer,
 } from './model/document-edits';
 import { deleteLayer, deleteObjects } from './model/delete-objects';
@@ -167,6 +169,10 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
           command.objectIds,
         ),
       );
+    case 'gradient.update':
+      return applyDocument(state, (document) => updateGradient(document, command.id, command.gradient));
+    case 'gradient.delete':
+      return applyDocument(state, (document) => deleteGradient(document, command.id));
     case 'swatch.add':
       return applyDocument(state, (document) => addSwatch(document, command.name, command.color));
     case 'swatch.apply':

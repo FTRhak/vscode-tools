@@ -561,9 +561,71 @@ describe('CommandBus', () => {
     expect(document.objects[0].style.stroke).toBe(`url(#${gradient.id})`);
     expect(session.history().entries.at(-1)?.label).toBe('Create gradient');
 
+    bus.dispatch({ type: 'gradient.delete', id: gradient.id });
+    expect(session.document()!.gradients).toEqual([]);
+    expect(session.document()!.objects[0].style.stroke).toBeNull();
+    expect(session.history().entries.at(-1)?.label).toBe('Delete gradient');
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.gradients).toEqual([gradient]);
+    expect(session.document()!.objects[0].style.stroke).toBe(`url(#${gradient.id})`);
+
     bus.dispatch({ type: 'history.undo' });
     expect(session.document()!.gradients).toEqual([]);
     expect(session.document()!.objects[0].style.stroke).not.toContain('url(#');
+  });
+
+  it('updates an existing gradient definition in place', () => {
+    bus.dispatch({ type: 'document.new' });
+    const objectId = session.document()!.objects[0].id;
+
+    bus.dispatch({
+      type: 'gradient.create',
+      gradient: {
+        name: 'Sunset',
+        type: 'linear',
+        angle: 0,
+        proportions: 1,
+        stops: [
+          { id: 'stop-a', offset: 0, color: '#FF0000', opacity: 1 },
+          { id: 'stop-b', offset: 1, color: '#0000FF', opacity: 1 },
+        ],
+      },
+      target: 'fill',
+      objectIds: [objectId],
+    });
+
+    const gradient = session.document()!.gradients[0];
+    expect(session.document()!.objects[0].style.fill).toBe(`url(#${gradient.id})`);
+
+    bus.dispatch({
+      type: 'gradient.update',
+      id: gradient.id,
+      gradient: {
+        name: 'Sunrise',
+        type: 'radial',
+        angle: 180,
+        proportions: 1.8,
+        stops: [
+          { id: 'stop-a', offset: 0, color: '#00FF00', opacity: 0.2 },
+          { id: 'stop-b', offset: 1, color: '#FFA500', opacity: 0.9 },
+        ],
+      },
+    });
+
+    expect(session.document()!.gradients[0]).toMatchObject({
+      id: gradient.id,
+      name: 'Sunrise',
+      type: 'radial',
+      angle: 180,
+      proportions: 1.8,
+      stops: [
+        { color: '#00ff00', opacity: 0.2 },
+        { color: '#ffa500', opacity: 0.9 },
+      ],
+    });
+    expect(session.document()!.objects[0].style.fill).toBe(`url(#${gradient.id})`);
+    expect(session.history().entries.at(-1)?.label).toBe('Update gradient');
   });
 
   it('deletes a layer with its objects and leaves a locked layer in place', () => {

@@ -81,6 +81,84 @@ export function createGradient(
   });
 }
 
+export function updateGradient(
+  document: Document,
+  id: string,
+  patch: Partial<Omit<Gradient, 'id'>>,
+): Document {
+  const index = document.gradients.findIndex((gradient) => gradient.id === id);
+  if (index < 0) {
+    return document;
+  }
+
+  const current = document.gradients[index];
+  const nextDefinition: Omit<Gradient, 'id'> = {
+    name: patch.name ?? current.name,
+    type: patch.type ?? current.type,
+    angle: patch.angle ?? current.angle,
+    proportions: patch.proportions ?? current.proportions,
+    stops: patch.stops ?? current.stops,
+  };
+
+  const name = nextDefinition.name.trim();
+  const stops = nextDefinition.stops.map((stop) => ({
+    ...stop,
+    color: normalizeColor(stop.color),
+  }));
+
+  if (
+    !name ||
+    stops.length < 2 ||
+    stops.some(
+      (stop) =>
+        typeof stop.color !== 'string' ||
+        !Number.isFinite(stop.offset) ||
+        stop.offset < 0 ||
+        stop.offset > 1 ||
+        !Number.isFinite(stop.opacity) ||
+        stop.opacity < 0 ||
+        stop.opacity > 1,
+    ) ||
+    !Number.isFinite(nextDefinition.angle) ||
+    !Number.isFinite(nextDefinition.proportions) ||
+    nextDefinition.proportions <= 0
+  ) {
+    return document;
+  }
+
+  const updated: Gradient = {
+    ...current,
+    ...nextDefinition,
+    name,
+    stops: stops.map((stop) => ({
+      ...stop,
+      color: stop.color as string,
+    })),
+  };
+
+  const gradients = document.gradients.map((gradient) => (gradient.id === id ? updated : gradient));
+  return { ...document, gradients };
+}
+
+export function deleteGradient(document: Document, id: string): Document {
+  if (!document.gradients.some((gradient) => gradient.id === id)) {
+    return document;
+  }
+  const reference = `url(#${id})`;
+  const objects = document.objects.map((object) => {
+    const fill = object.style.fill === reference ? null : object.style.fill;
+    const stroke = object.style.stroke === reference ? null : object.style.stroke;
+    return fill === object.style.fill && stroke === object.style.stroke
+      ? object
+      : { ...object, style: { ...object.style, fill, stroke } };
+  });
+  return {
+    ...document,
+    gradients: document.gradients.filter((gradient) => gradient.id !== id),
+    objects,
+  };
+}
+
 export function nextSeriesName(names: readonly string[], base: string): string {
   const taken = new Set(names);
   if (!taken.has(base)) {

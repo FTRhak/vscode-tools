@@ -1,7 +1,7 @@
 <button
   type="button"
   class="chrome-button gradient-launch"
-  [disabled]="selectedObjects().length === 0"
+  [disabled]="!hasDocument()"
   (click)="openEditor()"
 >
   Gradients
@@ -27,22 +27,46 @@
       </header>
 
       <div class="gradient-library" aria-label="Saved gradients">
+        <button
+          type="button"
+          class="gradient-entry create-gradient"
+          [class.selected]="selectedGradientId() === null"
+          [attr.aria-pressed]="selectedGradientId() === null"
+          (click)="startNewGradient()"
+        >
+          <span class="gradient-option create-option">
+            <span class="gradient-swatch gradient-swatch--new"></span>
+            <span>New gradient</span>
+          </span>
+        </button>
+
         @for (gradient of gradients(); track gradient.id) {
-          <button
-            type="button"
-            class="gradient-option"
-            [attr.aria-label]="'Apply ' + gradient.name + ' gradient to ' + colorTarget.slot()"
-            (click)="applyGradient(gradient.id)"
-          >
-            <span class="gradient-swatch" [style.background]="gradientBackground(gradient)"></span>
-            <span>{{ gradient.name }}</span>
-          </button>
+          <div class="gradient-entry" [class.selected]="selectedGradientId() === gradient.id">
+            <button
+              type="button"
+              class="gradient-option"
+              [attr.aria-label]="'Select ' + gradient.name + ' gradient'"
+              [attr.aria-pressed]="selectedGradientId() === gradient.id"
+              (click)="selectGradient(gradient.id)"
+            >
+              <span class="gradient-swatch" [style.background]="gradientBackground(gradient)"></span>
+              <span>{{ gradient.name }}</span>
+            </button>
+            <button
+              type="button"
+              class="remove-stop"
+              [attr.aria-label]="'Delete ' + gradient.name + ' gradient'"
+              (click)="deleteGradient(gradient.id)"
+            >
+              <i class="icon">&#xe100;</i>
+            </button>
+          </div>
         } @empty {
           <span class="empty-library">No saved gradients</span>
         }
       </div>
 
-      <form class="gradient-form" (submit)="$event.preventDefault(); createGradient()">
+      <form class="gradient-form" (submit)="$event.preventDefault(); saveGradient()">
         <label class="name-field">
           Name
           <input type="text" [value]="name()" (input)="updateName($event)" />
@@ -109,7 +133,7 @@
                 [attr.aria-label]="'Remove color stop ' + (index + 1)"
                 (click)="removeStop(stop.id)"
               >
-                Remove
+                <i class="icon">&#xe0e7;</i>
               </button>
             </div>
           }
@@ -117,7 +141,13 @@
 
         <footer class="actions">
           <button type="button" class="chrome-button" (click)="closeEditor()">Cancel</button>
-          <button type="submit" class="chrome-button primary">Create and apply</button>
+          <button
+            type="submit"
+            class="chrome-button primary"
+            [disabled]="selectedGradientId() === null && selectedObjects().length === 0"
+          >
+            {{ selectedGradientId() === null ? 'Create and apply' : 'Save changes' }}
+          </button>
         </footer>
       </form>
     </section>

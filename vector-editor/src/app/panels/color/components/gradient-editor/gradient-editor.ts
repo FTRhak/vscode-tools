@@ -25,6 +25,7 @@ export class GradientEditor {
   protected readonly colorTarget = inject(ColorTarget);
 
   protected readonly open = signal(false);
+  protected readonly hasDocument = computed(() => this.session.document() !== null);
   protected readonly gradients = computed(() => this.session.document()?.gradients ?? []);
   protected readonly selectedObjects = computed(() => {
     const document = this.session.document();
@@ -34,6 +35,7 @@ export class GradientEditor {
     const selected = new Set(this.session.selectedObjectIds());
     return document.objects.filter((object) => selected.has(object.id));
   });
+  protected readonly selectedGradientId = signal<string | null>(null);
   protected readonly name = signal('Gradient');
   protected readonly type = signal<GradientType>('linear');
   protected readonly angle = signal(0);
@@ -54,12 +56,48 @@ export class GradientEditor {
     })),
   }));
 
+  private resetDraft(): void {
+    this.name.set('Gradient');
+    this.type.set('linear');
+    this.angle.set(0);
+    this.proportions.set(1);
+    this.stops.set([
+      { id: createId(), offset: 0, color: '#f0523a', opacity: 1 },
+      { id: createId(), offset: 1, color: '#3974d5', opacity: 1 },
+    ]);
+  }
+
   protected openEditor(): void {
     this.open.set(true);
   }
 
   protected closeEditor(): void {
     this.open.set(false);
+    this.selectedGradientId.set(null);
+    this.resetDraft();
+  }
+
+  protected startNewGradient(): void {
+    this.selectedGradientId.set(null);
+    this.resetDraft();
+  }
+
+  protected selectGradient(id: string): void {
+    const gradient = this.gradients().find((item) => item.id === id);
+    if (!gradient) {
+      return;
+    }
+    this.selectedGradientId.set(id);
+    this.name.set(gradient.name);
+    this.type.set(gradient.type);
+    this.angle.set(gradient.angle);
+    this.proportions.set(gradient.proportions);
+    this.stops.set(
+      gradient.stops.map((stop) => ({
+        ...stop,
+        id: stop.id || createId(),
+      })),
+    );
   }
 
   protected stopBackdrop(event: Event): void {
@@ -148,26 +186,50 @@ export class GradientEditor {
     this.closeEditor();
   }
 
-  protected createGradient(): void {
-    const objects = this.selectedObjects();
+  protected deleteGradient(id: string): void {
+    this.bus.dispatch({ type: 'gradient.delete', id });
+    if (this.selectedGradientId() === id) {
+      this.selectedGradientId.set(null);
+      this.resetDraft();
+    }
+  }
+
+  protected saveGradient(): void {
     const stops = this.stops();
+    const payload = {
+      name: this.name().trim() || 'Gradient',
+      type: this.type(),
+      angle: this.angle(),
+      proportions: this.proportions(),
+      stops: stops.map((stop, index) => ({
+        ...stop,
+        offset: index / (stops.length - 1),
+      })),
+    };
+
+    const activeId = this.selectedGradientId();
+    if (activeId) {
+      this.bus.dispatch({
+        type: 'gradient.update',
+        id: activeId,
+        gradient: payload,
+      });
+      this.closeEditor();
+      return;
+    }
+
+    const objects = this.selectedObjects();
     if (objects.length === 0 || stops.length < 2) {
       return;
     }
     this.bus.dispatch({
       type: 'gradient.create',
       gradient: {
+        ...payload,
         name: nextSeriesName(
           this.gradients().map((gradient) => gradient.name),
-          this.name().trim() || 'Gradient',
+          payload.name,
         ),
-        type: this.type(),
-        angle: this.angle(),
-        proportions: this.proportions(),
-        stops: stops.map((stop, index) => ({
-          ...stop,
-          offset: index / (stops.length - 1),
-        })),
       },
       target: this.colorTarget.slot(),
       objectIds: objects.map((object) => object.id),

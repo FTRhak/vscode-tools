@@ -55,11 +55,26 @@ h3 {
   overflow-y: auto;
 }
 
+.gradient-entry {
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.gradient-entry.selected .gradient-option,
+.gradient-entry.create-gradient.selected .gradient-option {
+  border-color: var(--accent);
+  background: rgb(127 201 255 / 12%);
+}
+
 .gradient-option {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   min-width: 0;
+  flex: 1;
   max-width: 100%;
   min-height: 2rem;
   padding: 0.25rem 0.4rem;
@@ -83,6 +98,10 @@ h3 {
   flex: none;
   border: 1px solid var(--line);
   border-radius: 2px;
+}
+
+.gradient-swatch--new {
+  background: linear-gradient(135deg, #dfefff, #7aa6ff);
 }
 
 .empty-library {

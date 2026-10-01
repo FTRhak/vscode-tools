@@ -126,6 +126,12 @@ export type Command =
       readonly target: ColorSlot;
       readonly objectIds: readonly string[];
     }
+  | {
+      readonly type: 'gradient.update';
+      readonly id: string;
+      readonly gradient: Partial<Omit<Gradient, 'id'>>;
+    }
+  | { readonly type: 'gradient.delete'; readonly id: string }
   | { readonly type: 'swatch.add'; readonly name: string; readonly color: string }
   | {
       readonly type: 'swatch.apply';
