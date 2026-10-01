@@ -33,7 +33,6 @@ const skippedTags = new Set([
   'use',
   'foreignObject',
   'linearGradient',
-  'radialGradient',
   'filter',
   'clipPath',
   'mask',
@@ -82,6 +81,7 @@ export function importSvg(markup: string): SvgImportResult {
 
   const used = new Set<string>();
   const meta = readDocumentMeta(svg, used);
+  const gradients = readGradients(svg, used);
   const layers: LayerDraft[] = [];
   const operandLinks: OperandLink[] = [];
   let loose: LayerDraft | null = null;
@@ -209,6 +209,7 @@ export function importSvg(markup: string): SvgImportResult {
         operandLinks,
       ),
       swatches: meta.swatches,
+      gradients,
     },
   };
 }
@@ -235,6 +236,9 @@ function countSkipped(element: Element): number {
   for (const child of element.children) {
     const name = child.localName;
     if (ignoredTags.has(name) || shapeTags.has(name)) {
+      continue;
+    }
+    if (name === 'linearGradient' || name === 'radialGradient') {
       continue;
     }
     if (skippedTags.has(name)) {
@@ -614,6 +618,73 @@ function readSwatches(value: unknown, used: Set<string>): Swatch[] {
   });
 }
 
+function readGradients(svg: Element, used: Set<string>): Document['gradients'] {
+  const elements = [
+    ...svg.getElementsByTagName('linearGradient'),
+    ...svg.getElementsByTagName('radialGradient'),
+  ];
+  return elements.flatMap((element) => {
+    const stopElements = [...element.getElementsByTagName('stop')];
+    const stops = stopElements.flatMap((stop, index) => {
+      const color = stopColor(stop);
+      if (!color) {
+        return [];
+      }
+      const rawOffset =
+        stop.getAttribute('offset') ?? `${index / Math.max(1, stopElements.length - 1)}`;
+      const offset = rawOffset.trim().endsWith('%')
+        ? Number.parseFloat(rawOffset) / 100
+        : Number.parseFloat(rawOffset);
+      const style = parseStyleAttribute(stop.getAttribute('style'));
+      const opacity = Number.parseFloat(
+        style['stop-opacity'] ?? stop.getAttribute('stop-opacity') ?? '1',
+      );
+      return [
+        {
+          id: claimId(stop.getAttribute('data-vector-editor-stop'), used),
+          offset: Number.isFinite(offset) ? Math.min(1, Math.max(0, offset)) : 0,
+          color,
+          opacity: Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 1,
+        },
+      ];
+    });
+    if (stops.length < 2) {
+      return [];
+    }
+    const id = claimId(element.getAttribute('id'), used);
+    const transform = element.getAttribute('gradientTransform') ?? '';
+    const angle = Number.parseFloat(/rotate\(\s*(-?[\d.]+)/.exec(transform)?.[1] ?? '0');
+    const scale = /scale\(\s*([\d.]+)(?:\s+([\d.]+))?/.exec(transform);
+    const proportions = scale?.[1] ?? '1';
+    return [
+      {
+        id,
+        name: element.getAttribute('data-vector-editor-name') || 'Gradient',
+        type: element.localName === 'radialGradient' ? 'radial' : 'linear',
+        angle: Number.isFinite(angle) ? angle : 0,
+        proportions: Number.isFinite(Number(proportions)) && Number(proportions) > 0
+          ? Number(proportions)
+          : 1,
+        stops,
+      },
+    ];
+  });
+}
+
+function stopColor(stop: Element | undefined): string | null {
+  if (!stop) {
+    return null;
+  }
+  const style = parseStyleAttribute(stop.getAttribute('style'));
+  const value = (style['stop-color'] ?? stop.getAttribute('stop-color') ?? '').trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(value)) {
+    return value;
+  }
+  return /^#[0-9a-f]{3}$/.test(value)
+    ? `#${[...value.slice(1)].map((character) => `${character}${character}`).join('')}`
+    : null;
+}
+
 function readStyle(element: Element, inherited: Style): Style {
   const inline = parseStyleAttribute(element.getAttribute('style'));
   const fill = paintValue(inline['fill'] ?? attributeValue(element, 'fill'), inherited.fill);
@@ -644,12 +715,13 @@ function paintValue(value: string | undefined, fallback: string | null): string 
     return fallback;
   }
   const trimmed = value.trim();
-  if (
-    trimmed === '' ||
-    trimmed === 'none' ||
-    trimmed === 'transparent' ||
-    /^url\(/i.test(trimmed)
-  ) {
+  if (trimmed === '' || trimmed === 'none' || trimmed === 'transparent') {
+    return null;
+  }
+  if (/^url\(#[a-z0-9_-]+\)$/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (/^url\(/i.test(trimmed)) {
     return null;
   }
   if (trimmed.toLowerCase() === 'currentcolor') {

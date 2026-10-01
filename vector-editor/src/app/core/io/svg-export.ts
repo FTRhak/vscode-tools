@@ -12,6 +12,26 @@ export function exportSvg(document: Document, mode: SaveMode): string {
   const geometry = new Map(evaluateDocument(document.objects).map((item) => [item.objectId, item]));
   const order = exportedObjects(document);
   const lines = [svgOpen(document, mode)];
+  if (document.gradients.length > 0) {
+    lines.push('  <defs>');
+    for (const gradient of document.gradients) {
+      const transform =
+        gradient.type === 'linear'
+          ? `rotate(${formatNumber(gradient.angle)} 0.5 0.5) scale(${formatNumber(gradient.proportions)} 1)`
+          : `translate(0.5 0.5) scale(${formatNumber(gradient.proportions)} 1) translate(-0.5 -0.5)`;
+      const tag = gradient.type === 'linear' ? 'linearGradient' : 'radialGradient';
+      lines.push(
+        `    <${tag} id="${escapeXml(gradient.id)}" data-vector-editor-name="${escapeXml(gradient.name)}" gradientUnits="objectBoundingBox" gradientTransform="${transform}">`,
+      );
+      for (const stop of gradient.stops) {
+        lines.push(
+          `      <stop data-vector-editor-stop="${escapeXml(stop.id)}" offset="${formatNumber(stop.offset * 100)}%" stop-color="${escapeXml(stop.color)}" stop-opacity="${formatNumber(stop.opacity)}" />`,
+        );
+      }
+      lines.push(`    </${tag}>`);
+    }
+    lines.push('  </defs>');
+  }
   if (mode === 'minimal') {
     for (const object of objectsInPaintOrder(document)) {
       lines.push(`  ${pathTag(object, mode, geometry.get(object.id), order)}`);

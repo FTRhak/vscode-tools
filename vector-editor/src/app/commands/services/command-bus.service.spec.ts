@@ -524,6 +524,48 @@ describe('CommandBus', () => {
     expect(session.history().entries.at(-1)?.label).toBe('Reorder layer');
   });
 
+  it('creates and assigns a gradient as one undoable command', () => {
+    bus.dispatch({ type: 'document.new' });
+    const objectId = session.document()!.objects[0].id;
+
+    bus.dispatch({
+      type: 'gradient.create',
+      gradient: {
+        name: 'Sunset',
+        type: 'linear',
+        angle: 135,
+        proportions: 1.2,
+        stops: [
+          { id: 'stop-a', offset: 0, color: '#FF0000', opacity: 1 },
+          { id: 'stop-b', offset: 0.5, color: '#00FF00', opacity: 0.5 },
+          { id: 'stop-c', offset: 1, color: '#0000FF', opacity: 0.8 },
+        ],
+      },
+      target: 'stroke',
+      objectIds: [objectId],
+    });
+
+    const document = session.document()!;
+    const gradient = document.gradients[0];
+    expect(gradient).toMatchObject({
+      name: 'Sunset',
+      type: 'linear',
+      angle: 135,
+      proportions: 1.2,
+      stops: [
+        { color: '#ff0000', opacity: 1 },
+        { color: '#00ff00', opacity: 0.5 },
+        { color: '#0000ff', opacity: 0.8 },
+      ],
+    });
+    expect(document.objects[0].style.stroke).toBe(`url(#${gradient.id})`);
+    expect(session.history().entries.at(-1)?.label).toBe('Create gradient');
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.gradients).toEqual([]);
+    expect(session.document()!.objects[0].style.stroke).not.toContain('url(#');
+  });
+
   it('deletes a layer with its objects and leaves a locked layer in place', () => {
     bus.dispatch({ type: 'document.new' });
     const backId = session.document()!.layers[0].id;

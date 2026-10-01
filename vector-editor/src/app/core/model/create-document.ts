@@ -77,6 +77,7 @@ export function createNewDocument(size: DocumentSize = {}): Document {
       },
     ],
     swatches: [],
+    gradients: [],
   };
 }
 

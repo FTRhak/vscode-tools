@@ -16,6 +16,7 @@ import {
   addPath,
   addSwatch,
   applySwatch,
+  createGradient,
   reorderLayer,
   setObjectStyle,
   updateLayer,
@@ -156,6 +157,15 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
           stroke: command.stroke,
           strokeWidth: command.strokeWidth,
         }),
+      );
+    case 'gradient.create':
+      return applyDocument(state, (document) =>
+        createGradient(
+          document,
+          command.gradient,
+          command.target,
+          command.objectIds,
+        ),
       );
     case 'swatch.add':
       return applyDocument(state, (document) => addSwatch(document, command.name, command.color));

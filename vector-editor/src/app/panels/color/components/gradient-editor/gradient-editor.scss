@@ -1,0 +1,294 @@
+.gradient-launch {
+  width: 100%;
+  margin-top: 0.45rem;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 56%);
+}
+
+.dialog {
+  display: grid;
+  gap: 0.8rem;
+  width: min(34rem, 100%);
+  max-height: min(92vh, 48rem);
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--chrome);
+  color: var(--chrome-text);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 32%);
+}
+
+.dialog-header,
+.stops-heading,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+h2,
+h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 0.85rem;
+}
+
+.gradient-library {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  max-height: 6rem;
+  overflow-y: auto;
+}
+
+.gradient-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--chrome-button);
+  color: var(--chrome-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.gradient-option span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gradient-swatch {
+  width: 2.2rem;
+  height: 1rem;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.empty-library {
+  color: var(--chrome-muted);
+  font-size: 0.85rem;
+}
+
+.gradient-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.7fr);
+  align-items: end;
+  gap: 0.7rem;
+}
+
+.gradient-form > label,
+.name-field,
+.type-field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  margin: 0;
+  color: var(--chrome-muted);
+  font-size: 0.8rem;
+}
+
+.name-field {
+  grid-column: 1 / -1;
+}
+
+.type-field {
+  padding: 0;
+  border: 0;
+}
+
+.type-field legend {
+  margin-bottom: 0.3rem;
+  padding: 0;
+}
+
+input[type='text'],
+input[type='number'] {
+  width: 100%;
+  min-height: 2rem;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #1f1f1f;
+  color: var(--chrome-text);
+  font: inherit;
+}
+
+.segmented {
+  display: flex;
+  min-height: 2rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.segmented button {
+  flex: 1;
+  border: 0;
+  background: var(--chrome-button);
+  color: var(--chrome-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.segmented button + button {
+  border-inline-start: 1px solid var(--line);
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.number-control {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.number-control input {
+  min-width: 0;
+}
+
+.gradient-preview {
+  grid-column: 1 / -1;
+  height: 2.25rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background-color: #fff;
+  background-image: repeating-conic-gradient(#aaa 0% 25%, #fff 0% 50%);
+  background-position: 0 0;
+  background-size: 1rem 1rem;
+}
+
+.gradient-preview span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.stops-heading,
+.stops-list,
+.actions {
+  grid-column: 1 / -1;
+}
+
+.stops-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.stop-row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(5rem, 1fr) 2.5rem auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.stop-color input[type='color'] {
+  width: 2.25rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #1f1f1f;
+  cursor: pointer;
+}
+
+.opacity-control {
+  display: grid;
+  grid-template-columns: auto minmax(3rem, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.opacity-control input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.stop-row output {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.remove-stop {
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--chrome-text);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.remove-stop:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.actions {
+  justify-content: flex-end;
+  padding-top: 0.2rem;
+}
+
+.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 28rem) {
+  .dialog {
+    padding: 0.75rem;
+  }
+
+  .stop-row {
+    grid-template-columns: 2.5rem minmax(4rem, 1fr) 2.25rem;
+  }
+
+  .stop-row output {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .remove-stop {
+    grid-column: 1 / -1;
+  }
+}

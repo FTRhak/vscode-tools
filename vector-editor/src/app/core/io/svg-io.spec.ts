@@ -143,6 +143,44 @@ describe('importSvg', () => {
 });
 
 describe('exportSvg', () => {
+  it('round-trips assigned radial gradients, proportions, and translucent stops', () => {
+    const base = sampleDocument();
+    const gradient = {
+      id: 'gradient-1',
+      name: 'Sunset',
+      type: 'radial' as const,
+      angle: 0,
+      proportions: 1.4,
+      stops: [
+        { id: 'stop-a', offset: 0, color: '#f0523a', opacity: 1 },
+        { id: 'stop-b', offset: 0.35, color: '#fff000', opacity: 0.45 },
+        { id: 'stop-c', offset: 1, color: '#3974d5', opacity: 0.8 },
+      ],
+    };
+    const firstObject = base.objects[0];
+    const document: Document = {
+      ...base,
+      gradients: [gradient],
+      objects: base.objects.map((object) =>
+        object === firstObject
+          ? { ...object, style: { ...object.style, fill: `url(#${gradient.id})` } }
+          : object,
+      ),
+    };
+
+    for (const mode of ['all', 'minimal'] as const) {
+      const svg = exportSvg(document, mode);
+      expect(svg).toContain('<radialGradient');
+      expect(svg).toContain(`fill="url(#${gradient.id})"`);
+      const result = importSvg(svg);
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.document.gradients).toEqual([gradient]);
+        expect(result.document.objects[0]?.style.fill).toBe(`url(#${gradient.id})`);
+      }
+    }
+  });
+
   it('round-trips all editor data and ignores the baked path cache', () => {
     const document = sampleDocument();
     const svg = exportSvg(document, 'all');
@@ -459,6 +497,7 @@ function sampleDocument(): Document {
       { id: 'layer-front', name: 'Front', visible: true, locked: true, order: 1 },
     ],
     swatches: [{ id: 'swatch-1', name: 'Blue', color: '#abcdef' }],
+    gradients: [],
     objects: [
       object(
         'object-1',

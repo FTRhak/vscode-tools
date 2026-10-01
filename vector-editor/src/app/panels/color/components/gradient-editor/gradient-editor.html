@@ -1,0 +1,127 @@
+<button
+  type="button"
+  class="chrome-button gradient-launch"
+  [disabled]="selectedObjects().length === 0"
+  (click)="openEditor()"
+>
+  Gradients
+</button>
+
+<ng-template cdkPortal #gradientDialog="cdkPortal">
+  <div class="backdrop" (click)="stopBackdrop($event)">
+    <section
+      class="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gradient-title"
+      cdkTrapFocus
+      cdkTrapFocusAutoCapture
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="closeEditor()"
+    >
+      <header class="dialog-header">
+        <h2 id="gradient-title">Gradient</h2>
+        <button type="button" class="chrome-button close" aria-label="Close gradient editor" (click)="closeEditor()">
+          <i class="icon">&#xe100;</i>
+        </button>
+      </header>
+
+      <div class="gradient-library" aria-label="Saved gradients">
+        @for (gradient of gradients(); track gradient.id) {
+          <button
+            type="button"
+            class="gradient-option"
+            [attr.aria-label]="'Apply ' + gradient.name + ' gradient to ' + colorTarget.slot()"
+            (click)="applyGradient(gradient.id)"
+          >
+            <span class="gradient-swatch" [style.background]="gradientBackground(gradient)"></span>
+            <span>{{ gradient.name }}</span>
+          </button>
+        } @empty {
+          <span class="empty-library">No saved gradients</span>
+        }
+      </div>
+
+      <form class="gradient-form" (submit)="$event.preventDefault(); createGradient()">
+        <label class="name-field">
+          Name
+          <input type="text" [value]="name()" (input)="updateName($event)" />
+        </label>
+
+        <fieldset class="type-field">
+          <legend>Type</legend>
+          <div class="segmented">
+            <button type="button" [attr.aria-pressed]="type() === 'linear'" (click)="chooseType('linear')">
+              Linear
+            </button>
+            <button type="button" [attr.aria-pressed]="type() === 'radial'" (click)="chooseType('radial')">
+              Radial
+            </button>
+          </div>
+        </fieldset>
+
+        @if (type() === 'linear') {
+          <label>
+            Angle
+            <span class="number-control">
+              <input type="number" min="0" max="360" step="1" [value]="angle()" (input)="updateAngle($event)" />
+              <span aria-hidden="true">deg</span>
+            </span>
+          </label>
+        }
+        <label>
+          Proportions
+          <input type="number" min="0.1" max="10" step="0.1" [value]="proportions()" (input)="updateProportions($event)" />
+        </label>
+
+        <div class="gradient-preview" role="img" aria-label="Current gradient preview">
+          <span [style.background]="gradientBackground(draftGradient())"></span>
+        </div>
+
+        <div class="stops-heading">
+          <h3>Color stops</h3>
+          <button type="button" class="chrome-button" (click)="addStop()">Add stop</button>
+        </div>
+        <div class="stops-list">
+          @for (stop of stops(); track stop.id; let index = $index) {
+            <div class="stop-row">
+              <label class="stop-color">
+                <span class="visually-hidden">Color stop {{ index + 1 }} color</span>
+                <input type="color" [value]="stop.color" (input)="updateStopColor($event, stop.id)" />
+              </label>
+              <label class="opacity-control">
+                <span>Opacity</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  [value]="stop.opacity * 100"
+                  [attr.aria-label]="'Color stop ' + (index + 1) + ' opacity'"
+                  (input)="updateStopOpacity($event, stop.id)"
+                />
+              </label>
+              <output>{{ opacityPercent(stop.opacity) }}%</output>
+              <button
+                type="button"
+                class="remove-stop"
+                [disabled]="stops().length <= 2"
+                [attr.aria-label]="'Remove color stop ' + (index + 1)"
+                (click)="removeStop(stop.id)"
+              >
+                Remove
+              </button>
+            </div>
+          }
+        </div>
+
+        <footer class="actions">
+          <button type="button" class="chrome-button" (click)="closeEditor()">Cancel</button>
+          <button type="submit" class="chrome-button primary">Create and apply</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+</ng-template>
+
+<ng-template [cdkPortalOutlet]="open() ? gradientDialog : null"></ng-template>

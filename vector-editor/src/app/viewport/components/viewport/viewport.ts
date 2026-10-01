@@ -28,7 +28,7 @@ import {
   localToDocument,
   objectsInRect,
 } from '../../utils/hit-test';
-import { formatObjectTransform, sceneFromDocument } from '../../utils/scene';
+import { formatObjectTransform, gradientTransform, sceneFromDocument } from '../../utils/scene';
 import { SnapBar } from '../snap-bar/snap-bar';
 import {
   SNAP_THRESHOLD_PX,
@@ -147,6 +147,8 @@ export class Viewport {
     const document = this.session.document();
     return document ? sceneFromDocument(document, this.session.clipperHold()) : null;
   });
+
+  protected gradientTransform = gradientTransform;
 
   protected readonly selectedIds = computed(() => new Set(this.session.selectedObjectIds()));
 

@@ -1,6 +1,6 @@
 import type { AnchorPointType } from '../../core/model/edit-path';
 import type { ModifierKind, ModifierPatch } from '../../core/model/modifier-edits';
-import type { Document, ObjectTransform, Vec2 } from '../../core/model/types';
+import type { Document, Gradient, ObjectTransform, Vec2 } from '../../core/model/types';
 
 export type ColorSlot = 'fill' | 'stroke';
 
@@ -119,6 +119,12 @@ export type Command =
       readonly fill?: string | null;
       readonly stroke?: string | null;
       readonly strokeWidth?: number;
+    }
+  | {
+      readonly type: 'gradient.create';
+      readonly gradient: Omit<Gradient, 'id'>;
+      readonly target: ColorSlot;
+      readonly objectIds: readonly string[];
     }
   | { readonly type: 'swatch.add'; readonly name: string; readonly color: string }
   | {

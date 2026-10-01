@@ -4,6 +4,7 @@ import {
   addPath,
   addSwatch,
   applySwatch,
+  createGradient,
   nextSeriesName,
   reorderLayer,
   setObjectStyle,
@@ -12,6 +13,41 @@ import {
 import { Document } from './types';
 
 describe('document edits', () => {
+  it('creates a gradient and applies it to the requested paint slot', () => {
+    const document = createNewDocument();
+    const objectId = document.objects[0].id;
+
+    const definition = {
+      name: 'Sunset',
+      type: 'radial' as const,
+      angle: 35,
+      proportions: 1.4,
+      stops: [
+        { id: 'stop-a', offset: 0, color: '#FF0000', opacity: 1 },
+        { id: 'stop-b', offset: 0.5, color: '#00FF00', opacity: 0.4 },
+        { id: 'stop-c', offset: 1, color: '#0000FF', opacity: 0.8 },
+      ],
+    };
+    const updated = createGradient(document, definition, 'fill', [objectId]);
+    const gradient = updated.gradients[0];
+
+    expect(gradient).toMatchObject({
+      name: 'Sunset',
+      type: 'radial',
+      proportions: 1.4,
+      stops: [
+        { id: 'stop-a', color: '#ff0000', opacity: 1 },
+        { id: 'stop-b', color: '#00ff00', opacity: 0.4 },
+        { id: 'stop-c', color: '#0000ff', opacity: 0.8 },
+      ],
+    });
+    expect(updated.objects[0].style.fill).toBe(`url(#${gradient?.id})`);
+    expect(updated.objects[0].style.stroke).toBe(document.objects[0].style.stroke);
+    expect(createGradient(document, { ...definition, name: ' ' }, 'fill', [objectId])).toBe(
+      document,
+    );
+  });
+
   it('normalizes a fill and ignores an invalid color or width', () => {
     const document = createNewDocument();
     const id = document.objects[0].id;
@@ -128,5 +164,6 @@ function emptyDocument(): Document {
     layers: [{ id: 'layer', name: 'Layer', visible: true, locked: false, order: 0 }],
     objects: [],
     swatches: [],
+    gradients: [],
   };
 }

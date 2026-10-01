@@ -96,6 +96,7 @@ function sampleDocument(): Document {
       sampleObject('c', 'layer-b', 30, 8, 0, 0),
     ],
     swatches: [],
+    gradients: [],
   };
 }
 

@@ -122,6 +122,24 @@ export interface Swatch {
   readonly color: string;
 }
 
+export type GradientType = 'linear' | 'radial';
+
+export interface GradientStop {
+  readonly id: string;
+  readonly offset: number;
+  readonly color: string;
+  readonly opacity: number;
+}
+
+export interface Gradient {
+  readonly id: string;
+  readonly name: string;
+  readonly type: GradientType;
+  readonly angle: number;
+  readonly proportions: number;
+  readonly stops: readonly GradientStop[];
+}
+
 export interface Document {
   readonly id: string;
   readonly name: string;
@@ -129,4 +147,5 @@ export interface Document {
   readonly layers: readonly Layer[];
   readonly objects: readonly VectorObject[];
   readonly swatches: readonly Swatch[];
+  readonly gradients: readonly Gradient[];
 }

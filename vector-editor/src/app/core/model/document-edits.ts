@@ -3,6 +3,7 @@ import { layersFrontToBack } from './paint-order';
 import {
   Anchor,
   Document,
+  Gradient,
   Layer,
   ObjectTransform,
   Segment,
@@ -34,6 +35,50 @@ export interface StylePatch {
   readonly fill?: string | null;
   readonly stroke?: string | null;
   readonly strokeWidth?: number;
+}
+
+export function createGradient(
+  document: Document,
+  definition: Omit<Gradient, 'id'>,
+  target: 'fill' | 'stroke',
+  objectIds: readonly string[],
+): Document {
+  const name = definition.name.trim();
+  const stops = definition.stops.map((stop) => ({
+    ...stop,
+    color: normalizeColor(stop.color),
+  }));
+  const ids = new Set(objectIds);
+  if (
+    !name ||
+    stops.length < 2 ||
+    stops.some(
+      (stop) =>
+        typeof stop.color !== 'string' ||
+        !Number.isFinite(stop.offset) ||
+        stop.offset < 0 ||
+        stop.offset > 1 ||
+        !Number.isFinite(stop.opacity) ||
+        stop.opacity < 0 ||
+        stop.opacity > 1,
+    ) ||
+    !document.objects.some((object) => ids.has(object.id)) ||
+    !Number.isFinite(definition.angle) ||
+    !Number.isFinite(definition.proportions) ||
+    definition.proportions <= 0
+  ) {
+    return document;
+  }
+  const gradient: Gradient = {
+    id: createId(),
+    ...definition,
+    name,
+    stops: stops.map((stop) => ({ ...stop, color: stop.color as string })),
+  };
+  const withGradient = { ...document, gradients: [...document.gradients, gradient] };
+  return setObjectStyle(withGradient, objectIds, {
+    [target]: `url(#${gradient.id})`,
+  });
 }
 
 export function nextSeriesName(names: readonly string[], base: string): string {
@@ -300,7 +345,7 @@ function normalizeColor(value: string | null | undefined): string | null | undef
     return null;
   }
   const color = value.trim().toLowerCase();
-  return HEX_COLOR.test(color) ? color : undefined;
+  return HEX_COLOR.test(color) || /^url\(#[a-z0-9_-]+\)$/.test(color) ? color : undefined;
 }
 
 function normalizeWidth(value: number | undefined): number | undefined {

@@ -72,5 +72,6 @@ function doc(objects: readonly VectorObject[]): Document {
     layers: [{ id: 'layer', name: 'Layer', visible: true, locked: false, order: 0 }],
     objects,
     swatches: [],
+    gradients: [],
   };
 }

@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
-import { SceneObject } from '../../../../viewport/utils/scene';
+import { Gradient } from '@vector-editor/core';
+import { gradientTransform, SceneObject } from '../../../../viewport/utils/scene';
 
 @Component({
   selector: 'preview-svg',
@@ -11,4 +12,7 @@ export class PreviewSvg {
   readonly viewBox = input.required<string>();
   readonly ratio = input.required<string>();
   readonly objects = input.required<readonly SceneObject[]>();
+  readonly gradients = input.required<readonly Gradient[]>();
+
+  protected gradientTransform = gradientTransform;
 }

@@ -2,6 +2,7 @@ import {
   ClipperHold,
   Document,
   evaluateDocument,
+  Gradient,
   ObjectTransform,
   objectsInPaintOrder,
   sourceToPathData,
@@ -20,7 +21,24 @@ export interface SceneObject {
 
 export interface Scene {
   readonly viewBox: ViewBox;
+  readonly gradients: readonly Gradient[];
   readonly objects: readonly SceneObject[];
+}
+
+export function gradientTransform(gradient: Gradient): string {
+  return gradient.type === 'linear'
+    ? `rotate(${gradient.angle} 0.5 0.5) scale(${gradient.proportions} 1)`
+    : `translate(0.5 0.5) scale(${gradient.proportions} 1) translate(-0.5 -0.5)`;
+}
+
+export function gradientBackground(gradient: Gradient): string {
+  const stops = gradient.stops.map(
+    (stop) =>
+      `color-mix(in srgb, ${stop.color} ${Math.round(stop.opacity * 100)}%, transparent) ${Math.round(stop.offset * 100)}%`,
+  );
+  return gradient.type === 'linear'
+    ? `linear-gradient(${gradient.angle + 90}deg, ${stops.join(', ')})`
+    : `radial-gradient(ellipse ${gradient.proportions * 100}% 100% at center, ${stops.join(', ')})`;
 }
 
 export function sceneFromDocument(document: Document, hold: ClipperHold | null = null): Scene {
@@ -29,6 +47,7 @@ export function sceneFromDocument(document: Document, hold: ClipperHold | null =
   );
   return {
     viewBox: document.viewBox,
+    gradients: document.gradients,
     objects: objectsInPaintOrder(document).map((object) => {
       const evaluated = geometry.get(object.id);
       return {

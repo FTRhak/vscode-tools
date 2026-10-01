@@ -1,8 +1,9 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form } from '@angular/forms/signals';
 import { ColorSlot, CommandBus } from '@vector-editor/commands';
-import { SessionService, VectorObject } from '@vector-editor/core';
+import { Gradient, SessionService, VectorObject } from '@vector-editor/core';
 import { ColorTarget } from '../../services/color-target';
+import { gradientBackground } from '../../../../viewport/utils/scene';
 
 interface WidthDraft {
   readonly strokeWidth: number | null;
@@ -36,6 +37,7 @@ export class ColorPanel {
   });
 
   protected readonly hasSelection = computed(() => this.selectedObjects().length > 0);
+  protected readonly gradients = computed(() => this.session.document()?.gradients ?? []);
   protected readonly slot = this.colorTarget.slot;
   protected readonly fillColor = computed(() => sharedColor(this.selectedObjects(), 'fill'));
   protected readonly strokeColor = computed(() => sharedColor(this.selectedObjects(), 'stroke'));
@@ -44,9 +46,10 @@ export class ColorPanel {
   );
   protected readonly pickerValue = computed(() => {
     const active = this.activeColor();
-    return active.kind === 'color' ? active.value : '#000000';
+    return active.kind === 'color' && /^#[0-9a-f]{6}$/i.test(active.value)
+      ? active.value
+      : '#000000';
   });
-
   private readonly widthSource = computed(
     (): WidthDraft => ({
       strokeWidth: shared(this.selectedObjects(), (object) => object.style.strokeWidth),
@@ -58,7 +61,16 @@ export class ColorPanel {
   protected readonly widthForm = form(this.widthDraft);
 
   protected chipBackground(color: SharedColor): string | null {
-    return color.kind === 'color' ? color.value : null;
+    if (color.kind !== 'color') {
+      return null;
+    }
+    const id = /^url\(#(.+)\)$/.exec(color.value)?.[1];
+    const gradient = this.gradients().find((item) => item.id === id);
+    return gradient ? this.gradientBackground(gradient) : color.value;
+  }
+
+  protected gradientBackground(gradient: Gradient): string {
+    return gradientBackground(gradient);
   }
 
   protected chooseSlot(slot: ColorSlot): void {

@@ -84,6 +84,8 @@ export function historyLabel(command: Command): string | null {
       return 'Add point';
     case 'style.set':
       return styleLabel(command);
+    case 'gradient.create':
+      return 'Create gradient';
     case 'swatch.add':
       return 'Add swatch';
     case 'swatch.apply':
