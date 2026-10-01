@@ -1,4 +1,5 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } from '@angular/core';
+import { fromEvent } from 'rxjs';
 import { CommandBus, TranslateGesture } from '@vector-editor/commands';
 import {
   Document,
@@ -1007,7 +1008,8 @@ export class Viewport {
 
   private listenToWheel(): void {
     const element = this.host.nativeElement;
-    const onWheel = (event: WheelEvent) => {
+    const subscription = fromEvent<WheelEvent>(element, 'wheel', { passive: false }).subscribe(
+      (event) => {
       event.preventDefault();
       const rect = element.getBoundingClientRect();
       const next = zoomAtPoint(
@@ -1021,9 +1023,9 @@ export class Viewport {
         panY: next.panY,
         zoom: next.zoom,
       });
-    };
-    element.addEventListener('wheel', onWheel, { passive: false });
-    this.destroyRef.onDestroy(() => element.removeEventListener('wheel', onWheel));
+      },
+    );
+    this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
   private fitNewDocuments(): void {

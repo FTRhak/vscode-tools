@@ -1,5 +1,7 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, computed, DestroyRef, inject, model, signal } from '@angular/core';
+ import { Component, computed, DestroyRef, inject, model, signal } from '@angular/core';
+ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+ import { fromEvent } from 'rxjs';
 import { SNAP_MODES, SnapMode } from '../../utils/snap';
 
 @Component({
@@ -29,23 +31,20 @@ export class SnapBar {
   protected readonly enabled = computed(() => this.mode() !== 'off');
 
   constructor() {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || !this.menuOpen()) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      this.menuOpen.set(false);
-    };
-    const onPointerDown = () => {
-      this.menuOpen.set(false);
-    };
-    this.document.addEventListener('keydown', onKeyDown, true);
-    this.document.addEventListener('pointerdown', onPointerDown);
-    this.destroyRef.onDestroy(() => {
-      this.document.removeEventListener('keydown', onKeyDown, true);
-      this.document.removeEventListener('pointerdown', onPointerDown);
-    });
+    fromEvent<KeyboardEvent>(this.document, 'keydown', { capture: true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (event.key !== 'Escape' || !this.menuOpen()) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        this.menuOpen.set(false);
+      });
+
+    fromEvent(this.document, 'pointerdown')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.menuOpen.set(false));
   }
 
   protected toggle(): void {

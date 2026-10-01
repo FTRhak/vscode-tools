@@ -1,7 +1,9 @@
 import { DOCUMENT } from '@angular/common';
-import { DestroyRef, inject, Service } from '@angular/core';
+import { inject, Service } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Command, CommandBus, EditorTool, oppositeMode } from '@vector-editor/commands';
 import { deletableObjectIds, SessionService } from '@vector-editor/core';
+import { fromEvent } from 'rxjs';
 import { FileActions } from '../../shell/services/file-actions.service';
 
 const toolKeys: Readonly<Record<string, EditorTool>> = {
@@ -16,7 +18,6 @@ export class KeymapService {
   private readonly session = inject(SessionService);
   private readonly files = inject(FileActions);
   private readonly document = inject(DOCUMENT);
-  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -35,10 +36,9 @@ export class KeymapService {
       this.bus.dispatch(command);
     };
 
-    this.document.addEventListener('keydown', onKeyDown);
-    this.destroyRef.onDestroy(() => {
-      this.document.removeEventListener('keydown', onKeyDown);
-    });
+    fromEvent<KeyboardEvent>(this.document, 'keydown')
+      .pipe(takeUntilDestroyed())
+      .subscribe(onKeyDown);
   }
 
   private runFileShortcut(event: KeyboardEvent): boolean {
