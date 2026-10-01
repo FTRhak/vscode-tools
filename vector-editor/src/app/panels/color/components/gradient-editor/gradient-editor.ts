@@ -40,6 +40,7 @@ export class GradientEditor {
   protected readonly type = signal<GradientType>('linear');
   protected readonly angle = signal(0);
   protected readonly proportions = signal(1);
+  protected readonly draggingStopId = signal<string | null>(null);
   protected readonly stops = signal<readonly GradientStop[]>([
     { id: createId(), offset: 0, color: '#f0523a', opacity: 1 },
     { id: createId(), offset: 1, color: '#3974d5', opacity: 1 },
@@ -50,10 +51,7 @@ export class GradientEditor {
     type: this.type(),
     angle: this.angle(),
     proportions: this.proportions(),
-    stops: this.stops().map((stop, index, stops) => ({
-      ...stop,
-      offset: index / (stops.length - 1),
-    })),
+    stops: [...this.stops()].sort((left, right) => left.offset - right.offset),
   }));
 
   private resetDraft(): void {
@@ -158,6 +156,68 @@ export class GradientEditor {
     }
   }
 
+  protected updateStopPosition(event: Event, id: string): void {
+    const input = event.target;
+    if (input instanceof HTMLInputElement) {
+      const offset = Number(input.value) / 100;
+      if (Number.isFinite(offset) && offset >= 0 && offset <= 1) {
+        this.setStopOffset(id, offset);
+      }
+    }
+  }
+
+  protected beginStopDrag(event: PointerEvent, id: string, preview: HTMLDivElement): void {
+    event.preventDefault();
+    this.draggingStopId.set(id);
+    (event.currentTarget as HTMLButtonElement).setPointerCapture(event.pointerId);
+    this.setStopOffsetFromPointer(event, preview, id);
+  }
+
+  protected moveStopWithPointer(event: PointerEvent, preview: HTMLDivElement): void {
+    const id = this.draggingStopId();
+    if (id) {
+      this.setStopOffsetFromPointer(event, preview, id);
+    }
+  }
+
+  protected endStopDrag(): void {
+    this.draggingStopId.set(null);
+  }
+
+  protected handleStopPositionKey(event: KeyboardEvent, id: string): void {
+    const stop = this.stops().find((item) => item.id === id);
+    if (!stop) {
+      return;
+    }
+
+    const step = event.shiftKey ? 0.1 : 0.01;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.setStopOffset(id, stop.offset - step);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.setStopOffset(id, stop.offset + step);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      this.setStopOffset(id, 0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      this.setStopOffset(id, 1);
+    }
+  }
+
+  private setStopOffsetFromPointer(event: PointerEvent, preview: HTMLDivElement, id: string): void {
+    const bounds = preview.getBoundingClientRect();
+    this.setStopOffset(id, (event.clientX - bounds.left) / bounds.width);
+  }
+
+  private setStopOffset(id: string, offset: number): void {
+    const boundedOffset = Math.min(1, Math.max(0, offset));
+    this.stops.update((stops) =>
+      stops.map((stop) => (stop.id === id ? { ...stop, offset: boundedOffset } : stop)),
+    );
+  }
+
   protected addStop(): void {
     this.stops.update((stops) => [
       ...stops,
@@ -201,10 +261,7 @@ export class GradientEditor {
       type: this.type(),
       angle: this.angle(),
       proportions: this.proportions(),
-      stops: stops.map((stop, index) => ({
-        ...stop,
-        offset: index / (stops.length - 1),
-      })),
+      stops: [...stops].sort((left, right) => left.offset - right.offset),
     };
 
     const activeId = this.selectedGradientId();

@@ -66,7 +66,7 @@
         }
       </div>
 
-      <form class="gradient-form" (submit)="$event.preventDefault(); saveGradient()">
+      <div class="gradient-form">
         <label class="name-field">
           Name
           <input type="text" [value]="name()" (input)="updateName($event)" />
@@ -98,8 +98,37 @@
           <input type="number" min="0.1" max="10" step="0.1" [value]="proportions()" (input)="updateProportions($event)" />
         </label>
 
-        <div class="gradient-preview" role="img" aria-label="Current gradient preview">
-          <span [style.background]="gradientBackground(draftGradient())"></span>
+        <div
+          class="gradient-preview"
+          role="group"
+          aria-label="Gradient stop positions"
+          #gradientPreview
+          (pointermove)="moveStopWithPointer($event, gradientPreview)"
+          (pointerup)="endStopDrag()"
+          (pointercancel)="endStopDrag()"
+        >
+          <span
+            role="img"
+            aria-label="Current gradient preview"
+            [style.background]="gradientBackground(draftGradient())"
+          ></span>
+          @for (stop of stops(); track stop.id; let index = $index) {
+            <button
+              type="button"
+              class="gradient-stop-handle"
+              [class.dragging]="draggingStopId() === stop.id"
+              [style.left.%]="stop.offset * 100"
+              [style.background]="stop.color"
+              role="slider"
+              [attr.aria-label]="'Color stop ' + (index + 1) + ' position'"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-valuenow]="stop.offset * 100"
+              [attr.aria-valuetext]="stop.offset * 100 + '%'"
+              (pointerdown)="beginStopDrag($event, stop.id, gradientPreview)"
+              (keydown)="handleStopPositionKey($event, stop.id)"
+            ></button>
+          }
         </div>
 
         <div class="stops-heading">
@@ -125,6 +154,21 @@
                   (input)="updateStopOpacity($event, stop.id)"
                 />
               </label>
+              <label class="position-control">
+                <span>Position</span>
+                <span class="number-control">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    [value]="stop.offset * 100"
+                    [attr.aria-label]="'Color stop ' + (index + 1) + ' position'"
+                    (input)="updateStopPosition($event, stop.id)"
+                  />
+                  <span aria-hidden="true">%</span>
+                </span>
+              </label>
               <output>{{ opacityPercent(stop.opacity) }}%</output>
               <button
                 type="button"
@@ -142,14 +186,15 @@
         <footer class="actions">
           <button type="button" class="chrome-button" (click)="closeEditor()">Cancel</button>
           <button
-            type="submit"
+            type="button"
             class="chrome-button primary"
             [disabled]="selectedGradientId() === null && selectedObjects().length === 0"
+            (click)="saveGradient()"
           >
             {{ selectedGradientId() === null ? 'Create and apply' : 'Save changes' }}
           </button>
         </footer>
-      </form>
+    </div>
     </section>
   </div>
 </ng-template>
