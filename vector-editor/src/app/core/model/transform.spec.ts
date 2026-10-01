@@ -1,4 +1,4 @@
-import { localToDocument } from '../../viewport/hit-test';
+import { localToDocument } from '../../viewport/utils/hit-test';
 import { rotationOriginDocument, transformWithRotationOrigin } from './transform';
 
 describe('transformWithRotationOrigin', () => {

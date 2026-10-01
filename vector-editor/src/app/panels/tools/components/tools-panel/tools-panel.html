@@ -1,19 +1,12 @@
 <panel [panelName]="panelName" [icon]="'&#xe102;'">
   <div class="tool-list">
     @for (tool of tools; track tool.id) {
-      <button
-        type="button"
-        class="chrome-button tool-button"
-        [attr.title]="tool.label"
-        [attr.aria-label]="tool.label"
-        [attr.aria-keyshortcuts]="tool.shortcut"
-        [attr.aria-pressed]="activeTool() === tool.id ? 'true' : 'false'"
-        (click)="select(tool.id)"
-      >
-        <i class="icon"  [innerHTML]="icons[tool.id]"></i>
-        <span>{{ tool.label }}</span>
-        <span class="shortcut" title="Shortcut: {{ tool.shortcut }}">{{ tool.shortcut }}</span>
-      </button>
+      <tool-button
+        [tool]="tool"
+        [icon]="icons[tool.id]"
+        [active]="activeTool() === tool.id"
+        (selected)="select($event)"
+      />
     }
   </div>
 </panel>

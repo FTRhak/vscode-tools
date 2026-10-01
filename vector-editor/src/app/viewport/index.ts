@@ -1,1 +1,1 @@
-export { Viewport } from './viewport';
+export { Viewport } from './components/viewport/viewport';

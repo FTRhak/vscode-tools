@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { SessionService } from '@vector-editor/core';
-import { sceneFromDocument } from '../../../../viewport/scene';
+import { sceneFromDocument } from '../../../../viewport/utils/scene';
 
 @Component({
   selector: 'app-preview-panel',

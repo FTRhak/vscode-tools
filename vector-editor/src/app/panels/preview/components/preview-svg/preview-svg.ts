@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { SceneObject } from '../../../../viewport/scene';
+import { SceneObject } from '../../../../viewport/utils/scene';
 
 @Component({
   selector: 'preview-svg',

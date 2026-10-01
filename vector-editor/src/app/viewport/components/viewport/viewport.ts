@@ -9,7 +9,7 @@ import {
   Vec2,
   VectorObject,
 } from '@vector-editor/core';
-import { anchorsInRect } from './anchor-hit';
+import { anchorsInRect } from '../../utils/anchor-hit';
 import {
   ARTBOARD_FIT_PADDING,
   cameraTransformAttribute,
@@ -18,7 +18,7 @@ import {
   screenToDocument,
   wheelZoomFactor,
   zoomAtPoint,
-} from './camera';
+} from '../../utils/camera';
 import {
   DocumentRect,
   documentDeltaToLocal,
@@ -26,9 +26,9 @@ import {
   hitTestObject,
   localToDocument,
   objectsInRect,
-} from './hit-test';
-import { formatObjectTransform, sceneFromDocument } from './scene';
-import { SnapBar } from './snap-bar/snap-bar';
+} from '../../utils/hit-test';
+import { formatObjectTransform, sceneFromDocument } from '../../utils/scene';
+import { SnapBar } from '../snap-bar/snap-bar';
 import {
   SNAP_THRESHOLD_PX,
   SnapMode,
@@ -41,15 +41,15 @@ import {
   snapToGrid,
   snapToPoints,
   snapTranslation,
-} from './snap';
+} from '../../utils/snap';
 import {
   beginDirectDrag,
   DirectDrag,
   finishDirectDrag,
   updateDirectDrag,
-} from './tools/direct-select';
-import { addPointHitRadius, hitTestSegment } from './tools/add-point';
-import { PenDrag, penPreviewData, startPen, updatePenDrag } from './tools/pen';
+} from '../../utils/tools/direct-select';
+import { addPointHitRadius, hitTestSegment } from '../../utils/tools/add-point';
+import { PenDrag, penPreviewData, startPen, updatePenDrag } from '../../utils/tools/pen';
 
 interface PanGesture {
   readonly pointerId: number;

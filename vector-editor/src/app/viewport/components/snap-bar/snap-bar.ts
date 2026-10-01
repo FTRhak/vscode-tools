@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, computed, DestroyRef, inject, model, signal } from '@angular/core';
-import { SNAP_MODES, SnapMode } from '../snap';
+import { SNAP_MODES, SnapMode } from '../../utils/snap';
 
 @Component({
   selector: 'app-snap-bar',
