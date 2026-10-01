@@ -8,6 +8,13 @@ export type EditorMode = 'object' | 'edit';
 
 export type EditorTool = 'select' | 'direct-select' | 'pen' | 'add-point';
 
+export const EDITOR_TOOLS_ICONS: { [K in EditorTool]: string } = {
+  select: '&#xe107;',
+  'direct-select': '&#xe108;',
+  pen: '&#xe109;',
+  'add-point': '&#xe10A;'
+};
+
 export type SelectOperation = 'replace' | 'add' | 'toggle' | 'clear';
 
 export type SelectTarget = 'object' | 'anchor';

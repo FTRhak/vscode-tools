@@ -9,7 +9,7 @@
       [attr.title]="tool.label"
       (click)="select(tool.id)"
     >
-      {{ tool.shortcut }}
+      <i class="icon"  [innerHTML]="icons[tool.id]"></i>
     </button>
   }
 </nav>

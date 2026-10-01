@@ -21,9 +21,6 @@
   display: flex;
   gap: 0.35rem;
   margin-bottom: 0.45rem;
-}
-
-.add-layer,
-.add-path {
-  flex: 1;
+  justify-content: flex-end;
+  align-items: flex-start;
 }

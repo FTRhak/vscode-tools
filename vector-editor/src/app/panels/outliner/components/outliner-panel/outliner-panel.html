@@ -1,27 +1,8 @@
-<panel [panelName]="panelName" [icon]="'&#xe0f5;'">
+<panel [panelName]="panelName" [icon]="'&#xe0f7;'">
   @if (hasDocument()) {
     <div class="outliner-actions">
-      <button type="button" class="chrome-button add-layer" title="Add layer" (click)="addLayer()">
-        <i class="icon">&#xe0e6;</i>
-      </button>
-      <button
-        type="button"
-        class="chrome-button add-path"
-        title="Add path to the selected layer"
-        [disabled]="!canAddPath()"
-        (click)="addPath()"
-      >
-        Add path
-      </button>
-      <button
-        type="button"
-        class="chrome-button button-small button-icon delete-object"
-        title="Delete object"
-        aria-label="Delete object"
-        [disabled]="!canDelete()"
-        (click)="deleteSelected()"
-      >
-        <i class="icon" aria-hidden="true">&#xe0e7;</i>
+      <button type="button" class="chrome-button button-small button-icon add-layer" title="Add layer" (click)="addLayer()">
+        <i class="icon">&#xe0f9;</i>
       </button>
       <button
         type="button"
@@ -31,7 +12,26 @@
         [disabled]="!canDeleteLayer()"
         (click)="deleteSelectedLayer()"
       >
-        <i class="icon" aria-hidden="true">&#xe0e7;</i>
+        <i class="icon" aria-hidden="true">&#xe0f8;</i>
+      </button>
+      <button
+        type="button"
+        class="chrome-button button-small button-icon add-path"
+        title="Add path to the selected layer"
+        [disabled]="!canAddPath()"
+        (click)="addPath()"
+      >
+        <i class="icon" aria-hidden="true">&#xe0fb;</i>
+      </button>
+      <button
+        type="button"
+        class="chrome-button button-small button-icon delete-object"
+        title="Delete object"
+        aria-label="Delete object"
+        [disabled]="!canDelete()"
+        (click)="deleteSelected()"
+      >
+        <i class="icon" aria-hidden="true">&#xe0fc;</i>
       </button>
     </div>
     <div class="tree" role="tree" aria-label="Layers" (keydown)="onTreeKeydown($event)">
