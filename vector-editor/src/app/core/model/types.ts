@@ -82,6 +82,13 @@ export type Modifier =
     }
   | {
       readonly id: string;
+      readonly type: 'round';
+      readonly anchorCount: number;
+      readonly roundness: number;
+      readonly enabled: boolean;
+    }
+  | {
+      readonly id: string;
       readonly type: 'boolean';
       readonly operation: 'union' | 'difference' | 'intersect';
       readonly operandId: string;

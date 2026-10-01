@@ -25,6 +25,8 @@ export class ModifierRow {
         return 'Mirror';
       case 'bevel':
         return 'Bevel';
+      case 'round':
+        return 'Round';
       case 'boolean':
         return 'Boolean';
     }
@@ -43,6 +45,11 @@ export class ModifierRow {
   protected readonly bevelModifier = computed(() => {
     const modifier = this.modifier();
     return modifier.type === 'bevel' ? modifier : null;
+  });
+
+  protected readonly roundModifier = computed(() => {
+    const modifier = this.modifier();
+    return modifier.type === 'round' ? modifier : null;
   });
 
   protected readonly booleanModifier = computed(() => {
@@ -83,6 +90,8 @@ export class ModifierRow {
     readonly distance?: number;
     readonly join?: 'bevel' | 'miter' | 'round';
     readonly miterLimit?: number;
+    readonly anchorCount?: number;
+    readonly roundness?: number;
     readonly operation?: BooleanOperation;
     readonly operandId?: string;
   }): void {

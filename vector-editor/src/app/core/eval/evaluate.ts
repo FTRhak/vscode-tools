@@ -4,6 +4,7 @@ import { applyArray } from './array';
 import { applyBevel } from './bevel';
 import { clipBoolean, hasOpenSubpath, placeOperand } from './boolean';
 import { applyMirror } from './mirror';
+import { applyRound } from './round';
 
 export interface EvaluatedGeometry {
   readonly objectId: string;
@@ -155,6 +156,10 @@ function walkStack(
     }
     if (modifier.type === 'mirror') {
       current = applyMirror(current, modifier);
+      continue;
+    }
+    if (modifier.type === 'round') {
+      current = applyRound(current, modifier);
       continue;
     }
     const frozen = hold?.steps[modifier.id];

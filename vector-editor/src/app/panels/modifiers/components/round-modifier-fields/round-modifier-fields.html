@@ -1,0 +1,26 @@
+<div class="fields">
+  <label>
+    Anchor points
+    <input
+      type="number"
+      min="2"
+      max="1000"
+      step="1"
+      [value]="modifier().anchorCount"
+      (change)="commitAnchorCount($event)"
+    />
+  </label>
+  <label class="roundness-field">
+    <span>Roundness</span>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      step="1"
+      [value]="modifier().roundness"
+      [attr.aria-label]="'Roundness: ' + modifier().roundness"
+      (input)="commitRoundness($event)"
+    />
+    <output>{{ modifier().roundness }}</output>
+  </label>
+</div>

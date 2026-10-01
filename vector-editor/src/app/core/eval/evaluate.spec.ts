@@ -1,4 +1,4 @@
-import { applyModifier } from '../model/modifier-edits';
+import { addModifier, applyModifier } from '../model/modifier-edits';
 import { Modifier, SourcePath, Vec2, VectorObject } from '../model/types';
 import { sourceBounds } from './bounds';
 import { captureClipperHold, evaluateDocument, evaluateSource } from './evaluate';
@@ -50,6 +50,30 @@ describe('evaluateSource', () => {
 
     expect(evaluated.source).toBe(source);
     expect(evaluated.diagnostics).toEqual([]);
+  });
+
+  it('resamples anchors and rounds a path with cubic handles', () => {
+    const rounded = evaluateSource(squarePath('square', 0, 0, 10), [
+      { id: 'round', type: 'round', anchorCount: 8, roundness: 100, enabled: true },
+    ]).source.subpaths[0];
+
+    expect(rounded?.anchors).toHaveLength(8);
+    expect(rounded?.segments).toHaveLength(8);
+    expect(rounded?.segments.every((segment) => segment.kind === 'cubic')).toBe(true);
+    expect(
+      rounded?.anchors.some(
+        (anchor) =>
+          anchor.handleOut?.x !== anchor.position.x || anchor.handleOut?.y !== anchor.position.y,
+      ),
+    ).toBe(true);
+  });
+
+  it('defaults the round anchor count from the previous modifier output', () => {
+    const object = shape('square', squarePath('square', 0, 0, 10), [array('copies')]);
+    const updated = addModifier(object, 'round');
+    const round = updated.modifiers.at(-1);
+
+    expect(round).toMatchObject({ type: 'round', anchorCount: 4, roundness: 50 });
   });
 
   it('tiles a mirrored shape and mirrors an array around the combined center', () => {

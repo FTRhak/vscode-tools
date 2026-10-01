@@ -12,18 +12,20 @@ export interface ModifierPatch {
   readonly distance?: number;
   readonly join?: 'bevel' | 'miter' | 'round';
   readonly miterLimit?: number;
+  readonly anchorCount?: number;
+  readonly roundness?: number;
   readonly operation?: 'union' | 'difference' | 'intersect';
   readonly operandId?: string;
 }
 
-export type ModifierKind = 'array' | 'mirror' | 'bevel' | 'boolean';
+export type ModifierKind = 'array' | 'mirror' | 'bevel' | 'round' | 'boolean';
 
 export function addModifier(
   object: VectorObject,
   kind: ModifierKind,
   objects: readonly VectorObject[] = [],
 ): VectorObject {
-  const modifier = defaultModifier(object.id, kind, objects);
+  const modifier = defaultModifier(object, kind, objects);
   return { ...object, modifiers: [...object.modifiers, modifier] };
 }
 
@@ -120,7 +122,7 @@ function bake(
 }
 
 function defaultModifier(
-  objectId: string,
+  object: VectorObject,
   kind: ModifierKind,
   objects: readonly VectorObject[],
 ): Modifier {
@@ -131,8 +133,10 @@ function defaultModifier(
       return defaultMirror();
     case 'bevel':
       return defaultBevel();
+    case 'round':
+      return defaultRound(object, objects);
     case 'boolean':
-      return defaultBoolean(objectId, objects);
+      return defaultBoolean(object.id, objects);
   }
 }
 
@@ -163,6 +167,18 @@ function defaultBevel(): Modifier {
     distance: 8,
     join: 'bevel',
     miterLimit: 4,
+    enabled: true,
+  };
+}
+
+function defaultRound(object: VectorObject, objects: readonly VectorObject[]): Modifier {
+  const evaluated = evaluateObjectPrefix(object, object.modifiers, objects);
+  const anchorCount = evaluated.subpaths.find((subpath) => subpath.anchors.length > 0)?.anchors.length ?? 4;
+  return {
+    id: createId(),
+    type: 'round',
+    anchorCount,
+    roundness: 50,
     enabled: true,
   };
 }
@@ -217,6 +233,24 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
       return modifier;
     }
     return { ...modifier, enabled, distance, join, miterLimit };
+  }
+  if (modifier.type === 'round') {
+    const anchorCount =
+      patch.anchorCount !== undefined && Number.isFinite(patch.anchorCount)
+        ? Math.min(1000, Math.max(2, Math.floor(patch.anchorCount)))
+        : modifier.anchorCount;
+    const roundness =
+      patch.roundness !== undefined && Number.isFinite(patch.roundness)
+        ? Math.max(0, Math.min(100, patch.roundness))
+        : modifier.roundness;
+    if (
+      enabled === modifier.enabled &&
+      anchorCount === modifier.anchorCount &&
+      roundness === modifier.roundness
+    ) {
+      return modifier;
+    }
+    return { ...modifier, enabled, anchorCount, roundness };
   }
   const operation = patch.operation ?? modifier.operation;
   const operandId = patch.operandId !== undefined ? patch.operandId : modifier.operandId;

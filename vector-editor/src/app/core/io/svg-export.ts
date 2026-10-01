@@ -166,6 +166,13 @@ function modifierPayload(
         miterLimit: modifier.miterLimit,
         enabled: modifier.enabled,
       };
+    case 'round':
+      return {
+        type: modifier.type,
+        anchorCount: modifier.anchorCount,
+        roundness: modifier.roundness,
+        enabled: modifier.enabled,
+      };
     case 'boolean': {
       const operandIndex = order.findIndex((item) => item.id === modifier.operandId);
       if (operandIndex < 0) {
