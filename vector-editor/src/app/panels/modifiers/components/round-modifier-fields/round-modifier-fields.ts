@@ -4,6 +4,7 @@ import { Modifier } from '@vector-editor/core';
 type RoundModifier = Extract<Modifier, { type: 'round' }>;
 
 export interface RoundModifierPatch {
+  readonly mode?: 'direct' | 'smooth' | 'circle';
   readonly anchorCount?: number;
   readonly roundness?: number;
 }
@@ -17,6 +18,15 @@ export interface RoundModifierPatch {
 export class RoundModifierFields {
   readonly modifier = input.required<RoundModifier>();
   readonly committed = output<RoundModifierPatch>();
+
+  protected commitMode(event: Event): void {
+    const mode = (event.target as HTMLSelectElement).value;
+    if (mode === 'direct' || mode === 'smooth' || mode === 'circle') {
+      if (mode !== this.modifier().mode) {
+        this.committed.emit({ mode });
+      }
+    }
+  }
 
   protected commitAnchorCount(event: Event): void {
     const value = Number((event.target as HTMLInputElement).value);

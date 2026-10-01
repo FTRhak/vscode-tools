@@ -14,7 +14,8 @@
   grid-template-columns: 5.5rem minmax(0, 1fr) 2rem;
 }
 
-input[type='number'] {
+input[type='number'],
+select {
   width: 100%;
   min-height: 1.75rem;
   border: 1px solid var(--line);

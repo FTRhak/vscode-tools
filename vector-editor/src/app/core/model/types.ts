@@ -83,6 +83,7 @@ export type Modifier =
   | {
       readonly id: string;
       readonly type: 'round';
+      readonly mode: 'direct' | 'smooth' | 'circle';
       readonly anchorCount: number;
       readonly roundness: number;
       readonly enabled: boolean;

@@ -286,11 +286,11 @@ describe('exportSvg', () => {
     expect(minimal).toContain('M 25 10 C 27 8 33 14 35 10');
   });
 
-  it('restores array, mirror, and boolean and drops incomplete entries', () => {
+  it('restores modifier settings and defaults older round modes to direct', () => {
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
         <path d="M 0 0 L 4 0" fill="none" stroke="#000"
-          data-vector-editor='{"version":1,"name":"Path","source":{"subpaths":[{"closed":false,"anchors":[{"id":"a","position":{"x":0,"y":0},"handleIn":null,"handleOut":null},{"id":"b","position":{"x":1,"y":0},"handleIn":null,"handleOut":null}],"segments":[{"id":"s","kind":"line","fromId":"a","toId":"b"}]}]},"transform":{"x":3,"y":0,"rotation":0,"scaleX":1,"scaleY":1},"modifiers":[{"id":"arr-1","type":"array","count":4.8,"offsetX":2,"offsetY":3,"enabled":false},{"id":"mir-1","type":"mirror","axis":"y"},{"type":"bevel","distance":1},{"type":"boolean","operation":"union","operandId":"missing"},{"type":"array"}],"locked":true}' />
+          data-vector-editor='{"version":1,"name":"Path","source":{"subpaths":[{"closed":false,"anchors":[{"id":"a","position":{"x":0,"y":0},"handleIn":null,"handleOut":null},{"id":"b","position":{"x":1,"y":0},"handleIn":null,"handleOut":null}],"segments":[{"id":"s","kind":"line","fromId":"a","toId":"b"}]}]},"transform":{"x":3,"y":0,"rotation":0,"scaleX":1,"scaleY":1},"modifiers":[{"id":"arr-1","type":"array","count":4.8,"offsetX":2,"offsetY":3,"enabled":false},{"id":"mir-1","type":"mirror","axis":"y"},{"id":"round-1","type":"round","mode":"circle","anchorCount":8,"roundness":75},{"id":"round-2","type":"round","anchorCount":4,"roundness":50},{"type":"bevel","distance":1},{"type":"boolean","operation":"union","operandId":"missing"},{"type":"array"}],"locked":true}' />
       </svg>
     `;
     const result = importSvg(svg);
@@ -308,6 +308,22 @@ describe('exportSvg', () => {
         enabled: false,
       },
       { id: 'mir-1', type: 'mirror', axis: 'y', enabled: true },
+      {
+        id: 'round-1',
+        type: 'round',
+        mode: 'circle',
+        anchorCount: 8,
+        roundness: 75,
+        enabled: true,
+      },
+      {
+        id: 'round-2',
+        type: 'round',
+        mode: 'direct',
+        anchorCount: 4,
+        roundness: 50,
+        enabled: true,
+      },
       {
         id: expect.any(String),
         type: 'boolean',

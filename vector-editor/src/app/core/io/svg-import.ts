@@ -439,6 +439,27 @@ function readModifier(
       enabled,
     };
   }
+  if (value['type'] === 'round') {
+    const anchorCount = value['anchorCount'];
+    const roundness = value['roundness'];
+    if (
+      typeof anchorCount !== 'number' ||
+      !Number.isFinite(anchorCount) ||
+      typeof roundness !== 'number' ||
+      !Number.isFinite(roundness)
+    ) {
+      return null;
+    }
+    const mode = value['mode'];
+    return {
+      id: claim(stringField(value, 'id')),
+      type: 'round',
+      mode: mode === 'smooth' || mode === 'circle' ? mode : 'direct',
+      anchorCount: Math.min(1000, Math.max(2, Math.floor(anchorCount))),
+      roundness: Math.min(100, Math.max(0, roundness)),
+      enabled,
+    };
+  }
   if (value['type'] === 'boolean') {
     const operation = value['operation'];
     if (operation !== 'union' && operation !== 'difference' && operation !== 'intersect') {

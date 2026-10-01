@@ -169,6 +169,7 @@ function modifierPayload(
     case 'round':
       return {
         type: modifier.type,
+        mode: modifier.mode,
         anchorCount: modifier.anchorCount,
         roundness: modifier.roundness,
         enabled: modifier.enabled,

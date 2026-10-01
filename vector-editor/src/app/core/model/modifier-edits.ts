@@ -12,6 +12,7 @@ export interface ModifierPatch {
   readonly distance?: number;
   readonly join?: 'bevel' | 'miter' | 'round';
   readonly miterLimit?: number;
+  readonly mode?: 'direct' | 'smooth' | 'circle';
   readonly anchorCount?: number;
   readonly roundness?: number;
   readonly operation?: 'union' | 'difference' | 'intersect';
@@ -177,6 +178,7 @@ function defaultRound(object: VectorObject, objects: readonly VectorObject[]): M
   return {
     id: createId(),
     type: 'round',
+    mode: 'direct',
     anchorCount,
     roundness: 50,
     enabled: true,
@@ -235,6 +237,7 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
     return { ...modifier, enabled, distance, join, miterLimit };
   }
   if (modifier.type === 'round') {
+    const mode = patch.mode ?? modifier.mode ?? 'direct';
     const anchorCount =
       patch.anchorCount !== undefined && Number.isFinite(patch.anchorCount)
         ? Math.min(1000, Math.max(2, Math.floor(patch.anchorCount)))
@@ -245,12 +248,13 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
         : modifier.roundness;
     if (
       enabled === modifier.enabled &&
+      mode === modifier.mode &&
       anchorCount === modifier.anchorCount &&
       roundness === modifier.roundness
     ) {
       return modifier;
     }
-    return { ...modifier, enabled, anchorCount, roundness };
+    return { ...modifier, enabled, mode, anchorCount, roundness };
   }
   const operation = patch.operation ?? modifier.operation;
   const operandId = patch.operandId !== undefined ? patch.operandId : modifier.operandId;

@@ -4,6 +4,7 @@ import { collectPoints } from './flatten';
 type RoundModifier = Extract<Modifier, { type: 'round' }>;
 
 export function applyRound(source: SourcePath, modifier: RoundModifier): SourcePath {
+  const mode = modifier.mode ?? 'direct';
   const roundness = clamp(modifier.roundness, 0, 100) / 100;
   const subpaths = source.subpaths.map((subpath, subpathIndex) => {
     const points = collectPoints(subpath);
@@ -19,7 +20,20 @@ export function applyRound(source: SourcePath, modifier: RoundModifier): SourceP
       return subpath;
     }
     const sampled = resample(points, count, subpath.closed);
-    return makeSubpath(sampled, subpath.closed, roundness, modifier.id, subpathIndex);
+    const pointsForMode =
+      mode === 'circle' && subpath.closed
+        ? blendTowardCircle(sampled, roundness)
+        : sampled;
+    const handleMode = mode === 'direct' ? 'direct' : 'smooth';
+    return makeSubpath(
+      pointsForMode,
+      subpath.closed,
+      roundness,
+      handleMode,
+      mode === 'circle' && subpath.closed,
+      modifier.id,
+      subpathIndex,
+    );
   });
   return { subpaths };
 }
@@ -64,13 +78,22 @@ function makeSubpath(
   points: readonly Vec2[],
   closed: boolean,
   roundness: number,
+  mode: 'direct' | 'smooth',
+  circularHandles: boolean,
   modifierId: string,
   subpathIndex: number,
 ): Subpath {
+  const circleTangents = circularHandles ? createCircleTangents(points, roundness) : null;
   const anchors: Anchor[] = points.map((position, index) => {
     const previous = points[index - 1] ?? (closed ? points[points.length - 1] : position);
     const next = points[index + 1] ?? (closed ? points[0] : position);
-    const tangent = previous && next ? scale(subtract(next, previous), roundness / 6) : { x: 0, y: 0 };
+    const tangent = circleTangents?.[index]
+      ? circleTangents[index]
+      : mode === 'smooth'
+        ? smoothTangent(position, previous, next, roundness)
+        : previous && next
+          ? scale(subtract(next, previous), roundness / 6)
+          : { x: 0, y: 0 };
     return {
       id: `${modifierId}/${subpathIndex}/anchor/${index}`,
       position,
@@ -90,6 +113,87 @@ function makeSubpath(
     };
   });
   return { closed, anchors, segments };
+}
+
+function smoothTangent(position: Vec2, previous: Vec2, next: Vec2, amount: number): Vec2 {
+  const incoming = subtract(position, previous);
+  const outgoing = subtract(next, position);
+  const incomingLength = distance(position, previous);
+  const outgoingLength = distance(position, next);
+  if (incomingLength === 0 && outgoingLength > 0) {
+    return scale(outgoing, amount / 3);
+  }
+  if (outgoingLength === 0 && incomingLength > 0) {
+    return scale(incoming, amount / 3);
+  }
+  if (incomingLength === 0 || outgoingLength === 0) {
+    return { x: 0, y: 0 };
+  }
+  const incomingDirection = scale(incoming, 1 / incomingLength);
+  const outgoingDirection = scale(outgoing, 1 / outgoingLength);
+  const direction = add(incomingDirection, outgoingDirection);
+  const directionLength = Math.hypot(direction.x, direction.y);
+  if (directionLength === 0) {
+    return { x: 0, y: 0 };
+  }
+  const handleLength = (Math.min(incomingLength, outgoingLength) * amount) / 3;
+  return scale(direction, handleLength / directionLength);
+}
+
+function createCircleTangents(points: readonly Vec2[], amount: number): Vec2[] {
+  const center = {
+    x: points.reduce((sum, point) => sum + point.x / points.length, 0),
+    y: points.reduce((sum, point) => sum + point.y / points.length, 0),
+  };
+  return points.map((position, index) => {
+    const next = points[(index + 1) % points.length];
+    if (!next) {
+      return { x: 0, y: 0 };
+    }
+    const radial = subtract(position, center);
+    const nextRadial = subtract(next, center);
+    const radius = Math.hypot(radial.x, radial.y);
+    const nextRadius = Math.hypot(nextRadial.x, nextRadial.y);
+    if (radius === 0 || nextRadius === 0) {
+      return { x: 0, y: 0 };
+    }
+    const cross = radial.x * nextRadial.y - radial.y * nextRadial.x;
+    const dot = radial.x * nextRadial.x + radial.y * nextRadial.y;
+    const angle = Math.abs(Math.atan2(cross, dot));
+    const tangentDirection = { x: -radial.y / radius, y: radial.x / radius };
+    const orientation = cross < 0 ? -1 : 1;
+    const controlLength = (4 / 3) * radius * Math.tan(angle / 4) * amount;
+    return scale(tangentDirection, controlLength * orientation);
+  });
+}
+
+function blendTowardCircle(points: readonly Vec2[], amount: number): Vec2[] {
+  if (points.length < 3) {
+    return [...points];
+  }
+  const center = points.reduce(
+    (sum, point) => ({ x: sum.x + point.x / points.length, y: sum.y + point.y / points.length }),
+    { x: 0, y: 0 },
+  );
+  const radius =
+    points.reduce((sum, point) => sum + distance(center, point), 0) / points.length;
+  if (radius === 0) {
+    return [...points];
+  }
+  const area = points.reduce((sum, point, index) => {
+    const next = points[(index + 1) % points.length];
+    return next ? sum + point.x * next.y - next.x * point.y : sum;
+  }, 0);
+  const direction = area < 0 ? -1 : 1;
+  const startAngle = Math.atan2(
+    (points[0]?.y ?? center.y) - center.y,
+    (points[0]?.x ?? center.x) - center.x,
+  );
+  return points.map((point, index) => {
+    const angle = startAngle + (direction * 2 * Math.PI * index) / points.length;
+    const circlePoint = { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius };
+    return interpolate(point, circlePoint, amount);
+  });
 }
 
 function interpolate(start: Vec2, end: Vec2, amount: number): Vec2 {

@@ -22,6 +22,7 @@ export class ModifiersPanel {
     if (!document || !id) {
       return null;
     }
+    console.log(document);
     return document.objects.find((object) => object.id === id) ?? null;
   });
 

@@ -54,7 +54,7 @@ describe('evaluateSource', () => {
 
   it('resamples anchors and rounds a path with cubic handles', () => {
     const rounded = evaluateSource(squarePath('square', 0, 0, 10), [
-      { id: 'round', type: 'round', anchorCount: 8, roundness: 100, enabled: true },
+      { id: 'round', type: 'round', mode: 'direct', anchorCount: 8, roundness: 100, enabled: true },
     ]).source.subpaths[0];
 
     expect(rounded?.anchors).toHaveLength(8);
@@ -68,12 +68,44 @@ describe('evaluateSource', () => {
     ).toBe(true);
   });
 
+  it('recalculates smooth handles without moving the sampled anchors', () => {
+    const direct = evaluateSource(squarePath('square', 0, 0, 10), [
+      { id: 'round', type: 'round', mode: 'direct', anchorCount: 8, roundness: 100, enabled: true },
+    ]).source.subpaths[0];
+    const smooth = evaluateSource(squarePath('square', 0, 0, 10), [
+      { id: 'round', type: 'round', mode: 'smooth', anchorCount: 8, roundness: 100, enabled: true },
+    ]).source.subpaths[0];
+
+    expect(smooth?.anchors.map((anchor) => anchor.position)).toEqual(
+      direct?.anchors.map((anchor) => anchor.position),
+    );
+    expect(smooth?.anchors[0]?.handleOut).not.toEqual(direct?.anchors[0]?.handleOut);
+  });
+
+  it('moves closed round paths toward a fitted circle in circle mode', () => {
+    const circle = evaluateSource(squarePath('square', 0, 0, 10), [
+      { id: 'round', type: 'round', mode: 'circle', anchorCount: 8, roundness: 100, enabled: true },
+    ]).source.subpaths[0];
+    const anchors = circle?.anchors ?? [];
+    const center = {
+      x: anchors.reduce((sum, anchor) => sum + anchor.position.x / anchors.length, 0),
+      y: anchors.reduce((sum, anchor) => sum + anchor.position.y / anchors.length, 0),
+    };
+    const radii = anchors.map((anchor) =>
+      Math.hypot(anchor.position.x - center.x, anchor.position.y - center.y),
+    );
+
+    expect(anchors).toHaveLength(8);
+    expect(Math.max(...radii) - Math.min(...radii)).toBeLessThan(1e-8);
+    expect(anchors[0]?.handleOut).not.toEqual(anchors[0]?.position);
+  });
+
   it('defaults the round anchor count from the previous modifier output', () => {
     const object = shape('square', squarePath('square', 0, 0, 10), [array('copies')]);
     const updated = addModifier(object, 'round');
     const round = updated.modifiers.at(-1);
 
-    expect(round).toMatchObject({ type: 'round', anchorCount: 4, roundness: 50 });
+    expect(round).toMatchObject({ type: 'round', mode: 'direct', anchorCount: 4, roundness: 50 });
   });
 
   it('tiles a mirrored shape and mirrors an array around the combined center', () => {

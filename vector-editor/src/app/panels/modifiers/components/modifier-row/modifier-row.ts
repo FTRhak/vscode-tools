@@ -90,6 +90,7 @@ export class ModifierRow {
     readonly distance?: number;
     readonly join?: 'bevel' | 'miter' | 'round';
     readonly miterLimit?: number;
+    readonly mode?: 'direct' | 'smooth' | 'circle';
     readonly anchorCount?: number;
     readonly roundness?: number;
     readonly operation?: BooleanOperation;

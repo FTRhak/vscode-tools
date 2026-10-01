@@ -1,5 +1,13 @@
 <div class="fields">
   <label>
+    Mode
+    <select [value]="modifier().mode" (change)="commitMode($event)">
+      <option value="direct">Direct</option>
+      <option value="smooth">Smooth</option>
+      <option value="circle">Circle</option>
+    </select>
+  </label>
+  <label>
     Anchor points
     <input
       type="number"
