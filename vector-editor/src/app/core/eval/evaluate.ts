@@ -1,4 +1,5 @@
 import { identityTransform } from '../io/matrix';
+import { isEmptyPoint } from '../model/empty-point';
 import { Modifier, SourcePath, Style, Subpath, VectorObject } from '../model/types';
 import { applyArray } from './array';
 import { applyBevel } from './bevel';
@@ -97,6 +98,7 @@ export function evaluateSource(
     layerId: '',
     visible: true,
     locked: false,
+    kind: 'path',
     source,
     style: plainStyle,
     transform: identityTransform,
@@ -142,6 +144,9 @@ function walkStack(
   byId: ReadonlyMap<string, VectorObject>,
   evaluate: (object: VectorObject) => StackResult,
 ): StackResult {
+  if (isEmptyPoint(object)) {
+    return { source: { subpaths: [] }, diagnostics: [], booleanRan: false };
+  }
   const diagnostics: string[] = [];
   let current = object.source;
   let booleanRan = false;
@@ -221,7 +226,7 @@ function applyBooleanModifier(
     return { source: null, diagnostics: ['Boolean operands form a cycle.'], ran: false };
   }
   const operand = byId.get(modifier.operandId);
-  if (!operand) {
+  if (!operand || isEmptyPoint(operand)) {
     return { source: null, diagnostics: ['Boolean operand is missing.'], ran: false };
   }
   const placed = placeOperand(object.transform, operand.transform, evaluate(operand).source);

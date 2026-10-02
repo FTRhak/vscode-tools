@@ -69,6 +69,22 @@
           }
         </g>
       }
+      @for (point of emptyPoints(); track point.id) {
+        <g class="empty-point" [class.selected]="point.selected" pointer-events="none">
+          <line
+            [attr.x1]="point.x - point.arm"
+            [attr.y1]="point.y"
+            [attr.x2]="point.x + point.arm"
+            [attr.y2]="point.y"
+          />
+          <line
+            [attr.x1]="point.x"
+            [attr.y1]="point.y - point.arm"
+            [attr.x2]="point.x"
+            [attr.y2]="point.y + point.arm"
+          />
+        </g>
+      }
       @for (origin of rotationOrigins(); track origin.id) {
         <g class="rotation-origin" pointer-events="none">
           <circle [attr.cx]="origin.x" [attr.cy]="origin.y" [attr.r]="origin.radius" />

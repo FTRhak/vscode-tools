@@ -13,7 +13,8 @@
 
 :host.direct,
 :host.pen,
-:host.add-point {
+:host.add-point,
+:host.empty-point {
   cursor: crosshair;
 }
 
@@ -76,6 +77,19 @@ svg {
   stroke-dasharray: 4 3;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
+}
+
+.empty-point,
+.empty-point line {
+  fill: none;
+  stroke: #1a1a1a;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.empty-point.selected,
+.empty-point.selected line {
+  stroke: #1d4ed8;
 }
 
 .rotation-origin,

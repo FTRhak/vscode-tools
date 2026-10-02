@@ -57,6 +57,7 @@ export function createNewDocument(size: DocumentSize = {}): Document {
         layerId,
         visible: true,
         locked: false,
+        kind: 'path',
         source: {
           subpaths: [
             {

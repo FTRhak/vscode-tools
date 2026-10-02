@@ -102,6 +102,8 @@ export interface VectorObject {
   readonly layerId: string;
   readonly visible: boolean;
   readonly locked: boolean;
+  /** Missing kind is a path. Empty points exist only as movable reference markers. */
+  readonly kind?: 'path' | 'empty';
   readonly source: SourcePath;
   readonly style: Style;
   readonly transform: ObjectTransform;

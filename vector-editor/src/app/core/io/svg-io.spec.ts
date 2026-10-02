@@ -1,4 +1,5 @@
 import { createNewDocument } from '../model/create-document';
+import { addEmptyPoint } from '../model/empty-point';
 import { Document, SourcePath, Vec2, VectorObject } from '../model/types';
 import { parsePathData } from './path-data-parse';
 import { exportSvg } from './svg-export';
@@ -272,6 +273,44 @@ describe('exportSvg', () => {
       x: 15,
       y: 10,
     });
+  });
+
+  it('round-trips an empty point without turning it into path geometry', () => {
+    const created = addEmptyPoint(createNewDocument(), { x: 40, y: 70 });
+    const document = created?.document;
+    expect(document).toBeDefined();
+    if (!document) {
+      return;
+    }
+
+    const svg = exportSvg(document, 'all');
+    expect(svg).toContain('M 40 70');
+    expect(svg).toContain('&quot;kind&quot;:&quot;empty&quot;');
+
+    const result = importSvg(svg);
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    const point = result.document.objects.find((object) => object.kind === 'empty');
+    expect(point).toMatchObject({
+      name: 'Empty Point',
+      source: { subpaths: [] },
+      modifiers: [],
+      transform: { x: 40, y: 70, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+    });
+
+    const optimized = importSvg(exportSvg(document, 'optimized'));
+    expect(optimized.ok).toBe(true);
+    if (!optimized.ok) {
+      return;
+    }
+    expect(optimized.document.objects.some((object) => object.kind === 'empty')).toBe(true);
+    expect(
+      optimized.document.objects.find((object) => object.kind === 'empty')?.transform,
+    ).toMatchObject({ x: 40, y: 70 });
+
+    expect(exportSvg(document, 'minimal')).not.toContain('"kind":"empty"');
   });
 
   it('round-trips the new-document curve with the same anchors', () => {

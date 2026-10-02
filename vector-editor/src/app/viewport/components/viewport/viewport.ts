@@ -3,6 +3,7 @@ import { fromEvent } from 'rxjs';
 import { CommandBus, TranslateGesture } from '@vector-editor/commands';
 import {
   Document,
+  isEmptyPoint,
   isInteractionLocked,
   objectsInPaintOrder,
   rotationOriginDocument,
@@ -98,6 +99,7 @@ const GESTURE_THRESHOLD_PX = 4;
     '[class.direct]': 'directCursor()',
     '[class.pen]': 'penTool()',
     '[class.add-point]': 'addPointTool()',
+    '[class.empty-point]': 'emptyPointTool()',
     '(pointerdown)': 'onPointerDown($event)',
     '(pointermove)': 'onPointerMove($event)',
     '(pointerup)': 'onPointerUp($event)',
@@ -139,6 +141,7 @@ export class Viewport {
   );
   protected readonly penTool = computed(() => this.session.tool() === 'pen');
   protected readonly addPointTool = computed(() => this.session.tool() === 'add-point');
+  protected readonly emptyPointTool = computed(() => this.session.tool() === 'empty-point');
   private readonly penHover = signal<Vec2 | null>(null);
   private readonly penDragging = signal(false);
   protected readonly activeId = this.session.activeObjectId;
@@ -166,7 +169,7 @@ export class Viewport {
     }
     const zoom = this.session.viewport().zoom || 1;
     return objectsInPaintOrder(document).flatMap((object) => {
-      if (!selected.has(object.id)) {
+      if (!selected.has(object.id) || isEmptyPoint(object)) {
         return [];
       }
       const point = rotationOriginDocument(object.transform);
@@ -181,7 +184,7 @@ export class Viewport {
     const document = this.session.document();
     const activeId = this.session.activeObjectId();
     const object = document?.objects.find((item) => item.id === activeId);
-    if (!object) {
+    if (!object || isEmptyPoint(object)) {
       return null;
     }
     const selected = new Set(this.session.selectedAnchorIds());
@@ -261,6 +264,10 @@ export class Viewport {
     }
     if (this.session.tool() === 'add-point') {
       this.beginAddPoint(event);
+      return;
+    }
+    if (this.session.tool() === 'empty-point') {
+      this.beginEmptyPoint(event);
       return;
     }
     if (this.session.tool() === 'direct-select') {
@@ -393,6 +400,44 @@ export class Viewport {
       panY: next.panY,
       zoom: next.zoom,
     });
+  }
+
+  protected readonly emptyPoints = computed(() => {
+    if (this.session.mode() !== 'object') {
+      return [];
+    }
+    const document = this.session.document();
+    if (!document) {
+      return [];
+    }
+    const zoom = this.session.viewport().zoom || 1;
+    const selected = this.selectedIds();
+    const arm = 8 / zoom;
+    return objectsInPaintOrder(document).flatMap((object) => {
+      if (!isEmptyPoint(object)) {
+        return [];
+      }
+      return [
+        {
+          id: object.id,
+          x: object.transform.x,
+          y: object.transform.y,
+          arm,
+          selected: selected.has(object.id),
+        },
+      ];
+    });
+  });
+
+  private beginEmptyPoint(event: PointerEvent): void {
+    if (!this.session.document() || this.session.mode() !== 'object') {
+      return;
+    }
+    this.bus.dispatch({
+      type: 'point.add',
+      position: this.pointerToDocument(event),
+    });
+    this.host.nativeElement.focus();
   }
 
   private beginSelect(event: PointerEvent): void {
@@ -636,7 +681,12 @@ export class Viewport {
     const ordered = objectsInPaintOrder(document);
     for (let index = ordered.length - 1; index >= 0; index -= 1) {
       const object = ordered[index];
-      if (!object || !selected.has(object.id) || isInteractionLocked(document, object)) {
+      if (
+        !object ||
+        !selected.has(object.id) ||
+        isEmptyPoint(object) ||
+        isInteractionLocked(document, object)
+      ) {
         continue;
       }
       const origin = rotationOriginDocument(object.transform);
@@ -735,7 +785,7 @@ export class Viewport {
     }
     const object = this.activeObject();
     const document = this.session.document();
-    if (!object || !document) {
+    if (!object || !document || isEmptyPoint(object)) {
       return;
     }
     const localPoint = documentToLocal(object.transform, this.pointerToDocument(event));
@@ -823,6 +873,7 @@ export class Viewport {
     if (
       !document ||
       !object ||
+      isEmptyPoint(object) ||
       this.session.mode() !== 'edit' ||
       isInteractionLocked(document, object)
     ) {

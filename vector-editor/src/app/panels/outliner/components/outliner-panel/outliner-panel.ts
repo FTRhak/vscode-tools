@@ -2,6 +2,7 @@ import { Component, computed, ElementRef, inject, signal } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
 import {
   deletableObjectIds,
+  isEmptyPoint,
   layersFrontToBack,
   objectsOnLayer,
   SessionService,
@@ -32,6 +33,7 @@ export class OutlinerPanel {
       return [];
     }
     const collapsed = this.collapsedLayerIds();
+    const editing = this.session.mode() === 'edit';
     const selected = new Set(this.session.selectedObjectIds());
     const selectedLayerId = this.session.selectedLayerId();
     const activeId = this.session.activeObjectId();
@@ -43,6 +45,7 @@ export class OutlinerPanel {
       expanded: !collapsed.has(layer.id),
       selected: layer.id === selectedLayerId,
       objects: objectsOnLayer(document, layer.id)
+        .filter((object) => !(editing && isEmptyPoint(object)))
         .slice()
         .reverse()
         .map((object) => ({

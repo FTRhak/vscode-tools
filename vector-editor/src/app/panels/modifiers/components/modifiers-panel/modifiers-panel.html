@@ -1,5 +1,8 @@
 <panel [panelName]="panelName" [icon]="'&#xe0f6;'" >
   @if (active(); as object) {
+    @if (emptyPoint()) {
+      <p>Modifiers do not apply to empty points.</p>
+    } @else {
     <div class="modifier-actions">
       <button class="chrome-button modifier-action-button" [cdkMenuTriggerFor]="menu">
         <i class="icon">&#xe0e6;</i>
@@ -34,6 +37,7 @@
           }
         </ul>
       }
+    }
     }
   } @else {
     <p>Select an object.</p>

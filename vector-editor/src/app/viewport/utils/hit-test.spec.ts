@@ -2,6 +2,23 @@ import { createNewDocument, Document, VectorObject } from '@vector-editor/core';
 import { hitTestObject, localToDocument, objectsInRect } from './hit-test';
 
 describe('hitTestObject', () => {
+  it('hits an empty point inside its screen radius and a marquee that contains it', () => {
+    const point: VectorObject = {
+      ...square('point'),
+      kind: 'empty',
+      source: { subpaths: [] },
+      style: { fill: null, stroke: null, strokeWidth: 0, fillRule: 'nonzero' },
+      transform: { x: 30, y: 40, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
+    };
+    const document = doc([point]);
+
+    expect(hitTestObject(document, { x: 30, y: 40 }, 1)).toBe('point');
+    expect(hitTestObject(document, { x: 30, y: 47 }, 1)).toBe('point');
+    expect(hitTestObject(document, { x: 30, y: 49 }, 1)).toBeNull();
+    expect(objectsInRect(document, { x: 20, y: 30, width: 20, height: 20 })).toEqual(['point']);
+    expect(objectsInRect(document, { x: 0, y: 0, width: 10, height: 10 })).toEqual([]);
+  });
+
   it('hits the interior of the new-document curve and misses the outside', () => {
     const document = createNewDocument();
     const id = document.objects[0].id;

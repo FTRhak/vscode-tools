@@ -6,13 +6,14 @@ export type ColorSlot = 'fill' | 'stroke';
 
 export type EditorMode = 'object' | 'edit';
 
-export type EditorTool = 'select' | 'direct-select' | 'pen' | 'add-point';
+export type EditorTool = 'select' | 'direct-select' | 'pen' | 'add-point' | 'empty-point';
 
 export const EDITOR_TOOLS_ICONS: { [K in EditorTool]: string } = {
   select: '&#xe107;',
   'direct-select': '&#xe108;',
   pen: '&#xe109;',
-  'add-point': '&#xe10A;'
+  'add-point': '&#xe10A;',
+  'empty-point': '&#xe10B;',
 };
 
 export type SelectOperation = 'replace' | 'add' | 'toggle' | 'clear';
@@ -150,6 +151,7 @@ export type Command =
   | { readonly type: 'layer.reorder'; readonly id: string; readonly index: number }
   | { readonly type: 'layer.delete'; readonly id: string }
   | { readonly type: 'path.add'; readonly layerId: string }
+  | { readonly type: 'point.add'; readonly position: Vec2 }
   | { readonly type: 'pen.begin'; readonly position: Vec2 }
   | { readonly type: 'pen.addPoint'; readonly objectId: string; readonly position: Vec2 }
   | {

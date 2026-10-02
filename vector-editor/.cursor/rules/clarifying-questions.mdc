@@ -1,0 +1,12 @@
+---
+description: Ask clarifying questions through the interactive dialog
+alwaysApply: true
+---
+
+# Clarifying Questions
+
+- When clarification is required, use the interactive question dialog instead of asking in plain chat.
+- Ask only questions that materially affect the result and cannot be resolved from the request, codebase, or sensible defaults.
+- Provide concise, mutually distinct options and mark the recommended option when one is clearly preferable.
+- Allow custom input so the user can provide an answer not covered by the options.
+- Group independent clarifying questions into one dialog when practical.

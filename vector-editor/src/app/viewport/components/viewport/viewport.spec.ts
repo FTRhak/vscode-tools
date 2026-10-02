@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
-import { Viewport } from '.';
+import { Viewport } from './viewport';
 
 describe('Viewport', () => {
   let fixture: ComponentFixture<Viewport>;
@@ -641,6 +641,32 @@ describe('Viewport', () => {
       originX: 0,
       originY: 0,
     });
+  });
+
+  it('places an empty point, moves it, and hides it in edit mode', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    bus.dispatch({ type: 'session.setTool', tool: 'empty-point' });
+    pointer(canvas(), 'pointerdown', 124, 144);
+    await fixture.whenStable();
+
+    const point = session.document()!.objects.find((object) => object.kind === 'empty');
+    expect(point?.transform).toMatchObject({ x: 100, y: 120 });
+    expect(canvas().querySelector('.empty-point.selected')).not.toBeNull();
+    expect(canvas().querySelector('.rotation-origin')).toBeNull();
+
+    bus.dispatch({ type: 'session.setTool', tool: 'select' });
+    pointer(canvas(), 'pointerdown', 124, 144);
+    pointer(canvas(), 'pointermove', 164, 164);
+    pointer(canvas(), 'pointerup', 164, 164);
+    await fixture.whenStable();
+
+    const moved = session.document()!.objects.find((object) => object.id === point?.id);
+    expect(moved?.transform).toMatchObject({ x: 140, y: 140 });
+
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    await fixture.whenStable();
+    expect(canvas().querySelector('.empty-point')).toBeNull();
+    expect(session.selectedObjectIds()).not.toContain(point?.id);
   });
 });
 

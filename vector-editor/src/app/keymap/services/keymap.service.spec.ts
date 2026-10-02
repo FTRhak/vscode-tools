@@ -229,6 +229,11 @@ describe('KeymapService', () => {
     viewport.remove();
   });
 
+  it('selects the empty point tool from e', () => {
+    document.dispatchEvent(key('e'));
+    expect(session.tool()).toBe('empty-point');
+  });
+
   it('selects the add point tool from + and =', () => {
     document.dispatchEvent(key('='));
     expect(session.tool()).toBe('add-point');

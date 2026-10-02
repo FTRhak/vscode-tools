@@ -113,6 +113,8 @@ export function historyLabel(command: Command): string | null {
       return 'Delete layer';
     case 'path.add':
       return 'Add path';
+    case 'point.add':
+      return 'Add empty point';
     case 'pen.begin':
     case 'pen.addPoint':
     case 'pen.setHandles':

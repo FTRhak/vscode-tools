@@ -276,6 +276,20 @@ function readObject(
   operandLinks: OperandLink[],
 ): VectorObject | null {
   const payload = readObjectPayload(element.getAttribute(objectAttribute), claim, operandLinks);
+  if (payload?.kind === 'empty') {
+    return {
+      id: claim(element.getAttribute('id')),
+      name: payload.name || 'Empty Point',
+      layerId,
+      visible: !context.hidden && !elementHidden(element),
+      locked: payload.locked === true,
+      kind: 'empty',
+      source: { subpaths: [] },
+      style: { fill: null, stroke: null, strokeWidth: 0, fillRule: 'nonzero' },
+      transform: payload.transform,
+      modifiers: [],
+    };
+  }
   const source = payload ? claimSource(payload.source, claim) : geometrySource(element, context);
   if (!source || source.subpaths.every((subpath) => subpath.anchors.length === 0)) {
     return null;
@@ -362,6 +376,7 @@ function readObjectPayload(
   transform: ObjectTransform;
   name: string;
   locked: boolean;
+  kind: 'path' | 'empty';
   modifiers: readonly Modifier[];
 } | null {
   const json = parseJson(value);
@@ -377,6 +392,7 @@ function readObjectPayload(
     transform: readTransform(json['transform']),
     name: stringField(json, 'name') ?? '',
     locked: booleanField(json, 'locked') === true,
+    kind: json['kind'] === 'empty' ? 'empty' : 'path',
     modifiers: readModifiers(json['modifiers'], claim, operandLinks),
   };
 }

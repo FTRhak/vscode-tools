@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { Modifier, VectorObject } from '@vector-editor/core';
+import { isEmptyPoint, Modifier, VectorObject } from '@vector-editor/core';
 
 type BooleanOperation = 'union' | 'difference' | 'intersect';
 
@@ -58,7 +58,7 @@ export class ModifierRow {
   });
 
   protected readonly peers = computed(() =>
-    this.objects().filter((object) => object.id !== this.objectId()),
+    this.objects().filter((object) => object.id !== this.objectId() && !isEmptyPoint(object)),
   );
 
   protected toggleEnabled(): void {

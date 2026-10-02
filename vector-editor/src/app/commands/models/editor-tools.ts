@@ -11,4 +11,5 @@ export const EDITOR_TOOLS: readonly EditorToolDefinition[] = [
   { id: 'direct-select', label: 'Direct select', shortcut: 'A' },
   { id: 'pen', label: 'Pen', shortcut: 'P' },
   { id: 'add-point', label: 'Add point', shortcut: '+' },
+  { id: 'empty-point', label: 'Empty point', shortcut: 'E' },
 ];

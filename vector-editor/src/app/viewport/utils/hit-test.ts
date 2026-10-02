@@ -2,6 +2,7 @@ import {
   ClipperHold,
   Document,
   evaluateDocument,
+  isEmptyPoint,
   EvaluatedGeometry,
   objectsInPaintOrder,
   ObjectTransform,
@@ -27,6 +28,7 @@ interface Bounds {
 
 const MAX_FLATTEN_DEPTH = 12;
 const SCREEN_TOLERANCE = 0.75;
+const EMPTY_POINT_HIT_PX = 8;
 
 export function hitTestObject(
   document: Document,
@@ -38,6 +40,15 @@ export function hitTestObject(
   const objects = objectsInPaintOrder(document);
   for (let index = objects.length - 1; index >= 0; index -= 1) {
     const object = objects[index];
+    if (isEmptyPoint(object)) {
+      const radius = EMPTY_POINT_HIT_PX / (zoom || 1);
+      const dx = point.x - object.transform.x;
+      const dy = point.y - object.transform.y;
+      if (dx * dx + dy * dy <= radius * radius) {
+        return object.id;
+      }
+      continue;
+    }
     const local = documentToLocal(object.transform, point);
     if (!local) {
       continue;
@@ -58,6 +69,13 @@ export function objectsInRect(
   const box = normalizeRect(rect);
   const hits: string[] = [];
   for (const object of objectsInPaintOrder(document)) {
+    if (isEmptyPoint(object)) {
+      const { x, y } = object.transform;
+      if (intersects({ minX: x, minY: y, maxX: x, maxY: y }, box)) {
+        hits.push(object.id);
+      }
+      continue;
+    }
     const bounds = objectBounds(object, geometry.get(object.id));
     if (bounds && intersects(bounds, box)) {
       hits.push(object.id);

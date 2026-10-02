@@ -1,4 +1,5 @@
 import { evaluateDocument, EvaluatedGeometry } from '../eval/evaluate';
+import { isEmptyPoint } from '../model/empty-point';
 import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '../model/paint-order';
 import { sourceToPathData } from '../model/path-data';
 import { Document, Layer, Modifier, SourcePath, VectorObject } from '../model/types';
@@ -34,6 +35,9 @@ export function exportSvg(document: Document, mode: SaveMode): string {
   }
   if (mode === 'minimal') {
     for (const object of objectsInPaintOrder(document)) {
+      if (isEmptyPoint(object)) {
+        continue;
+      }
       lines.push(`  ${pathTag(object, mode, geometry.get(object.id), order)}`);
     }
   } else {
@@ -112,6 +116,19 @@ function pathTag(
   evaluated: EvaluatedGeometry | undefined,
   order: readonly VectorObject[],
 ): string {
+  if (isEmptyPoint(object)) {
+    const attributes = [
+      mode === 'all' ? `id="${escapeXml(object.id)}"` : null,
+      `d="M ${formatNumber(object.transform.x)} ${formatNumber(object.transform.y)}"`,
+      'fill="none"',
+      'stroke="none"',
+      'stroke-width="0"',
+      'fill-rule="nonzero"',
+      object.visible ? null : 'display="none"',
+      `data-vector-editor="${escapeXml(JSON.stringify(objectPayload(object, mode, order)))}"`,
+    ].filter((item): item is string => item !== null);
+    return `<path ${attributes.join(' ')} />`;
+  }
   const geometry = transformSource(
     { subpaths: evaluated?.subpaths ?? object.source.subpaths },
     matrixFromTransform(object.transform),
@@ -139,6 +156,7 @@ function objectPayload(
   const payload: {
     version: number;
     name: string;
+    kind?: 'empty';
     source: SourcePath | ReturnType<typeof indexedSource>;
     transform: VectorObject['transform'];
     modifiers: unknown[];
@@ -153,6 +171,9 @@ function objectPayload(
       return payload === null ? [] : [payload];
     }),
   };
+  if (isEmptyPoint(object)) {
+    payload.kind = 'empty';
+  }
   if (mode === 'all') {
     payload.locked = object.locked;
   }

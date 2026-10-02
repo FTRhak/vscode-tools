@@ -42,6 +42,7 @@ import {
   updateModifier,
 } from './model/modifier-edits';
 import { isInteractionLocked, layersFrontToBack } from './model/paint-order';
+import { addEmptyPoint, isEmptyPoint } from './model/empty-point';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
 import { identityTransform, matrixFromTransform, transformSource } from './io/matrix';
 import { rotationOriginDocument, transformWithRotationOrigin } from './model/transform';
@@ -183,6 +184,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyAddLayer(state);
     case 'path.add':
       return applyAddPath(state, command.layerId);
+    case 'point.add':
+      return applyPointAdd(state, command);
     case 'layer.update':
       return applyDocument(state, (document) => updateLayer(document, command.id, command));
     case 'layer.reorder':
@@ -374,13 +377,20 @@ function jumpSession(state: SessionSlice, index: number): SessionSlice {
 }
 
 function applyMode(state: SessionSlice, mode: SessionSlice['mode']): SessionSlice {
-  const selection = state.selection;
+  const cleared = mode === 'edit' ? withoutEmptySelection(state) : state.selection;
+  const selection = {
+    ...cleared,
+    selectedAnchorIds: [] as readonly string[],
+    selectedSegmentIds: [] as readonly string[],
+  };
   const penObjectId = mode === 'edit' ? state.penObjectId : null;
   if (
     state.mode === mode &&
     penObjectId === state.penObjectId &&
-    selection.selectedAnchorIds.length === 0 &&
-    selection.selectedSegmentIds.length === 0
+    state.selection.activeObjectId === selection.activeObjectId &&
+    sameIds(state.selection.selectedObjectIds, selection.selectedObjectIds) &&
+    state.selection.selectedAnchorIds.length === 0 &&
+    state.selection.selectedSegmentIds.length === 0
   ) {
     return state;
   }
@@ -388,11 +398,30 @@ function applyMode(state: SessionSlice, mode: SessionSlice['mode']): SessionSlic
     ...state,
     mode,
     penObjectId,
-    selection: {
-      ...selection,
-      selectedAnchorIds: [],
-      selectedSegmentIds: [],
-    },
+    selection,
+  };
+}
+
+function withoutEmptySelection(state: SessionSlice): SessionSlice['selection'] {
+  const document = state.document;
+  if (!document) {
+    return state.selection;
+  }
+  const empty = new Set(
+    document.objects.filter((object) => isEmptyPoint(object)).map((object) => object.id),
+  );
+  if (empty.size === 0) {
+    return state.selection;
+  }
+  const selectedObjectIds = state.selection.selectedObjectIds.filter((id) => !empty.has(id));
+  const activeKept =
+    state.selection.activeObjectId !== null && !empty.has(state.selection.activeObjectId);
+  return {
+    ...state.selection,
+    selectedObjectIds,
+    activeObjectId: activeKept
+      ? state.selection.activeObjectId
+      : (selectedObjectIds.at(-1) ?? null),
   };
 }
 
@@ -564,6 +593,18 @@ function applySelect(
 ): SessionSlice {
   if (command.op === 'clear') {
     return withObjectSelection(state, [], null, true);
+  }
+  if (state.mode === 'edit' && command.target === 'object') {
+    const allowed = command.ids.filter((id) => {
+      const object = state.document?.objects.find((item) => item.id === id);
+      return !object || !isEmptyPoint(object);
+    });
+    if (allowed.length === 0) {
+      return state;
+    }
+    if (allowed.length !== command.ids.length) {
+      command = { ...command, ids: allowed };
+    }
   }
 
   const known = new Set(state.document?.objects.map((object) => object.id) ?? []);
@@ -1019,6 +1060,35 @@ function applyAddLayer(state: SessionSlice): SessionSlice {
     return state;
   }
   return { ...state, document, selectedLayerId: added.id };
+}
+
+function applyPointAdd(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'point.add' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const created = addEmptyPoint(
+    state.document,
+    command.position,
+    state.selectedLayerId ?? undefined,
+  );
+  if (!created) {
+    return state;
+  }
+  return {
+    ...state,
+    mode: 'object',
+    document: created.document,
+    selection: {
+      ...state.selection,
+      activeObjectId: created.objectId,
+      selectedObjectIds: [created.objectId],
+      selectedAnchorIds: [],
+      selectedSegmentIds: [],
+    },
+  };
 }
 
 function applyAddPath(state: SessionSlice, layerId: string): SessionSlice {

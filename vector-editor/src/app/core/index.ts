@@ -15,6 +15,8 @@ export {
   deleteLayer,
   deleteObjects,
   deletableObjectIds,
+  addEmptyPoint,
+  isEmptyPoint,
   duplicateObjects,
   isInteractionLocked,
   layersFrontToBack,

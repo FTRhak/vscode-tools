@@ -10,6 +10,7 @@ const toolKeys: Readonly<Record<string, EditorTool>> = {
   v: 'select',
   a: 'direct-select',
   p: 'pen',
+  e: 'empty-point',
 };
 
 @Service()

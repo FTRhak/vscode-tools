@@ -3,6 +3,7 @@ import {
   Document,
   evaluateDocument,
   Gradient,
+  isEmptyPoint,
   ObjectTransform,
   objectsInPaintOrder,
   sourceToPathData,
@@ -48,9 +49,12 @@ export function sceneFromDocument(document: Document, hold: ClipperHold | null =
   return {
     viewBox: document.viewBox,
     gradients: document.gradients,
-    objects: objectsInPaintOrder(document).map((object) => {
+    objects: objectsInPaintOrder(document).flatMap((object) => {
+      if (isEmptyPoint(object)) {
+        return [];
+      }
       const evaluated = geometry.get(object.id);
-      return {
+      return [{
         id: object.id,
         d: sourceToPathData({ subpaths: evaluated?.subpaths ?? object.source.subpaths }),
         transform: formatObjectTransform(object.transform),
@@ -58,7 +62,7 @@ export function sceneFromDocument(document: Document, hold: ClipperHold | null =
         stroke: object.style.stroke ?? 'none',
         strokeWidth: object.style.strokeWidth,
         fillRule: evaluated?.fillRule ?? object.style.fillRule,
-      };
+      }];
     }),
   };
 }

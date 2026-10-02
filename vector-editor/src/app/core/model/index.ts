@@ -17,6 +17,8 @@ export {
   updateLayer,
 } from './document-edits';
 export { deleteLayer, deleteObjects, deletableObjectIds } from './delete-objects';
+export { addEmptyPoint, isEmptyPoint } from './empty-point';
+export type { EmptyPointResult } from './empty-point';
 export { duplicateObjects, DUPLICATE_OFFSET } from './duplicate-objects';
 export {
   deleteAnchors,

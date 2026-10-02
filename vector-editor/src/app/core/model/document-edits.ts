@@ -333,6 +333,7 @@ export function addPath(
     layerId,
     visible: true,
     locked: false,
+    kind: 'path',
     source: {
       subpaths: [
         {

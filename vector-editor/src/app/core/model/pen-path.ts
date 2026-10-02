@@ -59,6 +59,7 @@ export function beginPenObject(
     layerId: layer.id,
     visible: true,
     locked: false,
+    kind: 'path',
     source: {
       subpaths: [
         {
