@@ -70,6 +70,7 @@ export type Modifier =
       readonly id: string;
       readonly type: 'mirror';
       readonly axis: 'x' | 'y' | 'xy';
+      readonly centerPointId?: string;
       readonly enabled: boolean;
     }
   | {

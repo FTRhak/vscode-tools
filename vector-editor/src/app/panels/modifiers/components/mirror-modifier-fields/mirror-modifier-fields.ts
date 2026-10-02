@@ -1,11 +1,12 @@
 import { Component, input, output } from '@angular/core';
-import { Modifier } from '@vector-editor/core';
+import { Modifier, VectorObject } from '@vector-editor/core';
 
 type MirrorModifier = Extract<Modifier, { type: 'mirror' }>;
 type MirrorAxis = MirrorModifier['axis'];
 
 export interface MirrorModifierPatch {
-  readonly axis: MirrorAxis;
+  readonly axis?: MirrorAxis;
+  readonly centerPointId?: string | null;
 }
 
 @Component({
@@ -16,6 +17,7 @@ export interface MirrorModifierPatch {
 })
 export class MirrorModifierFields {
   readonly modifier = input.required<MirrorModifier>();
+  readonly emptyPoints = input.required<readonly VectorObject[]>();
   readonly committed = output<MirrorModifierPatch>();
 
   protected commitAxis(axis: MirrorAxis): void {
@@ -23,5 +25,17 @@ export class MirrorModifierFields {
       return;
     }
     this.committed.emit({ axis });
+  }
+
+  protected commitCenterPoint(event: Event): void {
+    const select = event.target;
+    if (!(select instanceof HTMLSelectElement)) {
+      return;
+    }
+    const centerPointId = select.value || null;
+    if ((this.modifier().centerPointId ?? null) === centerPointId) {
+      return;
+    }
+    this.committed.emit({ centerPointId });
   }
 }

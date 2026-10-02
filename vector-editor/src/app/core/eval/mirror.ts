@@ -4,14 +4,18 @@ import { mapSubpath } from './copy-subpath';
 
 type MirrorModifier = Extract<Modifier, { type: 'mirror' }>;
 
-export function applyMirror(source: SourcePath, modifier: MirrorModifier): SourcePath {
+export function applyMirror(
+  source: SourcePath,
+  modifier: MirrorModifier,
+  center?: Vec2,
+): SourcePath {
   const bounds = sourceBounds(source);
   if (!bounds || source.subpaths.length === 0) {
     return source;
   }
 
-  const centerX = (bounds.minX + bounds.maxX) / 2;
-  const centerY = (bounds.minY + bounds.maxY) / 2;
+  const centerX = center?.x ?? (bounds.minX + bounds.maxX) / 2;
+  const centerY = center?.y ?? (bounds.minY + bounds.maxY) / 2;
   const copies = source.subpaths.map((subpath) =>
     mapSubpath(subpath, modifier.id, 'mirror', (point) =>
       reflectPoint(point, modifier.axis, centerX, centerY),

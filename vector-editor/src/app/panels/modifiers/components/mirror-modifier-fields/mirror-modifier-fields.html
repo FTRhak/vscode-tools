@@ -28,3 +28,12 @@
     Both
   </label>
 </fieldset>
+<label class="center-point">
+  Empty point
+  <select [value]="modifier().centerPointId ?? ''" (change)="commitCenterPoint($event)">
+    <option value="">Object center</option>
+    @for (point of emptyPoints(); track point.id) {
+      <option [value]="point.id">{{ point.name }}</option>
+    }
+  </select>
+</label>

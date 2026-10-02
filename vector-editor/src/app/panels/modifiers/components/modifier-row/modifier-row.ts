@@ -61,6 +61,8 @@ export class ModifierRow {
     this.objects().filter((object) => object.id !== this.objectId() && !isEmptyPoint(object)),
   );
 
+  protected readonly emptyPoints = computed(() => this.objects().filter(isEmptyPoint));
+
   protected toggleEnabled(): void {
     this.patch({ enabled: !this.modifier().enabled });
   }
@@ -87,6 +89,7 @@ export class ModifierRow {
     readonly offsetX?: number;
     readonly offsetY?: number;
     readonly axis?: 'x' | 'y' | 'xy';
+    readonly centerPointId?: string | null;
     readonly distance?: number;
     readonly join?: 'bevel' | 'miter' | 'round';
     readonly miterLimit?: number;

@@ -10,6 +10,7 @@ export interface ModifierPatch {
   readonly offsetX?: number;
   readonly offsetY?: number;
   readonly axis?: 'x' | 'y' | 'xy';
+  readonly centerPointId?: string | null;
   readonly distance?: number;
   readonly join?: 'bevel' | 'miter' | 'round';
   readonly miterLimit?: number;
@@ -233,10 +234,24 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
   }
   if (modifier.type === 'mirror') {
     const axis = patch.axis ?? modifier.axis;
-    if (enabled === modifier.enabled && axis === modifier.axis) {
+    const centerPointId =
+      patch.centerPointId === undefined
+        ? modifier.centerPointId
+        : patch.centerPointId === null || patch.centerPointId.length === 0
+          ? undefined
+          : patch.centerPointId;
+    if (
+      enabled === modifier.enabled &&
+      axis === modifier.axis &&
+      centerPointId === modifier.centerPointId
+    ) {
       return modifier;
     }
-    return { ...modifier, enabled, axis };
+    if (centerPointId === undefined) {
+      const { centerPointId: _centerPointId, ...withoutCenterPoint } = modifier;
+      return { ...withoutCenterPoint, enabled, axis };
+    }
+    return { ...modifier, enabled, axis, centerPointId };
   }
   if (modifier.type === 'bevel') {
     const distance = finite(patch.distance, modifier.distance);

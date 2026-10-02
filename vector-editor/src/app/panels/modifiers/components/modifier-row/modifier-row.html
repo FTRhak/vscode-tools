@@ -38,7 +38,11 @@
   @if (arrayModifier(); as array) {
     <array-modifier-fields [modifier]="array" (committed)="patch($event)" />
   } @else if (mirrorModifier(); as mirror) {
-    <mirror-modifier-fields [modifier]="mirror" (committed)="patch($event)" />
+    <mirror-modifier-fields
+      [modifier]="mirror"
+      [emptyPoints]="emptyPoints()"
+      (committed)="patch($event)"
+    />
   } @else if (bevelModifier(); as bevel) {
     <bevel-modifier-fields [modifier]="bevel" (committed)="patch($event)" />
   } @else if (roundModifier(); as round) {

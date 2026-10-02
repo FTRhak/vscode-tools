@@ -44,6 +44,42 @@ describe('evaluateSource', () => {
     expect(copy?.anchors[1]?.position).toEqual({ x: 6, y: 4 });
   });
 
+  it('mirrors around a selected empty point in the owner object space', () => {
+    const owner = {
+      ...shape('owner', path('a', { x: 0, y: 0 }, { x: 4, y: 2 }, null, null), [
+        mirror('flip', 'y', { centerPointId: 'center' }),
+      ]),
+      transform: {
+        x: 2,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        originX: 0,
+        originY: 0,
+      },
+    };
+    const center = {
+      ...shape('center', { subpaths: [] }, []),
+      kind: 'empty' as const,
+      transform: {
+        x: 10,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        originX: 0,
+        originY: 0,
+      },
+    };
+    const evaluated = evaluateDocument([owner, center]).find((item) => item.objectId === owner.id);
+
+    expect(evaluated?.subpaths[1]?.anchors.map((anchor) => anchor.position)).toEqual([
+      { x: 16, y: 0 },
+      { x: 12, y: 2 },
+    ]);
+  });
+
   it('leaves the path unchanged when the step is disabled', () => {
     const source = path('a', { x: 0, y: 0 }, { x: 4, y: 0 }, null, null);
     const evaluated = evaluateSource(source, [array('copies', { enabled: false })]);
@@ -495,8 +531,12 @@ function array(
   };
 }
 
-function mirror(id: string, axis: 'x' | 'y' | 'xy'): Extract<Modifier, { type: 'mirror' }> {
-  return { id, type: 'mirror', axis, enabled: true };
+function mirror(
+  id: string,
+  axis: 'x' | 'y' | 'xy',
+  patch: Partial<Extract<Modifier, { type: 'mirror' }>> = {},
+): Extract<Modifier, { type: 'mirror' }> {
+  return { id, type: 'mirror', axis, enabled: true, ...patch };
 }
 
 function positions(source: SourcePath): Vec2[][] {

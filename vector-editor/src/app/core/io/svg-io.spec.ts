@@ -144,6 +144,55 @@ describe('importSvg', () => {
 });
 
 describe('exportSvg', () => {
+  it('round-trips mirror empty-point references in all and optimized modes', () => {
+    const base = sampleDocument();
+    const pointResult = addEmptyPoint(base, { x: 24, y: 18 }, base.layers[0]?.id);
+    expect(pointResult).not.toBeNull();
+    if (!pointResult) {
+      return;
+    }
+    const point = pointResult.document.objects.at(-1);
+    const owner = pointResult.document.objects[0];
+    if (!point || !owner) {
+      throw new Error('Mirror reference objects are missing');
+    }
+    const document: Document = {
+      ...pointResult.document,
+      objects: pointResult.document.objects.map((object) =>
+        object.id === owner.id
+          ? {
+              ...object,
+              modifiers: [
+                { id: 'mirror-1', type: 'mirror', axis: 'xy', centerPointId: point.id, enabled: true },
+              ],
+            }
+          : object,
+      ),
+    };
+
+    const allResult = importSvg(exportSvg(document, 'all'));
+    expect(allResult.ok).toBe(true);
+    if (!allResult.ok) {
+      return;
+    }
+    expect(allResult.document.objects[0]?.modifiers[0]).toMatchObject({
+      type: 'mirror',
+      centerPointId: point.id,
+    });
+
+    const optimized = exportSvg(document, 'optimized');
+    expect(optimized).toContain('centerPointIndex&quot;:1');
+    const optimizedResult = importSvg(optimized);
+    expect(optimizedResult.ok).toBe(true);
+    if (!optimizedResult.ok) {
+      return;
+    }
+    expect(optimizedResult.document.objects[0]?.modifiers[0]).toMatchObject({
+      type: 'mirror',
+      centerPointId: optimizedResult.document.objects[1]?.id,
+    });
+  });
+
   it('round-trips assigned radial gradients, proportions, and translucent stops', () => {
     const base = sampleDocument();
     const gradient = {

@@ -84,6 +84,7 @@ export function importSvg(markup: string): SvgImportResult {
   const gradients = readGradients(svg, used);
   const layers: LayerDraft[] = [];
   const operandLinks: OperandLink[] = [];
+  const centerPointLinks: CenterPointLink[] = [];
   let loose: LayerDraft | null = null;
   let skipped = 0;
 
@@ -161,7 +162,14 @@ export function importSvg(markup: string): SvgImportResult {
         continue;
       }
       const layer = context.layer ?? ensureLoose();
-      const object = readObject(child, layer.id, context, claim, operandLinks);
+      const object = readObject(
+        child,
+        layer.id,
+        context,
+        claim,
+        operandLinks,
+        centerPointLinks,
+      );
       if (object) {
         layer.objects.push(object);
       }
@@ -204,9 +212,10 @@ export function importSvg(markup: string): SvgImportResult {
         locked: layer.locked,
         order: layer.order,
       })),
-      objects: resolveOperands(
+      objects: resolveModifierReferences(
         layers.flatMap((layer) => layer.objects),
         operandLinks,
+        centerPointLinks,
       ),
       swatches: meta.swatches,
       gradients,
@@ -268,14 +277,25 @@ interface OperandLink {
   readonly operandIndex: number;
 }
 
+interface CenterPointLink {
+  readonly modifierId: string;
+  readonly centerPointIndex: number;
+}
+
 function readObject(
   element: Element,
   layerId: string,
   context: WalkContext,
   claim: (id: string | null) => string,
   operandLinks: OperandLink[],
+  centerPointLinks: CenterPointLink[],
 ): VectorObject | null {
-  const payload = readObjectPayload(element.getAttribute(objectAttribute), claim, operandLinks);
+  const payload = readObjectPayload(
+    element.getAttribute(objectAttribute),
+    claim,
+    operandLinks,
+    centerPointLinks,
+  );
   if (payload?.kind === 'empty') {
     return {
       id: claim(element.getAttribute('id')),
@@ -347,22 +367,32 @@ function readLayerMeta(
   };
 }
 
-function resolveOperands(objects: VectorObject[], links: readonly OperandLink[]): VectorObject[] {
-  if (links.length === 0) {
+function resolveModifierReferences(
+  objects: VectorObject[],
+  links: readonly OperandLink[],
+  centerPointLinks: readonly CenterPointLink[],
+): VectorObject[] {
+  if (links.length === 0 && centerPointLinks.length === 0) {
     return objects;
   }
   const byModifier = new Map(links.map((link) => [link.modifierId, link.operandIndex]));
+  const centerPointByModifier = new Map(
+    centerPointLinks.map((link) => [link.modifierId, link.centerPointIndex]),
+  );
   return objects.map((object) => ({
     ...object,
     modifiers: object.modifiers.flatMap((modifier) => {
-      if (modifier.type !== 'boolean' || !byModifier.has(modifier.id)) {
-        return [modifier];
+      if (modifier.type === 'boolean' && byModifier.has(modifier.id)) {
+        const operand = objects[byModifier.get(modifier.id) ?? -1];
+        return operand ? [{ ...modifier, operandId: operand.id }] : [];
       }
-      const operand = objects[byModifier.get(modifier.id) ?? -1];
-      if (!operand) {
-        return [];
+      if (modifier.type === 'mirror' && centerPointByModifier.has(modifier.id)) {
+        const centerPoint = objects[centerPointByModifier.get(modifier.id) ?? -1];
+        return centerPoint?.kind === 'empty'
+          ? [{ ...modifier, centerPointId: centerPoint.id }]
+          : [modifier];
       }
-      return [{ ...modifier, operandId: operand.id }];
+      return [modifier];
     }),
   }));
 }
@@ -371,6 +401,7 @@ function readObjectPayload(
   value: string | null,
   claim: (id: string | null) => string,
   operandLinks: OperandLink[],
+  centerPointLinks: CenterPointLink[],
 ): {
   source: SourcePath;
   transform: ObjectTransform;
@@ -393,7 +424,7 @@ function readObjectPayload(
     name: stringField(json, 'name') ?? '',
     locked: booleanField(json, 'locked') === true,
     kind: json['kind'] === 'empty' ? 'empty' : 'path',
-    modifiers: readModifiers(json['modifiers'], claim, operandLinks),
+    modifiers: readModifiers(json['modifiers'], claim, operandLinks, centerPointLinks),
   };
 }
 
@@ -401,12 +432,13 @@ function readModifiers(
   value: unknown,
   claim: (id: string | null) => string,
   operandLinks: OperandLink[],
+  centerPointLinks: CenterPointLink[],
 ): Modifier[] {
   if (!Array.isArray(value)) {
     return [];
   }
   return value.flatMap((item) => {
-    const modifier = readModifier(item, claim, operandLinks);
+    const modifier = readModifier(item, claim, operandLinks, centerPointLinks);
     return modifier ? [modifier] : [];
   });
 }
@@ -415,6 +447,7 @@ function readModifier(
   value: unknown,
   claim: (id: string | null) => string,
   operandLinks: OperandLink[],
+  centerPointLinks: CenterPointLink[],
 ): Modifier | null {
   if (!isRecord(value)) {
     return null;
@@ -439,7 +472,19 @@ function readModifier(
     if (axis !== 'x' && axis !== 'y' && axis !== 'xy') {
       return null;
     }
-    return { id: claim(stringField(value, 'id')), type: 'mirror', axis, enabled };
+    const id = claim(stringField(value, 'id'));
+    const centerPointIndex = value['centerPointIndex'];
+    if (typeof centerPointIndex === 'number' && Number.isInteger(centerPointIndex)) {
+      centerPointLinks.push({ modifierId: id, centerPointIndex });
+    }
+    const centerPointId = stringField(value, 'centerPointId');
+    return {
+      id,
+      type: 'mirror',
+      axis,
+      ...(centerPointId ? { centerPointId } : {}),
+      enabled,
+    };
   }
   if (value['type'] === 'bevel') {
     const distance = value['distance'];

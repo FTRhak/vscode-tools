@@ -23,6 +23,26 @@
   gap: 0.35rem;
 }
 
+.center-point {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+}
+
+select {
+  width: 100%;
+  min-height: 1.75rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #1f1f1f;
+  color: var(--chrome-text);
+  font: inherit;
+  padding: 0.15rem 0.4rem;
+}
+
 input[type='radio'] {
   accent-color: #8eb4ff;
   width: 1rem;

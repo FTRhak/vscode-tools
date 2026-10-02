@@ -197,8 +197,17 @@ function modifierPayload(
         offsetY: modifier.offsetY,
         enabled: modifier.enabled,
       };
-    case 'mirror':
-      return { type: modifier.type, axis: modifier.axis, enabled: modifier.enabled };
+    case 'mirror': {
+      const centerPointIndex = order.findIndex(
+        (item) => item.id === modifier.centerPointId && isEmptyPoint(item),
+      );
+      return {
+        type: modifier.type,
+        axis: modifier.axis,
+        ...(centerPointIndex >= 0 ? { centerPointIndex } : {}),
+        enabled: modifier.enabled,
+      };
+    }
     case 'bevel':
       return {
         type: modifier.type,

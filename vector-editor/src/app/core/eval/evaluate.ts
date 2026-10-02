@@ -1,4 +1,9 @@
-import { identityTransform } from '../io/matrix';
+import {
+  applyMatrix,
+  identityTransform,
+  invertMatrix,
+  matrixFromTransform,
+} from '../io/matrix';
 import { isEmptyPoint } from '../model/empty-point';
 import { Modifier, SourcePath, Style, Subpath, VectorObject } from '../model/types';
 import { applyArray } from './array';
@@ -160,7 +165,22 @@ function walkStack(
       continue;
     }
     if (modifier.type === 'mirror') {
-      current = applyMirror(current, modifier);
+      if (modifier.centerPointId === undefined) {
+        current = applyMirror(current, modifier);
+        continue;
+      }
+      const point = byId.get(modifier.centerPointId);
+      if (!point || !isEmptyPoint(point)) {
+        diagnostics.push('Mirror reference point is missing.');
+        continue;
+      }
+      const inverse = invertMatrix(matrixFromTransform(object.transform));
+      if (!inverse) {
+        diagnostics.push('Mirror reference point cannot be transformed into object space.');
+        continue;
+      }
+      const worldPoint = applyMatrix(matrixFromTransform(point.transform), { x: 0, y: 0 });
+      current = applyMirror(current, modifier, applyMatrix(inverse, worldPoint));
       continue;
     }
     if (modifier.type === 'round') {
