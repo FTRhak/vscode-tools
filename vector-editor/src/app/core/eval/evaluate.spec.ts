@@ -100,6 +100,39 @@ describe('evaluateSource', () => {
     expect(anchors[0]?.handleOut).not.toEqual(anchors[0]?.position);
   });
 
+  it('blends handleIn and handleOut from the original handles to the rounded handles', () => {
+    const source = path('a', { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 0, y: 10 }, { x: 10, y: 10 });
+    const at = (roundness: number) =>
+      evaluateSource(source, [
+        { id: 'round', type: 'round', mode: 'direct', anchorCount: 2, roundness, enabled: true },
+      ]).source.subpaths[0];
+
+    const start = at(0);
+    const end = at(100);
+
+    expect(start?.anchors[0]?.handleOut).toEqual({ x: 0, y: 10 });
+    expect(end?.anchors[0]?.handleOut).not.toEqual({ x: 0, y: 10 });
+    expectBlended(start, at(25), end, 0.25);
+    expectBlended(start, at(50), end, 0.5);
+    expectBlended(start, at(75), end, 0.75);
+  });
+
+  it('blends circle handles from the source points to the finished circle handles', () => {
+    const source = trianglePath();
+    const at = (roundness: number) =>
+      evaluateSource(source, [
+        { id: 'round', type: 'round', mode: 'circle', anchorCount: 3, roundness, enabled: true },
+      ]).source.subpaths[0];
+
+    const start = at(0);
+    const end = at(100);
+
+    expect(end?.anchors[0]?.handleOut).not.toEqual(end?.anchors[0]?.position);
+    expectBlended(start, at(25), end, 0.25);
+    expectBlended(start, at(50), end, 0.5);
+    expectBlended(start, at(75), end, 0.75);
+  });
+
   it('defaults the round anchor count from the previous modifier output', () => {
     const object = shape('square', squarePath('square', 0, 0, 10), [array('copies')]);
     const updated = addModifier(object, 'round');
@@ -452,6 +485,65 @@ function booleanOp(
   operandId: string,
 ): Extract<Modifier, { type: 'boolean' }> {
   return { id, type: 'boolean', operation, operandId, enabled: true };
+}
+
+function expectBlended(
+  start: SourcePath['subpaths'][number] | undefined,
+  mid: SourcePath['subpaths'][number] | undefined,
+  end: SourcePath['subpaths'][number] | undefined,
+  amount: number,
+): void {
+  expect(mid?.anchors).toHaveLength(start?.anchors.length ?? 0);
+  mid?.anchors.forEach((anchor, index) => {
+    const from = start?.anchors[index];
+    const to = end?.anchors[index];
+    expect(from).toBeDefined();
+    expect(to).toBeDefined();
+    if (!from || !to) {
+      return;
+    }
+    expect(anchor.position.x).toBeCloseTo(lerp(from.position.x, to.position.x, amount), 5);
+    expect(anchor.position.y).toBeCloseTo(lerp(from.position.y, to.position.y, amount), 5);
+    const fromIn = from.handleIn ?? from.position;
+    const toIn = to.handleIn ?? to.position;
+    const fromOut = from.handleOut ?? from.position;
+    const toOut = to.handleOut ?? to.position;
+    expect(anchor.handleIn?.x).toBeCloseTo(lerp(fromIn.x, toIn.x, amount), 5);
+    expect(anchor.handleIn?.y).toBeCloseTo(lerp(fromIn.y, toIn.y, amount), 5);
+    expect(anchor.handleOut?.x).toBeCloseTo(lerp(fromOut.x, toOut.x, amount), 5);
+    expect(anchor.handleOut?.y).toBeCloseTo(lerp(fromOut.y, toOut.y, amount), 5);
+  });
+}
+
+function lerp(start: number, end: number, amount: number): number {
+  return start + (end - start) * amount;
+}
+
+function trianglePath(): SourcePath {
+  const corners = [
+    { id: 'a', x: 0, y: 0 },
+    { id: 'b', x: 12, y: 0 },
+    { id: 'c', x: 3, y: 8 },
+  ];
+  return {
+    subpaths: [
+      {
+        closed: true,
+        anchors: corners.map((corner) => ({
+          id: corner.id,
+          position: { x: corner.x, y: corner.y },
+          handleIn: null,
+          handleOut: null,
+        })),
+        segments: corners.map((corner, index) => ({
+          id: `s${index}`,
+          kind: 'line' as const,
+          fromId: corner.id,
+          toId: corners[(index + 1) % corners.length]?.id ?? corner.id,
+        })),
+      },
+    ],
+  };
 }
 
 function squarePath(id: string, x: number, y: number, size: number): SourcePath {

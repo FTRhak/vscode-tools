@@ -3,6 +3,12 @@ import { collectPoints } from './flatten';
 
 type RoundModifier = Extract<Modifier, { type: 'round' }>;
 
+interface Placement {
+  readonly position: Vec2;
+  readonly handleIn: Vec2;
+  readonly handleOut: Vec2;
+}
+
 export function applyRound(source: SourcePath, modifier: RoundModifier): SourcePath {
   const mode = modifier.mode ?? 'direct';
   const roundness = clamp(modifier.roundness, 0, 100) / 100;
@@ -20,20 +26,15 @@ export function applyRound(source: SourcePath, modifier: RoundModifier): SourceP
       return subpath;
     }
     const sampled = resample(points, count, subpath.closed);
-    const pointsForMode =
-      mode === 'circle' && subpath.closed
-        ? blendTowardCircle(sampled, roundness)
-        : sampled;
+    const circular = mode === 'circle' && subpath.closed;
     const handleMode = mode === 'direct' ? 'direct' : 'smooth';
-    return makeSubpath(
-      pointsForMode,
-      subpath.closed,
-      roundness,
-      handleMode,
-      mode === 'circle' && subpath.closed,
-      modifier.id,
-      subpathIndex,
+    const endPoints = circular ? blendTowardCircle(sampled, 1) : sampled;
+    const starts = startPlacements(subpath, sampled, count);
+    const ends = placementsAt(endPoints, subpath.closed, handleMode, circular);
+    const blended = starts.map((start, index) =>
+      blendPlacement(start, ends[index] ?? start, roundness),
     );
+    return makeSubpath(blended, subpath.closed, modifier.id, subpathIndex);
   });
   return { subpaths };
 }
@@ -74,37 +75,106 @@ function resample(points: readonly Vec2[], count: number, closed: boolean): Vec2
   });
 }
 
-function makeSubpath(
+function startPlacements(subpath: Subpath, sampled: readonly Vec2[], count: number): Placement[] {
+  if (count === subpath.anchors.length) {
+    const ordered = anchorsInPathOrder(subpath);
+    if (ordered.length === count) {
+      return ordered.map((anchor) => ({
+        position: anchor.position,
+        handleIn: anchor.handleIn ?? anchor.position,
+        handleOut: anchor.handleOut ?? anchor.position,
+      }));
+    }
+  }
+  return sampled.map((position) => ({
+    position,
+    handleIn: position,
+    handleOut: position,
+  }));
+}
+
+function anchorsInPathOrder(subpath: Subpath): Anchor[] {
+  const byId = new Map(subpath.anchors.map((anchor) => [anchor.id, anchor]));
+  const ordered: Anchor[] = [];
+  const seen = new Set<string>();
+  const push = (anchor: Anchor | undefined): void => {
+    if (!anchor || seen.has(anchor.id)) {
+      return;
+    }
+    seen.add(anchor.id);
+    ordered.push(anchor);
+  };
+  for (const segment of subpath.segments) {
+    push(byId.get(segment.fromId));
+    push(byId.get(segment.toId));
+  }
+  for (const anchor of subpath.anchors) {
+    push(anchor);
+  }
+  return ordered;
+}
+
+function placementsAt(
   points: readonly Vec2[],
   closed: boolean,
-  roundness: number,
   mode: 'direct' | 'smooth',
-  circularHandles: boolean,
-  modifierId: string,
-  subpathIndex: number,
-): Subpath {
-  const circleTangents = circularHandles ? createCircleTangents(points, roundness) : null;
-  const anchors: Anchor[] = points.map((position, index) => {
-    const previous = points[index - 1] ?? (closed ? points[points.length - 1] : position);
-    const next = points[index + 1] ?? (closed ? points[0] : position);
-    const tangent = circleTangents?.[index]
-      ? circleTangents[index]
-      : mode === 'smooth'
-        ? smoothTangent(position, previous, next, roundness)
-        : previous && next
-          ? scale(subtract(next, previous), roundness / 6)
-          : { x: 0, y: 0 };
+  circular: boolean,
+): Placement[] {
+  const circleTangents = circular ? createCircleTangents(points, 1) : null;
+  return points.map((position, index) => {
+    const tangent = tangentAt(points, index, closed, mode, circleTangents);
     return {
-      id: `${modifierId}/${subpathIndex}/anchor/${index}`,
       position,
       handleIn: subtract(position, tangent),
       handleOut: add(position, tangent),
     };
   });
-  const segmentCount = closed ? anchors.length : Math.max(0, anchors.length - 1);
+}
+
+function tangentAt(
+  points: readonly Vec2[],
+  index: number,
+  closed: boolean,
+  mode: 'direct' | 'smooth',
+  circleTangents: readonly Vec2[] | null,
+): Vec2 {
+  const circleTangent = circleTangents?.[index];
+  if (circleTangent) {
+    return circleTangent;
+  }
+  const position = points[index] ?? { x: 0, y: 0 };
+  const previous = points[index - 1] ?? (closed ? points[points.length - 1] : position);
+  const next = points[index + 1] ?? (closed ? points[0] : position);
+  if (mode === 'smooth') {
+    return smoothTangent(position, previous, next, 1);
+  }
+  return scale(subtract(next, previous), 1 / 6);
+}
+
+function blendPlacement(start: Placement, end: Placement, amount: number): Placement {
+  return {
+    position: interpolate(start.position, end.position, amount),
+    handleIn: interpolate(start.handleIn, end.handleIn, amount),
+    handleOut: interpolate(start.handleOut, end.handleOut, amount),
+  };
+}
+
+function makeSubpath(
+  anchors: readonly Placement[],
+  closed: boolean,
+  modifierId: string,
+  subpathIndex: number,
+): Subpath {
+  const built: Anchor[] = anchors.map((anchor, index) => ({
+    id: `${modifierId}/${subpathIndex}/anchor/${index}`,
+    position: anchor.position,
+    handleIn: anchor.handleIn,
+    handleOut: anchor.handleOut,
+  }));
+  const segmentCount = closed ? built.length : Math.max(0, built.length - 1);
   const segments: Segment[] = Array.from({ length: segmentCount }, (_, index) => {
-    const from = anchors[index];
-    const to = anchors[(index + 1) % anchors.length];
+    const from = built[index];
+    const to = built[(index + 1) % built.length];
     return {
       id: `${modifierId}/${subpathIndex}/segment/${index}`,
       kind: 'cubic',
@@ -112,7 +182,7 @@ function makeSubpath(
       toId: to?.id ?? '',
     };
   });
-  return { closed, anchors, segments };
+  return { closed, anchors: built, segments };
 }
 
 function smoothTangent(position: Vec2, previous: Vec2, next: Vec2, amount: number): Vec2 {
