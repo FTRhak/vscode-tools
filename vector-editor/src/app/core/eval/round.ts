@@ -25,11 +25,11 @@ export function applyRound(source: SourcePath, modifier: RoundModifier): SourceP
     if (roundness === 0 && count === subpath.anchors.length) {
       return subpath;
     }
-    const sampled = resample(points, count, subpath.closed);
     const circular = mode === 'circle' && subpath.closed;
     const handleMode = mode === 'direct' ? 'direct' : 'smooth';
-    const endPoints = circular ? blendTowardCircle(sampled, 1) : sampled;
-    const starts = startPlacements(subpath, sampled, count);
+    const starts = startPlacements(subpath, count);
+    const startPoints = starts.map((start) => start.position);
+    const endPoints = circular ? blendTowardCircle(startPoints, 1) : startPoints;
     const ends = placementsAt(endPoints, subpath.closed, handleMode, circular);
     const blended = starts.map((start, index) =>
       blendPlacement(start, ends[index] ?? start, roundness),
@@ -39,58 +39,134 @@ export function applyRound(source: SourcePath, modifier: RoundModifier): SourceP
   return { subpaths };
 }
 
-function resample(points: readonly Vec2[], count: number, closed: boolean): Vec2[] {
-  const path = [...points];
-  if (closed && path.length > 1 && samePoint(path[0], path[path.length - 1])) {
-    path.pop();
+function startPlacements(subpath: Subpath, count: number): Placement[] {
+  const ordered = anchorsInPathOrder(subpath);
+  const base = ordered.map((anchor) => ({
+    position: anchor.position,
+    handleIn: anchor.handleIn ?? anchor.position,
+    handleOut: anchor.handleOut ?? anchor.position,
+  }));
+  if (count < base.length) {
+    return keepSignificant(base, count, subpath.closed);
   }
-  const edgeCount = closed ? path.length : path.length - 1;
-  const lengths: number[] = [];
-  let total = 0;
-  for (let index = 0; index < edgeCount; index += 1) {
-    const start = path[index];
-    const end = path[(index + 1) % path.length];
-    const length = start && end ? distance(start, end) : 0;
-    lengths.push(length);
-    total += length;
+  if (count > base.length) {
+    return insertPlacements(subpath, ordered, base, count);
   }
-  if (total === 0) {
-    return Array.from({ length: count }, () => path[0] ?? { x: 0, y: 0 });
-  }
-
-  return Array.from({ length: count }, (_, pointIndex) => {
-    const target = (total * pointIndex) / (closed ? count : count - 1);
-    let traversed = 0;
-    for (let edgeIndex = 0; edgeIndex < edgeCount; edgeIndex += 1) {
-      const edgeLength = lengths[edgeIndex] ?? 0;
-      if (target <= traversed + edgeLength || edgeIndex === edgeCount - 1) {
-        const start = path[edgeIndex] ?? path[0] ?? { x: 0, y: 0 };
-        const end = path[(edgeIndex + 1) % path.length] ?? start;
-        const t = edgeLength === 0 ? 0 : (target - traversed) / edgeLength;
-        return interpolate(start, end, clamp(t, 0, 1));
-      }
-      traversed += edgeLength;
-    }
-    return path[0] ?? { x: 0, y: 0 };
-  });
+  return base;
 }
 
-function startPlacements(subpath: Subpath, sampled: readonly Vec2[], count: number): Placement[] {
-  if (count === subpath.anchors.length) {
-    const ordered = anchorsInPathOrder(subpath);
-    if (ordered.length === count) {
-      return ordered.map((anchor) => ({
-        position: anchor.position,
-        handleIn: anchor.handleIn ?? anchor.position,
-        handleOut: anchor.handleOut ?? anchor.position,
-      }));
+function keepSignificant(
+  base: readonly Placement[],
+  count: number,
+  closed: boolean,
+): Placement[] {
+  const weights = base.map((placement, index) => {
+    const isEnd = index === 0 || index === base.length - 1;
+    if (!closed && isEnd) {
+      return Infinity;
     }
+    const previous = base[(index - 1 + base.length) % base.length]?.position ?? placement.position;
+    const next = base[(index + 1) % base.length]?.position ?? placement.position;
+    return Math.abs(cross(subtract(previous, placement.position), subtract(next, placement.position)));
+  });
+  const kept = new Set(
+    weights
+      .map((weight, index) => ({ weight, index }))
+      .sort((left, right) => right.weight - left.weight || left.index - right.index)
+      .slice(0, count)
+      .map((entry) => entry.index),
+  );
+  return base.filter((_, index) => kept.has(index));
+}
+
+function insertPlacements(
+  subpath: Subpath,
+  ordered: readonly Anchor[],
+  base: readonly Placement[],
+  count: number,
+): Placement[] {
+  const edgeCount = subpath.closed ? ordered.length : ordered.length - 1;
+  if (edgeCount <= 0) {
+    return [...base];
   }
-  return sampled.map((position) => ({
-    position,
-    handleIn: position,
-    handleOut: position,
-  }));
+  const edges = Array.from({ length: edgeCount }, (_, index) =>
+    edgeCurve(subpath, ordered[index], ordered[(index + 1) % ordered.length]),
+  );
+  const lengths = edges.map(curveLength);
+  const parts = edges.map(() => 1);
+  for (let extra = count - base.length; extra > 0; extra -= 1) {
+    let best = 0;
+    for (let index = 1; index < edgeCount; index += 1) {
+      if ((lengths[index] ?? 0) / (parts[index] ?? 1) > (lengths[best] ?? 0) / (parts[best] ?? 1)) {
+        best = index;
+      }
+    }
+    parts[best] = (parts[best] ?? 1) + 1;
+  }
+  const result: Placement[] = [];
+  base.forEach((placement, index) => {
+    result.push(placement);
+    const edge = edges[index];
+    const pieces = parts[index] ?? 1;
+    if (!edge) {
+      return;
+    }
+    for (let step = 1; step < pieces; step += 1) {
+      result.push(splitPlacement(edge, step / pieces, 1 / pieces));
+    }
+  });
+  return result;
+}
+
+interface Curve {
+  readonly p0: Vec2;
+  readonly p1: Vec2;
+  readonly p2: Vec2;
+  readonly p3: Vec2;
+  readonly straight: boolean;
+}
+
+function edgeCurve(subpath: Subpath, from: Anchor | undefined, to: Anchor | undefined): Curve | null {
+  if (!from || !to) {
+    return null;
+  }
+  const segment = subpath.segments.find(
+    (item) => item.fromId === from.id && item.toId === to.id,
+  );
+  const straight = segment?.kind !== 'cubic';
+  return {
+    p0: from.position,
+    p1: straight ? from.position : (from.handleOut ?? from.position),
+    p2: straight ? to.position : (to.handleIn ?? to.position),
+    p3: to.position,
+    straight,
+  };
+}
+
+function curveLength(curve: Curve | null): number {
+  if (!curve) {
+    return 0;
+  }
+  const chord = distance(curve.p0, curve.p3);
+  const net = distance(curve.p0, curve.p1) + distance(curve.p1, curve.p2) + distance(curve.p2, curve.p3);
+  return (chord + net) / 2;
+}
+
+function splitPlacement(curve: Curve, t: number, span: number): Placement {
+  const u = 1 - t;
+  const position = {
+    x: u * u * u * curve.p0.x + 3 * u * u * t * curve.p1.x + 3 * u * t * t * curve.p2.x + t * t * t * curve.p3.x,
+    y: u * u * u * curve.p0.y + 3 * u * u * t * curve.p1.y + 3 * u * t * t * curve.p2.y + t * t * t * curve.p3.y,
+  };
+  if (curve.straight) {
+    return { position, handleIn: position, handleOut: position };
+  }
+  const derivative = add(
+    add(scale(subtract(curve.p1, curve.p0), 3 * u * u), scale(subtract(curve.p2, curve.p1), 6 * u * t)),
+    scale(subtract(curve.p3, curve.p2), 3 * t * t),
+  );
+  const tangent = scale(derivative, span / 3);
+  return { position, handleIn: subtract(position, tangent), handleOut: add(position, tangent) };
 }
 
 function anchorsInPathOrder(subpath: Subpath): Anchor[] {
@@ -289,8 +365,8 @@ function distance(start: Vec2, end: Vec2): number {
   return Math.hypot(end.x - start.x, end.y - start.y);
 }
 
-function samePoint(left: Vec2 | undefined, right: Vec2 | undefined): boolean {
-  return !!left && !!right && left.x === right.x && left.y === right.y;
+function cross(left: Vec2, right: Vec2): number {
+  return left.x * right.y - left.y * right.x;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {

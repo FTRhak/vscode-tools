@@ -117,6 +117,37 @@ describe('evaluateSource', () => {
     expectBlended(start, at(75), end, 0.75);
   });
 
+  it('keeps the original anchors when anchor points are added or removed', () => {
+    const source = trianglePath();
+    const original = source.subpaths[0]?.anchors ?? [];
+    const at = (anchorCount: number) =>
+      evaluateSource(source, [
+        { id: 'round', type: 'round', mode: 'direct', anchorCount, roundness: 0, enabled: true },
+      ]).source.subpaths[0]?.anchors ?? [];
+
+    const added = at(7);
+    expect(added).toHaveLength(7);
+    for (const anchor of original) {
+      const kept = added.find(
+        (item) => item.position.x === anchor.position.x && item.position.y === anchor.position.y,
+      );
+      expect(kept?.handleIn).toEqual(anchor.position);
+      expect(kept?.handleOut).toEqual(anchor.position);
+    }
+
+    const square = squarePath('square', 0, 0, 10);
+    const corners = square.subpaths[0]?.anchors.map((anchor) => anchor.position) ?? [];
+    const removed =
+      evaluateSource(square, [
+        { id: 'round', type: 'round', mode: 'direct', anchorCount: 3, roundness: 0, enabled: true },
+      ]).source.subpaths[0]?.anchors ?? [];
+    expect(removed).toHaveLength(3);
+    for (const anchor of removed) {
+      expect(corners).toContainEqual(anchor.position);
+      expect(anchor.handleOut).toEqual(anchor.position);
+    }
+  });
+
   it('blends circle handles from the source points to the finished circle handles', () => {
     const source = trianglePath();
     const at = (roundness: number) =>
