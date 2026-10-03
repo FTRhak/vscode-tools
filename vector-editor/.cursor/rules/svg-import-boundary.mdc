@@ -1,0 +1,26 @@
+---
+description: Treat imported SVG and editor metadata as untrusted, versioned data
+globs: src/app/core/io/**/*.ts
+alwaysApply: false
+---
+
+# SVG import boundary
+
+SVG markup and `data-vector-editor*` JSON are untrusted input.
+
+- Do not keep or execute `script`, event attributes, external URLs, or style elements.
+- Parse JSON as `unknown` and narrow it with type guards.
+- Reject non-finite numbers, broken indexes, and dangling id references.
+- Add a field with a default that old files can omit. Bump `formatVersion` only when an older file cannot be read.
+- Cover every affected save mode with a round-trip in `svg-io.spec.ts`.
+
+```typescript
+// ❌ BAD
+const payload = JSON.parse(raw) as Document;
+
+// ✅ GOOD
+const payload: unknown = parseJson(raw);
+if (!isRecord(payload)) {
+  return null;
+}
+```

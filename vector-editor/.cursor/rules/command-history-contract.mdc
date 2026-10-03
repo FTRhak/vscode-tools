@@ -1,0 +1,23 @@
+---
+description: Keep every Command wired through session, history, and tests
+globs: src/app/commands/**/*.ts,src/app/core/session.service.ts
+alwaysApply: false
+---
+
+# Command and history contract
+
+A new `Command` is incomplete until every step below exists.
+
+1. Add the variant in `src/app/commands/models/command.ts`.
+2. Handle it in `applySessionCommand`. Keep undo, redo, and jump in `commitSession`.
+3. Add a `historyLabel` case. Return `null` only for session chrome and history navigation.
+4. For a drag, send `gesture: 'begin'` once, then `'continue'`, and extend `gestureContinues` so it is one undo step.
+5. After delete or a baked geometry change, drop or restore selection and layer ids.
+6. Dispatch it from `CommandBus` and cover it with a spec, or record why it is untested in the `editor-command` skill cache.
+
+```typescript
+// ❌ BAD — labeled command with no history case
+{ type: 'path.setAnchorType', objectId, anchorIds, pointType }
+
+// ✅ GOOD — same variant handled in applySessionCommand and historyLabel
+```

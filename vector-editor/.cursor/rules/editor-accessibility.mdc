@@ -1,0 +1,26 @@
+---
+description: Keep editor controls keyboard reachable and named for assistive tech
+globs: src/app/**/*.html,src/app/**/*.scss,src/app/**/components/**/*.ts
+alwaysApply: false
+---
+
+# Editor accessibility
+
+Interactive editor UI must meet WCAG AA.
+
+- Give every icon-only control an accessible name.
+- Expose the selected tool with `aria-pressed` or `aria-selected`.
+- Move focus into a dialog and return it on close. Escape closes the dialog.
+- Provide a keyboard path for every pointer action.
+- Keep a visible focus indicator.
+- Decorative SVG icons use `aria-hidden="true"`. An icon that is the control's only label does not.
+
+```html
+<!-- ❌ BAD -->
+<button (click)="choose('pen')"><svg>...</svg></button>
+
+<!-- ✅ GOOD -->
+<button type="button" aria-pressed="true" aria-label="Pen" (click)="choose('pen')">
+  <svg aria-hidden="true">...</svg>
+</button>
+```

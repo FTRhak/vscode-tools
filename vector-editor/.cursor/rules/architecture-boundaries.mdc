@@ -1,0 +1,21 @@
+---
+description: Keep UI, commands, and domain edits on separate sides of the architecture
+alwaysApply: true
+---
+
+# Architecture boundaries
+
+UI reads session signals and changes state by dispatching a `Command` through `CommandBus`. `SessionService.apply` is the only writer of session state.
+
+- Put document and geometry edits in pure functions under `src/app/core/`.
+- Keep pointer state, snapping, and dispatch in the viewport. Keep geometry in `src/app/viewport/utils/`.
+- Use `@vector-editor/*` for imports across domains. Use relative imports inside one domain.
+- Do not add imports that cycle `core`, `commands`, `viewport`, and `panels`.
+
+```typescript
+// ❌ BAD — a panel edits the document
+document.objects.push(created);
+
+// ✅ GOOD — the panel dispatches; the session applies the command
+this.bus.dispatch({ type: 'object.delete', ids });
+```

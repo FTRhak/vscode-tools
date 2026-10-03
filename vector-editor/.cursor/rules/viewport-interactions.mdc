@@ -1,0 +1,22 @@
+---
+description: Keep viewport gestures in one pointer, one coordinate space, and one undo step
+globs: src/app/viewport/**/*.ts
+alwaysApply: false
+---
+
+# Viewport interactions
+
+The viewport reads session signals and dispatches commands. It does not edit the document.
+
+- Convert screen, document, and object-local points only through the camera and transform helpers.
+- One gesture owns one `pointerId`. Capture the pointer and release it when the gesture ends.
+- A drag dispatches `gesture: 'begin'` once, then `'continue'`.
+- Honor zoom limits, snap, the 4px gesture threshold, and `isInteractionLocked`.
+- Keep geometry and command building in `src/app/viewport/utils/`.
+
+```typescript
+// ❌ BAD — screen delta written into document space
+dispatch({ type: 'object.translate', ids, dx: event.movementX, dy: event.movementY, gesture: 'continue' });
+
+// ✅ GOOD — convert with screenToDocument, then dispatch the document delta
+```

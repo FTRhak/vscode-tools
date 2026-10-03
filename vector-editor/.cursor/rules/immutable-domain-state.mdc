@@ -1,0 +1,26 @@
+---
+description: Keep document and path edits immutable and referentially stable
+globs: src/app/core/**/*.ts,src/app/commands/**/*.ts
+alwaysApply: false
+---
+
+# Immutable domain state
+
+`Document`, `VectorObject`, `SourcePath`, and their arrays are immutable. History and `sameSnapshot` depend on reference equality.
+
+- Return the same reference when an edit changes nothing.
+- Copy only the branch that changed.
+- Reject non-finite numbers from the UI or SVG with `Number.isFinite`.
+- Keep anchor, segment, and modifier ids valid after the edit.
+
+```typescript
+// ❌ BAD
+object.transform.x += dx;
+return object;
+
+// ✅ GOOD
+if (!Number.isFinite(dx) || dx === 0) {
+  return object;
+}
+return { ...object, transform: { ...object.transform, x: object.transform.x + dx } };
+```

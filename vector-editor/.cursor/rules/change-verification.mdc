@@ -1,0 +1,20 @@
+---
+description: Verify behavior changes with the nearest spec, checks, and skill cache
+alwaysApply: true
+---
+
+# Change verification
+
+A behavior change is finished only after the nearest check passes.
+
+- Add or extend the `*.spec.ts` next to the changed behavior.
+- Run that targeted test first. Run `npm test` or `npm run build` when the change crosses domains.
+- Read diagnostics for the files you edited and fix issues you introduced.
+- After a domain change, run that skill's `scripts/*.mjs --check` and update its cache. The skill-script rule owns that workflow.
+- Leave failures outside the task untouched.
+
+```bash
+# ✅ GOOD — prove the edit, then confirm the skill cache
+npx ng test --include src/app/core/model/shapes.spec.ts
+node .cursor/skills/figure/scripts/figures.mjs --check
+```
