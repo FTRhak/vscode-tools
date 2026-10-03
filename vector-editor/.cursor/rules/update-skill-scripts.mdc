@@ -1,0 +1,39 @@
+---
+description: Update related skill scripts after each plan or change prompt
+alwaysApply: true
+---
+
+# Update skill scripts after changes
+
+After you finish a plan or a prompt that changes this project, update every skill whose domain you touched before you stop.
+
+Skills live in `.cursor/skills/<name>/`. A skill script is `scripts/*.mjs` (cached files, symbols, and behavior). `SKILL.md` is the workflow that script supports.
+
+## When
+
+Do this at the end of the task, once the code change is in place:
+
+- A plan in `.cursor/plans/` was implemented.
+- A prompt asked for a feature, fix, or refactor and files under `src/` (or skill files) changed.
+
+Skip the update when the task was read-only, or when no skill covers the files you changed.
+
+## How
+
+1. Match the change to a skill by its `description` and by paths in the script cache. Example: shape tools, `shapes.ts`, or the drag gesture belong to `.cursor/skills/figure/`.
+2. Update that skill's script cache so paths, symbols, shortcuts, and behavior match the code. Update `SKILL.md` steps only when the workflow itself changed.
+3. Run the skill check and fix anything it reports stale. For figures:
+
+```bash
+node .cursor/skills/figure/scripts/figures.mjs --check
+```
+
+4. Leave unrelated skills unchanged.
+
+```javascript
+// ❌ BAD — new polygon shortcut landed in keymap.service.ts, cache still says 'N'
+polygon: { name: 'Polygon', shortcut: 'N', /* ... */ }
+
+// ✅ GOOD — cache matches the code you just wrote
+polygon: { name: 'Polygon', shortcut: 'Y', /* ... */ }
+```
