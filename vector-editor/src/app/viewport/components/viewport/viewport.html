@@ -136,6 +136,9 @@
           <path class="pen-preview" [attr.d]="preview.d" />
         </g>
       }
+      @if (shapePreview(); as preview) {
+        <path class="shape-preview" [attr.d]="preview" />
+      }
       @if (marquee(); as rect) {
         <rect
           class="marquee"
@@ -154,3 +157,8 @@
     </g>
   }
 </svg>
+<app-shape-dialog
+  [request]="shapeDialog()"
+  (confirmed)="confirmShape($event)"
+  (dismissed)="dismissShape()"
+/>

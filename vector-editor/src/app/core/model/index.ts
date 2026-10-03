@@ -19,6 +19,16 @@ export {
 export { deleteLayer, deleteObjects, deletableObjectIds } from './delete-objects';
 export { addEmptyPoint, isEmptyPoint } from './empty-point';
 export type { EmptyPointResult } from './empty-point';
+export {
+  addShape,
+  clampShapeCount,
+  ELLIPSE_KAPPA,
+  isShapeKind,
+  shapeSource,
+  shapeSourceFromDrag,
+  SHAPE_NAMES,
+} from './shapes';
+export type { ShapeDrag, ShapeKind, ShapeObjectResult, ShapePlacement } from './shapes';
 export { duplicateObjects, DUPLICATE_OFFSET } from './duplicate-objects';
 export {
   deleteAnchors,

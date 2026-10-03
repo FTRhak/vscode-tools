@@ -1,0 +1,117 @@
+@if (request()) {
+  <div
+    class="backdrop"
+    data-shape-dialog
+    (click)="cancel()"
+    (pointerdown)="$event.stopPropagation()"
+  >
+    <div
+      class="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="shape-dialog-title"
+      cdkTrapFocus
+      cdkTrapFocusAutoCapture
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="cancel()"
+    >
+      <form (submit)="$event.preventDefault(); confirm()">
+        <h2 id="shape-dialog-title">{{ title() }}</h2>
+        <div class="fields">
+          @if (box()) {
+            <div class="field">
+              <label for="shape-width">Width</label>
+              <input
+                id="shape-width"
+                type="number"
+                inputmode="decimal"
+                step="any"
+                autocomplete="off"
+                [formField]="shapeForm.width"
+                [attr.aria-invalid]="fieldError('width') !== null"
+                [attr.aria-describedby]="fieldError('width') ? 'shape-width-error' : null"
+              />
+              @if (fieldError('width'); as message) {
+                <p id="shape-width-error" class="error" role="alert">{{ message }}</p>
+              }
+            </div>
+            <div class="field">
+              <label for="shape-height">Height</label>
+              <input
+                id="shape-height"
+                type="number"
+                inputmode="decimal"
+                step="any"
+                autocomplete="off"
+                [formField]="shapeForm.height"
+                [attr.aria-invalid]="fieldError('height') !== null"
+                [attr.aria-describedby]="fieldError('height') ? 'shape-height-error' : null"
+              />
+              @if (fieldError('height'); as message) {
+                <p id="shape-height-error" class="error" role="alert">{{ message }}</p>
+              }
+            </div>
+          }
+          @if (radial()) {
+            <div class="field">
+              <label for="shape-radius">{{ kind() === 'star' ? 'Outer radius' : 'Radius' }}</label>
+              <input
+                id="shape-radius"
+                type="number"
+                inputmode="decimal"
+                step="any"
+                autocomplete="off"
+                [formField]="shapeForm.radius"
+                [attr.aria-invalid]="fieldError('radius') !== null"
+                [attr.aria-describedby]="fieldError('radius') ? 'shape-radius-error' : null"
+              />
+              @if (fieldError('radius'); as message) {
+                <p id="shape-radius-error" class="error" role="alert">{{ message }}</p>
+              }
+            </div>
+          }
+          @if (kind() === 'star') {
+            <div class="field">
+              <label for="shape-inner-radius">Inner radius</label>
+              <input
+                id="shape-inner-radius"
+                type="number"
+                inputmode="decimal"
+                step="any"
+                autocomplete="off"
+                [formField]="shapeForm.innerRadius"
+                [attr.aria-invalid]="fieldError('innerRadius') !== null"
+                [attr.aria-describedby]="fieldError('innerRadius') ? 'shape-inner-radius-error' : null"
+              />
+              @if (fieldError('innerRadius'); as message) {
+                <p id="shape-inner-radius-error" class="error" role="alert">{{ message }}</p>
+              }
+            </div>
+          }
+          @if (radial()) {
+            <div class="field">
+              <label for="shape-count">{{ kind() === 'star' ? 'Points' : 'Sides' }}</label>
+              <input
+                id="shape-count"
+                type="number"
+                inputmode="numeric"
+                step="1"
+                autocomplete="off"
+                [formField]="shapeForm.count"
+                [attr.aria-invalid]="fieldError('count') !== null"
+                [attr.aria-describedby]="fieldError('count') ? 'shape-count-error' : null"
+              />
+              @if (fieldError('count'); as message) {
+                <p id="shape-count-error" class="error" role="alert">{{ message }}</p>
+              }
+            </div>
+          }
+        </div>
+        <div class="actions">
+          <button type="button" class="chrome-button" (click)="cancel()">Cancel</button>
+          <button type="submit" class="chrome-button">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

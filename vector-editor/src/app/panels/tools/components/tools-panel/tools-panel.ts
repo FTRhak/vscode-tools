@@ -1,5 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { CommandBus, EDITOR_TOOLS, EDITOR_TOOLS_ICONS, EditorTool } from '@vector-editor/commands';
+import {
+  CommandBus,
+  EDITOR_TOOLS_ICONS,
+  editorToolGroups,
+  EditorTool,
+} from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
 
 
@@ -15,13 +20,9 @@ export class ToolsPanel {
 
   public readonly panelName = 'Tools';
 
-  protected readonly tools = EDITOR_TOOLS;
+  protected readonly groups = editorToolGroups();
   protected readonly icons = EDITOR_TOOLS_ICONS;
   protected readonly activeTool = this.session.tool;
-
-  protected iconFor(tool: EditorTool): string {
-    return this.icons[tool];
-  }
 
   protected select(tool: EditorTool): void {
     this.bus.dispatch({ type: 'session.setTool', tool });

@@ -1,12 +1,17 @@
 <panel [panelName]="panelName" [icon]="'&#xe102;'">
   <div class="tool-list">
-    @for (tool of tools; track tool.id) {
-      <tool-button
-        [tool]="tool"
-        [icon]="icons[tool.id]"
-        [active]="activeTool() === tool.id"
-        (selected)="select($event)"
-      />
+    @for (group of groups; track $index) {
+      @if (group.label) {
+        <h3 class="tool-group">{{ group.label }}</h3>
+      }
+      @for (tool of group.tools; track tool.id) {
+        <tool-button
+          [tool]="tool"
+          [icon]="icons[tool.id]"
+          [active]="activeTool() === tool.id"
+          (selected)="select($event)"
+        />
+      }
     }
   </div>
 </panel>

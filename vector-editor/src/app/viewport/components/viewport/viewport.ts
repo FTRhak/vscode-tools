@@ -2,12 +2,20 @@ import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } f
 import { fromEvent } from 'rxjs';
 import { CommandBus, TranslateGesture } from '@vector-editor/commands';
 import {
+  clampShapeCount,
   Document,
   isEmptyPoint,
   isInteractionLocked,
+  isShapeKind,
   objectsInPaintOrder,
   rotationOriginDocument,
   SessionService,
+  SHAPE_NAMES,
+  ShapeDrag,
+  ShapeKind,
+  shapeSource,
+  shapeSourceFromDrag,
+  sourceToPathData,
   Vec2,
   VectorObject,
 } from '@vector-editor/core';
@@ -30,6 +38,7 @@ import {
   objectsInRect,
 } from '../../utils/hit-test';
 import { formatObjectTransform, gradientTransform, sceneFromDocument } from '../../utils/scene';
+import { ShapeDialog, ShapeDialogRequest, ShapeDialogValues } from '../shape-dialog/shape-dialog';
 import { SnapBar } from '../snap-bar/snap-bar';
 import {
   SNAP_THRESHOLD_PX,
@@ -100,6 +109,7 @@ const GESTURE_THRESHOLD_PX = 4;
     '[class.pen]': 'penTool()',
     '[class.add-point]': 'addPointTool()',
     '[class.empty-point]': 'emptyPointTool()',
+    '[class.shape]': 'shapeTool()',
     '(pointerdown)': 'onPointerDown($event)',
     '(pointermove)': 'onPointerMove($event)',
     '(pointerup)': 'onPointerUp($event)',
@@ -110,7 +120,7 @@ const GESTURE_THRESHOLD_PX = 4;
     '(pointerleave)': 'onPointerLeave()',
     '(auxclick)': 'onAuxClick($event)',
   },
-  imports: [SnapBar],
+  imports: [SnapBar, ShapeDialog],
   templateUrl: './viewport.html',
   styleUrl: './viewport.scss',
 })
@@ -127,6 +137,13 @@ export class Viewport {
   private originDrag: OriginGesture | null = null;
   private direct: DirectDrag | null = null;
   private pen: PenDrag | null = null;
+  private shape: ShapeGesture | null = null;
+  private starPoints = 5;
+  private polygonSides = 6;
+  private starRatio = 0.5;
+  private shapeWidth = 100;
+  private shapeHeight = 100;
+  private shapeRadius = 50;
   private spaceHeld = false;
   private editSnapSources: readonly SnapSource[] | null = null;
 
@@ -135,6 +152,8 @@ export class Viewport {
   protected readonly panning = signal(false);
   protected readonly moving = signal(false);
   protected readonly marquee = signal<DocumentRect | null>(null);
+  protected readonly shapeDialog = signal<ShapeDialogRequest | null>(null);
+  protected readonly shapePreview = signal<string | null>(null);
   protected readonly editing = computed(() => this.session.mode() === 'edit');
   protected readonly directCursor = computed(
     () => this.editing() && this.session.tool() === 'direct-select',
@@ -142,6 +161,7 @@ export class Viewport {
   protected readonly penTool = computed(() => this.session.tool() === 'pen');
   protected readonly addPointTool = computed(() => this.session.tool() === 'add-point');
   protected readonly emptyPointTool = computed(() => this.session.tool() === 'empty-point');
+  protected readonly shapeTool = computed(() => isShapeKind(this.session.tool()));
   private readonly penHover = signal<Vec2 | null>(null);
   private readonly penDragging = signal(false);
   protected readonly activeId = this.session.activeObjectId;
@@ -249,6 +269,9 @@ export class Viewport {
   }
 
   protected onPointerDown(event: PointerEvent): void {
+    if (event.target instanceof Element && event.target.closest('[data-shape-dialog]')) {
+      return;
+    }
     const fromSpace = event.button === 0 && this.spaceHeld;
     const fromMiddle = event.button === 1;
     if (fromSpace || fromMiddle) {
@@ -270,6 +293,11 @@ export class Viewport {
       this.beginEmptyPoint(event);
       return;
     }
+    const tool = this.session.tool();
+    if (isShapeKind(tool)) {
+      this.beginShape(event, tool);
+      return;
+    }
     if (this.session.tool() === 'direct-select') {
       this.beginDirect(event);
       return;
@@ -284,6 +312,10 @@ export class Viewport {
     }
     if (this.pen && event.pointerId === this.pen.pointerId) {
       this.movePen(event);
+      return;
+    }
+    if (this.shape && event.pointerId === this.shape.pointerId) {
+      this.updateShapeGesture(event);
       return;
     }
     if (this.direct && event.pointerId === this.direct.pointerId) {
@@ -310,6 +342,10 @@ export class Viewport {
       this.finishPen(event);
       return;
     }
+    if (this.shape && event.pointerId === this.shape.pointerId) {
+      this.finishShape(event);
+      return;
+    }
     if (this.direct && event.pointerId === this.direct.pointerId) {
       this.finishDirect(event);
       return;
@@ -324,6 +360,11 @@ export class Viewport {
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
+    if (this.shape && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      event.preventDefault();
+      this.nudgeShapeCount(event.key === 'ArrowUp' ? 1 : -1);
+      return;
+    }
     if (!isSpace(event)) {
       return;
     }
@@ -332,6 +373,9 @@ export class Viewport {
       return;
     }
     this.spaceHeld = true;
+    if (this.shape) {
+      this.shape.spaceLast = this.shape.current;
+    }
   }
 
   protected onKeyUp(event: KeyboardEvent): void {
@@ -340,6 +384,9 @@ export class Viewport {
     }
     event.preventDefault();
     this.spaceHeld = false;
+    if (this.shape) {
+      this.shape.spaceLast = null;
+    }
     if (this.pan?.fromSpace) {
       this.stopPan();
     }
@@ -347,6 +394,9 @@ export class Viewport {
 
   protected onBlur(): void {
     this.spaceHeld = false;
+    if (this.shape) {
+      this.shape.spaceLast = null;
+    }
     if (this.pan?.fromSpace) {
       this.stopPan();
     }
@@ -1102,6 +1152,218 @@ export class Viewport {
     });
   }
 
+  protected confirmShape(values: ShapeDialogValues): void {
+    const request = this.shapeDialog();
+    this.shapeDialog.set(null);
+    if (!request) {
+      return;
+    }
+    const source = shapeSource({
+      kind: request.kind,
+      origin: request.origin,
+      width: values.width,
+      height: values.height,
+      radius: values.radius,
+      innerRadius: values.innerRadius,
+      count: values.count,
+    });
+    if (!source) {
+      return;
+    }
+    this.shapeWidth = values.width;
+    this.shapeHeight = values.height;
+    this.shapeRadius = values.radius;
+    if (request.kind === 'star') {
+      this.starPoints = clampShapeCount('star', values.count);
+      this.starRatio =
+        values.radius > 0
+          ? Math.min(1, Math.max(0, values.innerRadius / values.radius))
+          : this.starRatio;
+    }
+    if (request.kind === 'polygon') {
+      this.polygonSides = clampShapeCount('polygon', values.count);
+    }
+    this.bus.dispatch({ type: 'shape.add', name: SHAPE_NAMES[request.kind], source });
+  }
+
+  protected dismissShape(): void {
+    this.shapeDialog.set(null);
+  }
+
+  private beginShape(event: PointerEvent, kind: ShapeKind): void {
+    if (!this.session.document()) {
+      return;
+    }
+    const origin = this.snapAbsolute(this.pointerToDocument(event), new Set(), this.shapeLayerId());
+    this.shape = {
+      pointerId: event.pointerId,
+      kind,
+      click: origin,
+      originClientX: event.clientX,
+      originClientY: event.clientY,
+      origin,
+      current: origin,
+      spaceLast: null,
+      frozenOuter: null,
+      count: kind === 'star' ? this.starPoints : kind === 'polygon' ? this.polygonSides : 0,
+      shift: event.shiftKey,
+      alt: event.altKey,
+      ctrl: event.ctrlKey || event.metaKey,
+    };
+    this.host.nativeElement.setPointerCapture?.(event.pointerId);
+    this.refreshShapePreview();
+  }
+
+  private updateShapeGesture(event: PointerEvent): void {
+    const gesture = this.shape;
+    if (!gesture) {
+      return;
+    }
+    const point = this.snapAbsolute(this.pointerToDocument(event), new Set(), this.shapeLayerId());
+    const previousDistance = Math.hypot(
+      gesture.current.x - gesture.origin.x,
+      gesture.current.y - gesture.origin.y,
+    );
+    if (this.spaceHeld) {
+      const last = gesture.spaceLast ?? gesture.current;
+      gesture.origin = {
+        x: gesture.origin.x + (point.x - last.x),
+        y: gesture.origin.y + (point.y - last.y),
+      };
+      gesture.spaceLast = point;
+    } else {
+      gesture.spaceLast = null;
+    }
+    gesture.current = point;
+    const ctrl = event.ctrlKey || event.metaKey;
+    if (gesture.kind === 'star') {
+      if (ctrl && !gesture.ctrl && previousDistance > 1e-6) {
+        gesture.frozenOuter = previousDistance;
+      } else if (!ctrl && gesture.ctrl) {
+        this.commitStarRatio();
+        gesture.frozenOuter = null;
+      }
+      if (!ctrl) {
+        gesture.frozenOuter = null;
+      }
+    }
+    gesture.ctrl = ctrl;
+    gesture.shift = event.shiftKey;
+    gesture.alt = event.altKey;
+    this.refreshShapePreview();
+  }
+
+  private finishShape(event: PointerEvent): void {
+    const gesture = this.shape;
+    if (!gesture) {
+      return;
+    }
+    this.updateShapeGesture(event);
+    const travel = Math.hypot(event.clientX - gesture.originClientX, event.clientY - gesture.originClientY);
+    const input = this.shapeDragInput();
+    const kind = gesture.kind;
+    const click = gesture.click;
+    this.clearShapeGesture();
+    if (travel < GESTURE_THRESHOLD_PX) {
+      this.openShapeDialog(kind, click);
+      return;
+    }
+    if (!input) {
+      return;
+    }
+    const source = shapeSourceFromDrag(input);
+    if (!source) {
+      return;
+    }
+    this.rememberDrag(input);
+    this.bus.dispatch({ type: 'shape.add', name: SHAPE_NAMES[kind], source });
+  }
+
+  private nudgeShapeCount(delta: number): void {
+    const gesture = this.shape;
+    if (!gesture || (gesture.kind !== 'star' && gesture.kind !== 'polygon')) {
+      return;
+    }
+    gesture.count = clampShapeCount(gesture.kind, gesture.count + delta);
+    if (gesture.kind === 'star') {
+      this.starPoints = gesture.count;
+    } else {
+      this.polygonSides = gesture.count;
+    }
+    this.refreshShapePreview();
+  }
+
+  private openShapeDialog(kind: ShapeKind, origin: Vec2): void {
+    this.shapeDialog.set({
+      kind,
+      origin,
+      width: this.shapeWidth,
+      height: this.shapeHeight,
+      radius: this.shapeRadius,
+      innerRadius: this.shapeRadius * this.starRatio,
+      count: kind === 'star' ? this.starPoints : this.polygonSides,
+    });
+  }
+
+  private shapeDragInput(): ShapeDrag | null {
+    const gesture = this.shape;
+    if (!gesture) {
+      return null;
+    }
+    const adjustInner = gesture.kind === 'star' && gesture.ctrl && gesture.frozenOuter !== null;
+    return {
+      kind: gesture.kind,
+      origin: gesture.origin,
+      current: gesture.current,
+      fromCenter: gesture.kind === 'star' || gesture.kind === 'polygon' || gesture.alt,
+      constrain: gesture.shift,
+      count: gesture.count,
+      innerRatio: this.starRatio,
+      outerRadius: adjustInner ? gesture.frozenOuter : null,
+      innerRadius: adjustInner
+        ? Math.hypot(gesture.current.x - gesture.origin.x, gesture.current.y - gesture.origin.y)
+        : null,
+    };
+  }
+
+  private refreshShapePreview(): void {
+    const input = this.shapeDragInput();
+    const source = input ? shapeSourceFromDrag(input) : null;
+    this.shapePreview.set(source ? sourceToPathData(source) : null);
+  }
+
+  private rememberDrag(input: ShapeDrag): void {
+    if (input.kind === 'polygon') {
+      this.polygonSides = clampShapeCount('polygon', input.count);
+    }
+    if (input.kind === 'star') {
+      this.starPoints = clampShapeCount('star', input.count);
+      if (input.outerRadius !== null && input.outerRadius > 0 && input.innerRadius !== null) {
+        this.starRatio = Math.min(1, Math.max(0, input.innerRadius / input.outerRadius));
+      }
+    }
+  }
+
+  private commitStarRatio(): void {
+    const gesture = this.shape;
+    if (!gesture || gesture.frozenOuter === null || gesture.frozenOuter <= 1e-6) {
+      return;
+    }
+    const inner = Math.hypot(gesture.current.x - gesture.origin.x, gesture.current.y - gesture.origin.y);
+    this.starRatio = Math.min(1, Math.max(0, inner / gesture.frozenOuter));
+  }
+
+  private clearShapeGesture(): void {
+    const pointerId = this.shape?.pointerId;
+    this.shape = null;
+    this.shapePreview.set(null);
+    this.release(pointerId);
+  }
+
+  private shapeLayerId(): string {
+    return this.session.selectedLayerId() ?? this.session.document()?.layers[0]?.id ?? '';
+  }
+
   private stopPan(): void {
     const pan = this.pan;
     this.pan = null;
@@ -1122,6 +1384,22 @@ export class Viewport {
 
 function isSpace(event: KeyboardEvent): boolean {
   return event.key === ' ' || event.code === 'Space';
+}
+
+interface ShapeGesture {
+  readonly pointerId: number;
+  readonly kind: ShapeKind;
+  readonly click: Vec2;
+  readonly originClientX: number;
+  readonly originClientY: number;
+  origin: Vec2;
+  current: Vec2;
+  spaceLast: Vec2 | null;
+  frozenOuter: number | null;
+  count: number;
+  shift: boolean;
+  alt: boolean;
+  ctrl: boolean;
 }
 
 interface OverlayAnchor {

@@ -1,0 +1,64 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 45%);
+}
+
+.dialog {
+  width: min(24rem, calc(100% - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--chrome);
+  color: var(--chrome-text);
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.fields {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+
+label {
+  font-size: 0.85rem;
+}
+
+input[type='number'] {
+  width: 100%;
+  min-height: 2rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #1f1f1f;
+  color: var(--chrome-text);
+  font: inherit;
+  padding: 0.15rem 0.4rem;
+}
+
+.error {
+  grid-column: 2;
+  margin: -0.15rem 0 0;
+  color: #ffb4b4;
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}

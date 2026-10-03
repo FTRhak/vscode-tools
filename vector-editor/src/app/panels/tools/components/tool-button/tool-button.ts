@@ -14,7 +14,7 @@ import { EditorTool, EditorToolDefinition } from '@vector-editor/commands';
       [attr.aria-pressed]="active() ? 'true' : 'false'"
       (click)="selected.emit(tool().id)"
     >
-      <i class="icon" [innerHTML]="icon()"></i>
+      <tool-icon [name]="tool().id" [glyph]="icon()" />
       <span>{{ tool().label }}</span>
       <span class="shortcut" title="Shortcut: {{ tool().shortcut }}">{{ tool().shortcut }}</span>
     </button>

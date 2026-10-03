@@ -43,6 +43,7 @@ import {
 } from './model/modifier-edits';
 import { isInteractionLocked, layersFrontToBack } from './model/paint-order';
 import { addEmptyPoint, isEmptyPoint } from './model/empty-point';
+import { addShape } from './model/shapes';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
 import { identityTransform, matrixFromTransform, transformSource } from './io/matrix';
 import { rotationOriginDocument, transformWithRotationOrigin } from './model/transform';
@@ -186,6 +187,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyAddPath(state, command.layerId);
     case 'point.add':
       return applyPointAdd(state, command);
+    case 'shape.add':
+      return applyShapeAdd(state, command);
     case 'layer.update':
       return applyDocument(state, (document) => updateLayer(document, command.id, command));
     case 'layer.reorder':
@@ -1072,6 +1075,36 @@ function applyPointAdd(
   const created = addEmptyPoint(
     state.document,
     command.position,
+    state.selectedLayerId ?? undefined,
+  );
+  if (!created) {
+    return state;
+  }
+  return {
+    ...state,
+    mode: 'object',
+    document: created.document,
+    selection: {
+      ...state.selection,
+      activeObjectId: created.objectId,
+      selectedObjectIds: [created.objectId],
+      selectedAnchorIds: [],
+      selectedSegmentIds: [],
+    },
+  };
+}
+
+function applyShapeAdd(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'shape.add' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const created = addShape(
+    state.document,
+    command.name,
+    command.source,
     state.selectedLayerId ?? undefined,
   );
   if (!created) {

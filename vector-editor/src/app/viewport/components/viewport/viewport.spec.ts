@@ -643,6 +643,57 @@ describe('Viewport', () => {
     });
   });
 
+  it('draws a rectangle path and creates one from the size dialog', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    bus.dispatch({ type: 'session.setMode', mode: 'edit' });
+    bus.dispatch({ type: 'session.setTool', tool: 'rectangle' });
+    pointer(canvas(), 'pointerdown', 124, 144);
+    pointer(canvas(), 'pointermove', 224, 244);
+    await fixture.whenStable();
+    expect(canvas().querySelector('.shape-preview')).not.toBeNull();
+
+    pointer(canvas(), 'pointerup', 224, 244);
+    await fixture.whenStable();
+
+    const rectangle = session.document()!.objects.find((object) => object.name === 'Rectangle');
+    expect(rectangle?.kind).toBe('path');
+    expect(rectangle?.source.subpaths[0]).toMatchObject({ closed: true });
+    expect(rectangle?.source.subpaths[0]?.anchors).toHaveLength(4);
+    expect(rectangle?.source.subpaths[0]?.anchors[0]?.position).toEqual({ x: 100, y: 120 });
+    expect(rectangle?.source.subpaths[0]?.anchors[2]?.position).toEqual({ x: 200, y: 220 });
+    expect(session.selectedObjectIds()).toEqual([rectangle?.id]);
+    expect(session.tool()).toBe('rectangle');
+    expect(session.mode()).toBe('object');
+    expect(session.history().entries.at(-1)?.label).toBe('Add shape');
+    expect(canvas().querySelector('.shape-preview')).toBeNull();
+
+    const before = session.document()!.objects.length;
+    pointer(canvas(), 'pointerdown', 300, 300);
+    pointer(canvas(), 'pointerup', 301, 301);
+    await fixture.whenStable();
+
+    const dialog = canvas().querySelector('[role="dialog"]');
+    expect(dialog?.textContent).toContain('Rectangle');
+    const width = dialog?.querySelector('#shape-width');
+    const height = dialog?.querySelector('#shape-height');
+    if (!(width instanceof HTMLInputElement) || !(height instanceof HTMLInputElement)) {
+      throw new Error('Size fields are missing');
+    }
+    width.value = '80';
+    width.dispatchEvent(new Event('input', { bubbles: true }));
+    height.value = '40';
+    height.dispatchEvent(new Event('input', { bubbles: true }));
+    (dialog?.querySelector('button[type="submit"]') as HTMLButtonElement | null)?.click();
+    await fixture.whenStable();
+
+    expect(canvas().querySelector('[role="dialog"]')).toBeNull();
+    expect(session.document()!.objects).toHaveLength(before + 1);
+    const sized = session.document()!.objects.at(-1);
+    expect(sized?.name).toBe('Rectangle 2');
+    expect(sized?.source.subpaths[0]?.anchors[0]?.position).toEqual({ x: 276, y: 276 });
+    expect(sized?.source.subpaths[0]?.anchors[2]?.position).toEqual({ x: 356, y: 316 });
+  });
+
   it('places an empty point, moves it, and hides it in edit mode', async () => {
     vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
     bus.dispatch({ type: 'session.setTool', tool: 'empty-point' });

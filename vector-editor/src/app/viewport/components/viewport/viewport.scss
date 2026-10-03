@@ -14,7 +14,8 @@
 :host.direct,
 :host.pen,
 :host.add-point,
-:host.empty-point {
+:host.empty-point,
+:host.shape {
   cursor: crosshair;
 }
 
@@ -68,6 +69,16 @@ svg {
   stroke: #1d4ed8;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
+}
+
+.shape-preview {
+  fill: #1d4ed8;
+  fill-opacity: 0.12;
+  stroke: #1d4ed8;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
 }
 
 .pen-preview {

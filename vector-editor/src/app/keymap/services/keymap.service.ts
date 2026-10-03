@@ -11,6 +11,11 @@ const toolKeys: Readonly<Record<string, EditorTool>> = {
   a: 'direct-select',
   p: 'pen',
   e: 'empty-point',
+  m: 'rectangle',
+  l: 'ellipse',
+  s: 'star',
+  n: 'polygon',
+  r: 'rhombus',
 };
 
 @Service()

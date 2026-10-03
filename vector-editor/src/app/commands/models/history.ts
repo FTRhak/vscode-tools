@@ -115,6 +115,8 @@ export function historyLabel(command: Command): string | null {
       return 'Add path';
     case 'point.add':
       return 'Add empty point';
+    case 'shape.add':
+      return 'Add shape';
     case 'pen.begin':
     case 'pen.addPoint':
     case 'pen.setHandles':

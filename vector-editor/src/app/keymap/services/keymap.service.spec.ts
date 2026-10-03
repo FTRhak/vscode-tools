@@ -234,6 +234,19 @@ describe('KeymapService', () => {
     expect(session.tool()).toBe('empty-point');
   });
 
+  it('selects shape tools from their keys', () => {
+    document.dispatchEvent(key('m'));
+    expect(session.tool()).toBe('rectangle');
+    document.dispatchEvent(key('l'));
+    expect(session.tool()).toBe('ellipse');
+    document.dispatchEvent(key('s'));
+    expect(session.tool()).toBe('star');
+    document.dispatchEvent(key('n'));
+    expect(session.tool()).toBe('polygon');
+    document.dispatchEvent(key('r'));
+    expect(session.tool()).toBe('rhombus');
+  });
+
   it('selects the add point tool from + and =', () => {
     document.dispatchEvent(key('='));
     expect(session.tool()).toBe('add-point');
