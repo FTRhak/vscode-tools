@@ -88,7 +88,7 @@ export class ModifierRow {
     readonly count?: number;
     readonly offsetX?: number;
     readonly offsetY?: number;
-    readonly axis?: 'x' | 'y' | 'xy';
+    readonly axis?: 'x' | 'y' | 'xy' | 'none';
     readonly centerPointId?: string | null;
     readonly distance?: number;
     readonly join?: 'bevel' | 'miter' | 'round';

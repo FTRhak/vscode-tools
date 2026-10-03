@@ -39,12 +39,25 @@ describe('ModifiersPanel', () => {
     expect(fixture.nativeElement.textContent).toContain('Mirror');
     expect(countInput().value).toBe('3');
 
-    const radios = [
-      ...fixture.nativeElement.querySelectorAll('input[type="radio"]'),
-    ] as HTMLInputElement[];
-    radios[2]?.click();
+    button('X').click();
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].modifiers[1]).toMatchObject({ axis: 'none' });
+
+    button('Y').click();
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].modifiers[1]).toMatchObject({ axis: 'y' });
+
+    button('X').click();
     await fixture.whenStable();
     expect(session.document()!.objects[0].modifiers[1]).toMatchObject({ axis: 'xy' });
+
+    button('Y').click();
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].modifiers[1]).toMatchObject({ axis: 'x' });
+
+    button('X').click();
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].modifiers[1]).toMatchObject({ axis: 'none' });
 
     button('Apply Array').click();
     await fixture.whenStable();

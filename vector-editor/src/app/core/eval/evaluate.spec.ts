@@ -44,6 +44,13 @@ describe('evaluateSource', () => {
     expect(copy?.anchors[1]?.position).toEqual({ x: 6, y: 4 });
   });
 
+  it('leaves the path unchanged when no mirror axis is selected', () => {
+    const source = path('a', { x: 0, y: 0 }, { x: 6, y: 0 }, null, null);
+    const evaluated = evaluateSource(source, [mirror('flip', 'none')]);
+
+    expect(evaluated.source).toBe(source);
+  });
+
   it('mirrors around a selected empty point in the owner object space', () => {
     const owner = {
       ...shape('owner', path('a', { x: 0, y: 0 }, { x: 4, y: 2 }, null, null), [
@@ -533,7 +540,7 @@ function array(
 
 function mirror(
   id: string,
-  axis: 'x' | 'y' | 'xy',
+  axis: 'x' | 'y' | 'xy' | 'none',
   patch: Partial<Extract<Modifier, { type: 'mirror' }>> = {},
 ): Extract<Modifier, { type: 'mirror' }> {
   return { id, type: 'mirror', axis, enabled: true, ...patch };

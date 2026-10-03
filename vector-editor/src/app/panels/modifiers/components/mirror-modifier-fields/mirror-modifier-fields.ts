@@ -20,11 +20,14 @@ export class MirrorModifierFields {
   readonly emptyPoints = input.required<readonly VectorObject[]>();
   readonly committed = output<MirrorModifierPatch>();
 
-  protected commitAxis(axis: MirrorAxis): void {
-    if (this.modifier().axis === axis) {
-      return;
-    }
-    this.committed.emit({ axis });
+  protected toggleAxis(axis: 'x' | 'y'): void {
+    const currentAxis = this.modifier().axis;
+    const hasX = currentAxis === 'x' || currentAxis === 'xy';
+    const hasY = currentAxis === 'y' || currentAxis === 'xy';
+    const nextX = axis === 'x' ? !hasX : hasX;
+    const nextY = axis === 'y' ? !hasY : hasY;
+    const nextAxis: MirrorAxis = nextX ? (nextY ? 'xy' : 'x') : nextY ? 'y' : 'none';
+    this.committed.emit({ axis: nextAxis });
   }
 
   protected commitCenterPoint(event: Event): void {

@@ -469,7 +469,7 @@ function readModifier(
   }
   if (value['type'] === 'mirror') {
     const axis = value['axis'];
-    if (axis !== 'x' && axis !== 'y' && axis !== 'xy') {
+    if (axis !== 'x' && axis !== 'y' && axis !== 'xy' && axis !== 'none') {
       return null;
     }
     const id = claim(stringField(value, 'id'));

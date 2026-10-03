@@ -1,33 +1,22 @@
-<fieldset class="axis">
-  <legend>Axis</legend>
-  <label>
-    <input
-      type="radio"
-      [name]="'axis-' + modifier().id"
-      [checked]="modifier().axis === 'x'"
-      (change)="commitAxis('x')"
-    />
-    X
-  </label>
-  <label>
-    <input
-      type="radio"
-      [name]="'axis-' + modifier().id"
-      [checked]="modifier().axis === 'y'"
-      (change)="commitAxis('y')"
-    />
-    Y
-  </label>
-  <label>
-    <input
-      type="radio"
-      [name]="'axis-' + modifier().id"
-      [checked]="modifier().axis === 'xy'"
-      (change)="commitAxis('xy')"
-    />
-    Both
-  </label>
-</fieldset>
+<label class="axis">
+  Axis
+  <div class="segmented">
+    <button
+      type="button"
+      [attr.aria-pressed]="modifier().axis === 'x' || modifier().axis === 'xy'"
+      (click)="toggleAxis('x')"
+    >
+      X
+    </button>
+    <button
+      type="button"
+      [attr.aria-pressed]="modifier().axis === 'y' || modifier().axis === 'xy'"
+      (click)="toggleAxis('y')"
+    >
+      Y
+    </button>
+  </div>
+</label>
 <label class="center-point">
   Empty point
   <select [value]="modifier().centerPointId ?? ''" (change)="commitCenterPoint($event)">

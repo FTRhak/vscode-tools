@@ -9,6 +9,9 @@ export function applyMirror(
   modifier: MirrorModifier,
   center?: Vec2,
 ): SourcePath {
+  if (modifier.axis === 'none') {
+    return source;
+  }
   const bounds = sourceBounds(source);
   if (!bounds || source.subpaths.length === 0) {
     return source;
