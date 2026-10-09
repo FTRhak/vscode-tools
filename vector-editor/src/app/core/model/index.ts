@@ -1,9 +1,5 @@
 export { createId } from './create-id';
-export {
-  createNewDocument,
-  defaultDocumentHeight,
-  defaultDocumentWidth,
-} from './create-document';
+export { createNewDocument, defaultDocumentHeight, defaultDocumentWidth } from './create-document';
 export type { DocumentSize } from './create-document';
 export {
   addLayer,
@@ -48,6 +44,7 @@ export {
   objectsOnLayer,
 } from './paint-order';
 export { sourceToPathData } from './path-data';
+export { svgStrokeDefaults } from './types';
 export { rotationOriginDocument, transformWithRotationOrigin } from './transform';
 export type {
   Anchor,
@@ -60,6 +57,8 @@ export type {
   ObjectTransform,
   Segment,
   SourcePath,
+  StrokeLinecap,
+  StrokeLinejoin,
   Style,
   Subpath,
   Swatch,

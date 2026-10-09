@@ -1,4 +1,4 @@
-import { Document, Modifier, VectorObject } from '@vector-editor/core';
+import { Document, Modifier, svgStrokeDefaults, VectorObject } from '@vector-editor/core';
 import { duplicateObjects } from './duplicate-objects';
 
 describe('duplicateObjects', () => {
@@ -58,7 +58,13 @@ function object(id: string, modifiers: readonly Modifier[] = []): VectorObject {
     visible: true,
     locked: false,
     source: { subpaths: [] },
-    style: { fill: '#fff', stroke: null, strokeWidth: 1, fillRule: 'nonzero' },
+    style: {
+      ...svgStrokeDefaults,
+      fill: '#fff',
+      stroke: null,
+      strokeWidth: 1,
+      fillRule: 'nonzero',
+    },
     transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers,
   };

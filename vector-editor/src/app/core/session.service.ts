@@ -160,19 +160,22 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
           fill: command.fill,
           stroke: command.stroke,
           strokeWidth: command.strokeWidth,
+          strokeLinecap: command.strokeLinecap,
+          strokeLinejoin: command.strokeLinejoin,
+          strokeMiterlimit: command.strokeMiterlimit,
+          strokeOpacity: command.strokeOpacity,
+          strokeDashoffset: command.strokeDashoffset,
+          strokeDasharray: command.strokeDasharray,
         }),
       );
     case 'gradient.create':
       return applyDocument(state, (document) =>
-        createGradient(
-          document,
-          command.gradient,
-          command.target,
-          command.objectIds,
-        ),
+        createGradient(document, command.gradient, command.target, command.objectIds),
       );
     case 'gradient.update':
-      return applyDocument(state, (document) => updateGradient(document, command.id, command.gradient));
+      return applyDocument(state, (document) =>
+        updateGradient(document, command.id, command.gradient),
+      );
     case 'gradient.delete':
       return applyDocument(state, (document) => deleteGradient(document, command.id));
     case 'swatch.add':

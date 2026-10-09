@@ -1,6 +1,7 @@
 import { createNewDocument } from '../model/create-document';
+import { setObjectStyle } from '../model/document-edits';
 import { addEmptyPoint } from '../model/empty-point';
-import { Document, SourcePath, Vec2, VectorObject } from '../model/types';
+import { Document, SourcePath, svgStrokeDefaults, Vec2, VectorObject } from '../model/types';
 import { parsePathData } from './path-data-parse';
 import { exportSvg } from './svg-export';
 import { importSvg } from './svg-import';
@@ -91,6 +92,7 @@ describe('importSvg', () => {
     ]);
     expect(rect?.source.subpaths[0]?.closed).toBe(true);
     expect(rect?.style).toEqual({
+      ...svgStrokeDefaults,
       fill: '#abc',
       stroke: null,
       strokeWidth: 1,
@@ -136,6 +138,43 @@ describe('importSvg', () => {
     expect(result.document.objects.every((object) => object.transform.x === 0)).toBe(true);
   });
 
+  it('reads stroke paint from attributes, style, and inheritance', () => {
+    const result = importSvg(`
+      <svg viewBox="0 0 20 20">
+        <path d="M 0 0 L 10 0" stroke-linecap="round" stroke-linejoin="bevel" stroke-miterlimit="2" stroke-opacity="50%" stroke-dasharray="4 1 2" stroke-dashoffset="-3"/>
+        <path d="M 0 5 L 10 5" stroke-linejoin="arcs" stroke-miterlimit="0.5" stroke-dasharray="4%" stroke-dashoffset="10%"/>
+        <path d="M 0 10 L 10 10" stroke-linecap="butt" style="stroke-linecap: square"/>
+        <g stroke-linejoin="round">
+          <path d="M 0 15 L 10 15"/>
+        </g>
+      </svg>
+    `);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    const [painted, fallback, styled, inherited] = result.document.objects;
+    expect(painted?.style).toMatchObject({
+      strokeLinecap: 'round',
+      strokeLinejoin: 'bevel',
+      strokeMiterlimit: 2,
+      strokeOpacity: 0.5,
+      strokeDasharray: [4, 1, 2],
+      strokeDashoffset: -3,
+    });
+    expect(fallback?.style).toMatchObject({
+      strokeLinecap: 'butt',
+      strokeLinejoin: 'miter',
+      strokeMiterlimit: 4,
+      strokeOpacity: 1,
+      strokeDasharray: null,
+      strokeDashoffset: 0,
+    });
+    expect(styled?.style.strokeLinecap).toBe('square');
+    expect(inherited?.style.strokeLinejoin).toBe('round');
+  });
+
   it('rejects a file that is not an svg document', () => {
     expect(importSvg('').ok).toBe(false);
     expect(importSvg('<html></html>').ok).toBe(false);
@@ -144,6 +183,35 @@ describe('importSvg', () => {
 });
 
 describe('exportSvg', () => {
+  it('round-trips stroke paint in every save mode', () => {
+    const document = createNewDocument();
+    const id = document.objects[0]?.id ?? '';
+    const painted = setObjectStyle(document, [id], {
+      strokeLinecap: 'round',
+      strokeLinejoin: 'bevel',
+      strokeMiterlimit: 2,
+      strokeOpacity: 0.5,
+      strokeDasharray: [4, 1, 2],
+      strokeDashoffset: -3,
+    });
+
+    for (const mode of ['all', 'optimized', 'minimal'] as const) {
+      const result = importSvg(exportSvg(painted, mode));
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.document.objects[0]?.style).toMatchObject({
+        strokeLinecap: 'round',
+        strokeLinejoin: 'bevel',
+        strokeMiterlimit: 2,
+        strokeOpacity: 0.5,
+        strokeDasharray: [4, 1, 2],
+        strokeDashoffset: -3,
+      });
+    }
+  });
+
   it('round-trips mirror empty-point references in all and optimized modes', () => {
     const base = sampleDocument();
     const pointResult = addEmptyPoint(base, { x: 24, y: 18 }, base.layers[0]?.id);
@@ -163,7 +231,13 @@ describe('exportSvg', () => {
           ? {
               ...object,
               modifiers: [
-                { id: 'mirror-1', type: 'mirror', axis: 'xy', centerPointId: point.id, enabled: true },
+                {
+                  id: 'mirror-1',
+                  type: 'mirror',
+                  axis: 'xy',
+                  centerPointId: point.id,
+                  enabled: true,
+                },
                 { id: 'mirror-none', type: 'mirror', axis: 'none', enabled: true },
               ],
             }
@@ -690,7 +764,13 @@ function object(
     visible,
     locked,
     source,
-    style: { fill: '#112233', stroke: '#445566', strokeWidth: 2, fillRule: 'evenodd' },
+    style: {
+      ...svgStrokeDefaults,
+      fill: '#112233',
+      stroke: '#445566',
+      strokeWidth: 2,
+      fillRule: 'evenodd',
+    },
     transform,
     modifiers: [],
   };

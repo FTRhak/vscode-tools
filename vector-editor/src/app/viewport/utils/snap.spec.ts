@@ -1,5 +1,11 @@
-import { Document, VectorObject } from '@vector-editor/core';
-import { anchorSnapSources, collectSnapTargets, snapToGrid, snapToPoints, snapTranslation } from './snap';
+import { Document, svgStrokeDefaults, VectorObject } from '@vector-editor/core';
+import {
+  anchorSnapSources,
+  collectSnapTargets,
+  snapToGrid,
+  snapToPoints,
+  snapTranslation,
+} from './snap';
 
 describe('snap', () => {
   it('rounds positions onto each grid step', () => {
@@ -9,7 +15,16 @@ describe('snap', () => {
   });
 
   it('jumps to the nearest point inside the threshold', () => {
-    expect(snapToPoints({ x: 3, y: 1 }, [{ x: 10, y: 10 }, { x: 4, y: 1 }], 8)).toEqual({
+    expect(
+      snapToPoints(
+        { x: 3, y: 1 },
+        [
+          { x: 10, y: 10 },
+          { x: 4, y: 1 },
+        ],
+        8,
+      ),
+    ).toEqual({
       x: 4,
       y: 1,
     });
@@ -30,10 +45,7 @@ describe('snap', () => {
   it('pulls the closest object point onto a target', () => {
     const delta = snapTranslation(
       { x: 2, y: 1 },
-      [
-        { start: { x: 0, y: 0 } },
-        { start: { x: 100, y: 0 } },
-      ],
+      [{ start: { x: 0, y: 0 } }, { start: { x: 100, y: 0 } }],
       'layer',
       [{ x: 104, y: 2 }],
       8,
@@ -44,10 +56,7 @@ describe('snap', () => {
   it('snaps the reference point onto the grid', () => {
     const delta = snapTranslation(
       { x: 10.4, y: 0.2 },
-      [
-        { start: { x: 3, y: 5 } },
-        { start: { x: 80, y: 80 } },
-      ],
+      [{ start: { x: 3, y: 5 } }, { start: { x: 80, y: 80 } }],
       'grid_100',
       [],
       8,
@@ -126,7 +135,13 @@ function sampleObject(
         },
       ],
     },
-    style: { fill: null, stroke: '#000', strokeWidth: 1, fillRule: 'nonzero' },
+    style: {
+      ...svgStrokeDefaults,
+      fill: null,
+      stroke: '#000',
+      strokeWidth: 1,
+      fillRule: 'nonzero',
+    },
     transform: { x, y, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers: [],
   };

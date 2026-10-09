@@ -1,6 +1,14 @@
 import { nextSeriesName } from './document-edits';
 import { createId } from './create-id';
-import { Document, ObjectTransform, SourcePath, Style, Vec2, VectorObject } from './types';
+import {
+  Document,
+  ObjectTransform,
+  SourcePath,
+  Style,
+  svgStrokeDefaults,
+  Vec2,
+  VectorObject,
+} from './types';
 
 const identityTransform: ObjectTransform = {
   x: 0,
@@ -13,6 +21,7 @@ const identityTransform: ObjectTransform = {
 };
 
 const emptyStyle: Style = {
+  ...svgStrokeDefaults,
   fill: null,
   stroke: null,
   strokeWidth: 0,

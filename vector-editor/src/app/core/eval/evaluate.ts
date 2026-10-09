@@ -1,11 +1,13 @@
-import {
-  applyMatrix,
-  identityTransform,
-  invertMatrix,
-  matrixFromTransform,
-} from '../io/matrix';
+import { applyMatrix, identityTransform, invertMatrix, matrixFromTransform } from '../io/matrix';
 import { isEmptyPoint } from '../model/empty-point';
-import { Modifier, SourcePath, Style, Subpath, VectorObject } from '../model/types';
+import {
+  Modifier,
+  SourcePath,
+  Style,
+  Subpath,
+  svgStrokeDefaults,
+  VectorObject,
+} from '../model/types';
 import { applyArray } from './array';
 import { applyBevel } from './bevel';
 import { clipBoolean, hasOpenSubpath, placeOperand } from './boolean';
@@ -35,6 +37,7 @@ interface StackResult {
 }
 
 const plainStyle: Style = {
+  ...svgStrokeDefaults,
   fill: null,
   stroke: null,
   strokeWidth: 1,

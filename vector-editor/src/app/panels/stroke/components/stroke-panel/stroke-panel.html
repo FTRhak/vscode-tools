@@ -1,14 +1,77 @@
 <panel [panelName]="panelName">
   @if (hasSelection()) {
-    <form class="width-form" (submit)="$event.preventDefault()">
+    <form class="stroke-form" (submit)="$event.preventDefault()">
       <label>
         Stroke width
         <input
           type="number"
           step="any"
-          [formField]="widthForm.strokeWidth"
+          [formField]="strokeForm.strokeWidth"
           (blur)="commitWidth()"
           (keydown.enter)="commitWidth($event)"
+        />
+      </label>
+      <label>
+        Line cap
+        <select [value]="lineCap()" (change)="commitLinecap($event)">
+          @if (lineCap() === '') {
+            <option value="">Mixed</option>
+          }
+          <option value="butt">Butt</option>
+          <option value="round">Round</option>
+          <option value="square">Square</option>
+        </select>
+      </label>
+      <label>
+        Line join
+        <select [value]="lineJoin()" (change)="commitLinejoin($event)">
+          @if (lineJoin() === '') {
+            <option value="">Mixed</option>
+          }
+          <option value="miter">Miter</option>
+          <option value="round">Round</option>
+          <option value="bevel">Bevel</option>
+        </select>
+      </label>
+      <label>
+        Miter limit
+        <input
+          type="number"
+          step="any"
+          [formField]="strokeForm.strokeMiterlimit"
+          (blur)="commitNumber('strokeMiterlimit')"
+          (keydown.enter)="commitNumber('strokeMiterlimit', $event)"
+        />
+      </label>
+      <label>
+        Opacity
+        <input
+          type="number"
+          step="0.01"
+          [formField]="strokeForm.strokeOpacity"
+          (blur)="commitNumber('strokeOpacity')"
+          (keydown.enter)="commitNumber('strokeOpacity', $event)"
+        />
+      </label>
+      <label>
+        Dash array
+        <input
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          [formField]="strokeForm.strokeDasharray"
+          (blur)="commitDash()"
+          (keydown.enter)="commitDash($event)"
+        />
+      </label>
+      <label>
+        Dash offset
+        <input
+          type="number"
+          step="any"
+          [formField]="strokeForm.strokeDashoffset"
+          (blur)="commitNumber('strokeDashoffset')"
+          (keydown.enter)="commitNumber('strokeDashoffset', $event)"
         />
       </label>
     </form>

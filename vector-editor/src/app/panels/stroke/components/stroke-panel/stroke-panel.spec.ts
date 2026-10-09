@@ -32,14 +32,20 @@ describe('StrokePanel', () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.textContent).not.toContain('No stroke yet.');
-    expect(widthInput().value).toBe('4');
+    expect(input('Stroke width').value).toBe('4');
+    expect(select('Line cap').value).toBe('butt');
+    expect(select('Line join').value).toBe('miter');
+    expect(input('Miter limit').value).toBe('4');
+    expect(input('Opacity').value).toBe('1');
+    expect(input('Dash array').value).toBe('');
+    expect(input('Dash offset').value).toBe('0');
   });
 
   it('writes the shared width on Enter and on blur', async () => {
     const id = selectFirst();
     await fixture.whenStable();
 
-    const entered = widthInput();
+    const entered = input('Stroke width');
     entered.value = '6';
     entered.dispatchEvent(new Event('input', { bubbles: true }));
     const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
@@ -50,7 +56,7 @@ describe('StrokePanel', () => {
     expect(session.document()!.objects[0].style.strokeWidth).toBe(6);
     expect(session.history().entries.at(-1)?.label).toBe('Set stroke width');
 
-    const blurred = widthInput();
+    const blurred = input('Stroke width');
     blurred.value = '2.5';
     blurred.dispatchEvent(new Event('input', { bubbles: true }));
     blurred.dispatchEvent(new FocusEvent('blur'));
@@ -90,7 +96,105 @@ describe('StrokePanel', () => {
     });
     await fixture.whenStable();
 
-    expect(widthInput().value).toBe('');
+    expect(input('Stroke width').value).toBe('');
+  });
+
+  it('writes line cap, line join, and numeric stroke paint', async () => {
+    selectFirst();
+    await fixture.whenStable();
+
+    commitSelect('Line cap', 'round');
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].style.strokeLinecap).toBe('round');
+    expect(session.history().entries.at(-1)?.label).toBe('Set line cap');
+
+    commitSelect('Line join', 'bevel');
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].style.strokeLinejoin).toBe('bevel');
+    expect(session.history().entries.at(-1)?.label).toBe('Set line join');
+
+    commitInput('Miter limit', '2');
+    commitInput('Opacity', '0.5', 'enter');
+    commitInput('Dash offset', '-3');
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].style).toMatchObject({
+      strokeMiterlimit: 2,
+      strokeOpacity: 0.5,
+      strokeDashoffset: -3,
+    });
+    expect(session.history().entries.at(-1)?.label).toBe('Set dash offset');
+    expect(session.history().entries.map((entry) => entry.label)).toEqual([
+      'New document',
+      'Select',
+      'Set line cap',
+      'Set line join',
+      'Set miter limit',
+      'Set stroke opacity',
+      'Set dash offset',
+    ]);
+  });
+
+  it('writes a dash array and clears it back to none', async () => {
+    selectFirst();
+    await fixture.whenStable();
+
+    commitInput('Dash array', '4, 1 2');
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].style.strokeDasharray).toEqual([4, 1, 2]);
+    expect(session.history().entries.at(-1)?.label).toBe('Set dash array');
+
+    commitInput('Dash array', '');
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].style.strokeDasharray).toBeNull();
+  });
+
+  it('skips invalid paint, a matching value, and an untouched mixed field', async () => {
+    const first = selectFirst();
+    await fixture.whenStable();
+    const recorded = session.history().entries.length;
+
+    commitInput('Miter limit', '0.5');
+    commitInput('Opacity', '1.5');
+    commitInput('Dash array', '4 -1');
+    commitInput('Miter limit', '4');
+    await fixture.whenStable();
+    expect(session.history().entries).toHaveLength(recorded);
+    expect(session.document()!.objects[0].style).toMatchObject({
+      strokeMiterlimit: 4,
+      strokeOpacity: 1,
+      strokeDasharray: null,
+    });
+
+    bus.dispatch({ type: 'style.set', objectIds: [first], strokeDasharray: [1, 1] });
+    await fixture.whenStable();
+    bus.dispatch({ type: 'object.duplicate', ids: [first] });
+    const second = session.document()!.objects[1].id;
+    bus.dispatch({ type: 'style.set', objectIds: [second], strokeLinecap: 'square' });
+    bus.dispatch({ type: 'style.set', objectIds: [second], strokeDasharray: [8, 2] });
+    bus.dispatch({
+      type: 'session.select',
+      target: 'object',
+      ids: [first, second],
+      op: 'replace',
+    });
+    await fixture.whenStable();
+
+    expect(select('Line cap').value).toBe('');
+    expect(select('Line cap').textContent).toContain('Mixed');
+    expect(input('Dash array').value).toBe('');
+    const before = session.history().entries.length;
+    input('Dash array').dispatchEvent(new FocusEvent('blur'));
+    await fixture.whenStable();
+    expect(session.history().entries).toHaveLength(before);
+    expect(session.document()!.objects[0].style.strokeDasharray).toEqual([1, 1]);
+    expect(session.document()!.objects[1].style.strokeDasharray).toEqual([8, 2]);
+
+    commitSelect('Line cap', 'round');
+    await fixture.whenStable();
+    expect(
+      session.document()!.objects.every((object) => object.style.strokeLinecap === 'round'),
+    ).toBe(true);
   });
 
   function selectFirst(): string {
@@ -100,18 +204,52 @@ describe('StrokePanel', () => {
     return id;
   }
 
-  function widthInput(): HTMLInputElement {
-    const input = fixture.nativeElement.querySelector('input[type="number"]');
-    if (!(input instanceof HTMLInputElement)) {
-      throw new Error('Stroke width field is missing');
+  function input(name: string): HTMLInputElement {
+    const control = labeled(name);
+    if (!(control instanceof HTMLInputElement)) {
+      throw new Error(`${name} field is missing`);
     }
-    return input;
+    return control;
+  }
+
+  function select(name: string): HTMLSelectElement {
+    const control = labeled(name);
+    if (!(control instanceof HTMLSelectElement)) {
+      throw new Error(`${name} field is missing`);
+    }
+    return control;
+  }
+
+  function labeled(name: string): Element {
+    const labels = [...fixture.nativeElement.querySelectorAll('label')];
+    const label = labels.find((item) => item.childNodes[0]?.textContent?.trim() === name);
+    const control = label?.querySelector('input, select');
+    if (!control) {
+      throw new Error(`${name} field is missing`);
+    }
+    return control;
   }
 
   function commitValue(value: string): void {
-    const input = widthInput();
-    input.value = value;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new FocusEvent('blur'));
+    commitInput('Stroke width', value);
+  }
+
+  function commitInput(name: string, value: string, key: 'blur' | 'enter' = 'blur'): void {
+    const field = input(name);
+    field.value = value;
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    if (key === 'enter') {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+      );
+      return;
+    }
+    field.dispatchEvent(new FocusEvent('blur'));
+  }
+
+  function commitSelect(name: string, value: string): void {
+    const field = select(name);
+    field.value = value;
+    field.dispatchEvent(new Event('change', { bubbles: true }));
   }
 });

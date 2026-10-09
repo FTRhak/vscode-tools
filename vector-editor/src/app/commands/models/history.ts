@@ -174,6 +174,12 @@ function styleLabel(command: Extract<Command, { type: 'style.set' }>): string {
     command.fill !== undefined ? 'Set fill' : null,
     command.stroke !== undefined ? 'Set stroke' : null,
     command.strokeWidth !== undefined ? 'Set stroke width' : null,
+    command.strokeLinecap !== undefined ? 'Set line cap' : null,
+    command.strokeLinejoin !== undefined ? 'Set line join' : null,
+    command.strokeMiterlimit !== undefined ? 'Set miter limit' : null,
+    command.strokeOpacity !== undefined ? 'Set stroke opacity' : null,
+    command.strokeDashoffset !== undefined ? 'Set dash offset' : null,
+    command.strokeDasharray !== undefined ? 'Set dash array' : null,
   ].filter((label) => label !== null);
   return labels.length === 1 && labels[0] ? labels[0] : 'Set style';
 }

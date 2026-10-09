@@ -1,6 +1,13 @@
 import type { AnchorPointType } from '../../core/model/edit-path';
 import type { ModifierKind, ModifierPatch } from '../../core/model/modifier-edits';
-import type { Document, Gradient, ObjectTransform, SourcePath, Vec2 } from '../../core/model/types';
+import type {
+  Document,
+  Gradient,
+  ObjectTransform,
+  SourcePath,
+  Style,
+  Vec2,
+} from '../../core/model/types';
 
 export type ColorSlot = 'fill' | 'stroke';
 
@@ -135,6 +142,12 @@ export type Command =
       readonly fill?: string | null;
       readonly stroke?: string | null;
       readonly strokeWidth?: number;
+      readonly strokeLinecap?: Style['strokeLinecap'];
+      readonly strokeLinejoin?: Style['strokeLinejoin'];
+      readonly strokeMiterlimit?: number;
+      readonly strokeOpacity?: number;
+      readonly strokeDashoffset?: number;
+      readonly strokeDasharray?: readonly number[] | null;
     }
   | {
       readonly type: 'gradient.create';

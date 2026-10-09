@@ -2,7 +2,7 @@ import { evaluateDocument, EvaluatedGeometry } from '../eval/evaluate';
 import { isEmptyPoint } from '../model/empty-point';
 import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '../model/paint-order';
 import { sourceToPathData } from '../model/path-data';
-import { Document, Layer, Modifier, SourcePath, VectorObject } from '../model/types';
+import { Document, Layer, Modifier, SourcePath, Style, VectorObject } from '../model/types';
 import { matrixFromTransform, transformSource } from './matrix';
 
 export type SaveMode = 'all' | 'optimized' | 'minimal';
@@ -139,6 +139,7 @@ function pathTag(
     `fill="${escapeXml(object.style.fill ?? 'none')}"`,
     `stroke="${escapeXml(object.style.stroke ?? 'none')}"`,
     `stroke-width="${formatNumber(object.style.strokeWidth)}"`,
+    ...strokePaintAttributes(object.style),
     `fill-rule="${evaluated?.fillRule ?? object.style.fillRule}"`,
     object.visible ? null : 'display="none"',
     mode === 'minimal'
@@ -265,6 +266,21 @@ function indexedSource(source: SourcePath): {
       })),
     })),
   };
+}
+
+function strokePaintAttributes(style: Style): readonly string[] {
+  const dashes =
+    style.strokeDasharray === null
+      ? 'none'
+      : style.strokeDasharray.map((length) => formatNumber(length)).join(' ');
+  return [
+    `stroke-linecap="${style.strokeLinecap}"`,
+    `stroke-linejoin="${style.strokeLinejoin}"`,
+    `stroke-miterlimit="${formatNumber(style.strokeMiterlimit)}"`,
+    `stroke-opacity="${formatNumber(style.strokeOpacity)}"`,
+    `stroke-dasharray="${dashes}"`,
+    `stroke-dashoffset="${formatNumber(style.strokeDashoffset)}"`,
+  ];
 }
 
 function formatNumber(value: number): string {

@@ -1,5 +1,13 @@
 import { createId } from './create-id';
-import { Anchor, Document, ObjectTransform, Segment, Style, Vec2 } from './types';
+import {
+  Anchor,
+  Document,
+  ObjectTransform,
+  Segment,
+  Style,
+  svgStrokeDefaults,
+  Vec2,
+} from './types';
 
 const identityTransform: ObjectTransform = {
   x: 0,
@@ -12,6 +20,7 @@ const identityTransform: ObjectTransform = {
 };
 
 const testStyle: Style = {
+  ...svgStrokeDefaults,
   fill: '#c5d4f0',
   stroke: '#1a1a1a',
   strokeWidth: 4,

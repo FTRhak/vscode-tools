@@ -65,6 +65,39 @@ describe('document edits', () => {
     expect(setObjectStyle(painted, [id], { fill: painted.objects[0].style.fill })).toBe(painted);
   });
 
+  it('patches stroke paint and ignores invalid values', () => {
+    const document = createNewDocument();
+    const id = document.objects[0].id;
+
+    const painted = setObjectStyle(document, [id], {
+      strokeLinecap: 'round',
+      strokeLinejoin: 'bevel',
+      strokeMiterlimit: 2,
+      strokeOpacity: 0.5,
+      strokeDasharray: [4, 1, 2],
+      strokeDashoffset: -3,
+    });
+    expect(painted.objects[0].style).toMatchObject({
+      strokeLinecap: 'round',
+      strokeLinejoin: 'bevel',
+      strokeMiterlimit: 2,
+      strokeOpacity: 0.5,
+      strokeDasharray: [4, 1, 2],
+      strokeDashoffset: -3,
+    });
+    expect(setObjectStyle(painted, [id], { strokeLinecap: 'round' })).toBe(painted);
+    expect(setObjectStyle(painted, [id], { strokeDasharray: [4, 1, 2] })).toBe(painted);
+    expect(setObjectStyle(painted, [id], { strokeMiterlimit: 0.5 })).toBe(painted);
+    expect(setObjectStyle(painted, [id], { strokeOpacity: 1.2 })).toBe(painted);
+    expect(setObjectStyle(painted, [id], { strokeDasharray: [1, -1] })).toBe(painted);
+    expect(setObjectStyle(painted, [id], { strokeDashoffset: Number.NaN })).toBe(painted);
+    expect(setObjectStyle(painted, [id], { strokeLinecap: 'arcs' as 'butt' })).toBe(painted);
+
+    const cleared = setObjectStyle(painted, [id], { strokeDasharray: [] });
+    expect(cleared.objects[0].style.strokeDasharray).toBeNull();
+    expect(setObjectStyle(cleared, [id], { strokeDasharray: null })).toBe(cleared);
+  });
+
   it('adds a swatch and applies it to stroke', () => {
     const document = createNewDocument();
     const id = document.objects[0].id;

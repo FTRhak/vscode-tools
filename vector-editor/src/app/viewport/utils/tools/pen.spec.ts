@@ -1,4 +1,4 @@
-import { Anchor, ObjectTransform, VectorObject } from '@vector-editor/core';
+import { Anchor, ObjectTransform, svgStrokeDefaults, VectorObject } from '@vector-editor/core';
 import { startPen, updatePenDrag } from './pen';
 
 const identity: ObjectTransform = {
@@ -147,7 +147,13 @@ function pathObject(closed: boolean, anchors: readonly Anchor[]): VectorObject {
         },
       ],
     },
-    style: { fill: null, stroke: '#1a1a1a', strokeWidth: 4, fillRule: 'nonzero' },
+    style: {
+      ...svgStrokeDefaults,
+      fill: null,
+      stroke: '#1a1a1a',
+      strokeWidth: 4,
+      fillRule: 'nonzero',
+    },
     transform: identity,
     modifiers: [],
   };

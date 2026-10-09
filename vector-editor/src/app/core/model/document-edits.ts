@@ -8,6 +8,7 @@ import {
   ObjectTransform,
   Segment,
   Style,
+  svgStrokeDefaults,
   Swatch,
   VectorObject,
 } from './types';
@@ -25,6 +26,7 @@ const identityTransform: ObjectTransform = {
 };
 
 const pathStyle: Style = {
+  ...svgStrokeDefaults,
   fill: '#c5d4f0',
   stroke: '#1a1a1a',
   strokeWidth: 4,
@@ -35,6 +37,12 @@ export interface StylePatch {
   readonly fill?: string | null;
   readonly stroke?: string | null;
   readonly strokeWidth?: number;
+  readonly strokeLinecap?: Style['strokeLinecap'];
+  readonly strokeLinejoin?: Style['strokeLinejoin'];
+  readonly strokeMiterlimit?: number;
+  readonly strokeOpacity?: number;
+  readonly strokeDashoffset?: number;
+  readonly strokeDasharray?: readonly number[] | null;
 }
 
 export function createGradient(
@@ -176,10 +184,18 @@ export function setObjectStyle(
   objectIds: readonly string[],
   patch: StylePatch,
 ): Document {
-  const fill = normalizeColor(patch.fill);
-  const stroke = normalizeColor(patch.stroke);
-  const strokeWidth = normalizeWidth(patch.strokeWidth);
-  if (fill === undefined && stroke === undefined && strokeWidth === undefined) {
+  const normalized = normalizeStylePatch(patch);
+  if (
+    normalized.fill === undefined &&
+    normalized.stroke === undefined &&
+    normalized.strokeWidth === undefined &&
+    normalized.strokeLinecap === undefined &&
+    normalized.strokeLinejoin === undefined &&
+    normalized.strokeMiterlimit === undefined &&
+    normalized.strokeOpacity === undefined &&
+    normalized.strokeDashoffset === undefined &&
+    normalized.strokeDasharray === undefined
+  ) {
     return document;
   }
   const wanted = new Set(objectIds);
@@ -191,7 +207,7 @@ export function setObjectStyle(
     if (!wanted.has(object.id)) {
       return object;
     }
-    const style = nextStyle(object.style, fill, stroke, strokeWidth);
+    const style = nextStyle(object.style, normalized);
     if (style === object.style) {
       return object;
     }
@@ -391,29 +407,81 @@ function line(from: Anchor, to: Anchor): Segment {
   };
 }
 
-function nextStyle(
-  style: Style,
-  fill: string | null | undefined,
-  stroke: string | null | undefined,
-  strokeWidth: number | undefined,
-): Style {
+function nextStyle(style: Style, patch: ReturnType<typeof normalizeStylePatch>): Style {
+  const strokeDasharray =
+    patch.strokeDasharray !== undefined &&
+    !sameDasharray(patch.strokeDasharray, style.strokeDasharray)
+      ? copyDasharray(patch.strokeDasharray)
+      : style.strokeDasharray;
   const next: Style = {
-    fill: fill !== undefined && fill !== style.fill ? fill : style.fill,
-    stroke: stroke !== undefined && stroke !== style.stroke ? stroke : style.stroke,
+    fill: patch.fill !== undefined && patch.fill !== style.fill ? patch.fill : style.fill,
+    stroke:
+      patch.stroke !== undefined && patch.stroke !== style.stroke ? patch.stroke : style.stroke,
     strokeWidth:
-      strokeWidth !== undefined && strokeWidth !== style.strokeWidth
-        ? strokeWidth
+      patch.strokeWidth !== undefined && patch.strokeWidth !== style.strokeWidth
+        ? patch.strokeWidth
         : style.strokeWidth,
+    strokeLinecap:
+      patch.strokeLinecap !== undefined && patch.strokeLinecap !== style.strokeLinecap
+        ? patch.strokeLinecap
+        : style.strokeLinecap,
+    strokeLinejoin:
+      patch.strokeLinejoin !== undefined && patch.strokeLinejoin !== style.strokeLinejoin
+        ? patch.strokeLinejoin
+        : style.strokeLinejoin,
+    strokeMiterlimit:
+      patch.strokeMiterlimit !== undefined && patch.strokeMiterlimit !== style.strokeMiterlimit
+        ? patch.strokeMiterlimit
+        : style.strokeMiterlimit,
+    strokeOpacity:
+      patch.strokeOpacity !== undefined && patch.strokeOpacity !== style.strokeOpacity
+        ? patch.strokeOpacity
+        : style.strokeOpacity,
+    strokeDashoffset:
+      patch.strokeDashoffset !== undefined && patch.strokeDashoffset !== style.strokeDashoffset
+        ? patch.strokeDashoffset
+        : style.strokeDashoffset,
+    strokeDasharray,
     fillRule: style.fillRule,
   };
   if (
     next.fill === style.fill &&
     next.stroke === style.stroke &&
-    next.strokeWidth === style.strokeWidth
+    next.strokeWidth === style.strokeWidth &&
+    next.strokeLinecap === style.strokeLinecap &&
+    next.strokeLinejoin === style.strokeLinejoin &&
+    next.strokeMiterlimit === style.strokeMiterlimit &&
+    next.strokeOpacity === style.strokeOpacity &&
+    next.strokeDashoffset === style.strokeDashoffset &&
+    sameDasharray(next.strokeDasharray, style.strokeDasharray)
   ) {
     return style;
   }
   return next;
+}
+
+function normalizeStylePatch(patch: StylePatch): {
+  readonly fill: string | null | undefined;
+  readonly stroke: string | null | undefined;
+  readonly strokeWidth: number | undefined;
+  readonly strokeLinecap: Style['strokeLinecap'] | undefined;
+  readonly strokeLinejoin: Style['strokeLinejoin'] | undefined;
+  readonly strokeMiterlimit: number | undefined;
+  readonly strokeOpacity: number | undefined;
+  readonly strokeDashoffset: number | undefined;
+  readonly strokeDasharray: readonly number[] | null | undefined;
+} {
+  return {
+    fill: normalizeColor(patch.fill),
+    stroke: normalizeColor(patch.stroke),
+    strokeWidth: normalizeWidth(patch.strokeWidth),
+    strokeLinecap: normalizeLinecap(patch.strokeLinecap),
+    strokeLinejoin: normalizeLinejoin(patch.strokeLinejoin),
+    strokeMiterlimit: normalizeMiterlimit(patch.strokeMiterlimit),
+    strokeOpacity: normalizeOpacity(patch.strokeOpacity),
+    strokeDashoffset: normalizeDashoffset(patch.strokeDashoffset),
+    strokeDasharray: normalizeDasharray(patch.strokeDasharray),
+  };
 }
 
 function normalizeColor(value: string | null | undefined): string | null | undefined {
@@ -432,4 +500,66 @@ function normalizeWidth(value: number | undefined): number | undefined {
     return undefined;
   }
   return value;
+}
+
+function normalizeLinecap(
+  value: Style['strokeLinecap'] | undefined,
+): Style['strokeLinecap'] | undefined {
+  return value === 'butt' || value === 'round' || value === 'square' ? value : undefined;
+}
+
+function normalizeLinejoin(
+  value: Style['strokeLinejoin'] | undefined,
+): Style['strokeLinejoin'] | undefined {
+  return value === 'miter' || value === 'round' || value === 'bevel' ? value : undefined;
+}
+
+function normalizeMiterlimit(value: number | undefined): number | undefined {
+  if (value === undefined || !Number.isFinite(value) || value < 1) {
+    return undefined;
+  }
+  return value;
+}
+
+function normalizeOpacity(value: number | undefined): number | undefined {
+  if (value === undefined || !Number.isFinite(value) || value < 0 || value > 1) {
+    return undefined;
+  }
+  return value;
+}
+
+function normalizeDashoffset(value: number | undefined): number | undefined {
+  if (value === undefined || !Number.isFinite(value)) {
+    return undefined;
+  }
+  return value;
+}
+
+function normalizeDasharray(
+  value: readonly number[] | null | undefined,
+): readonly number[] | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null || value.length === 0) {
+    return null;
+  }
+  if (value.some((length) => !Number.isFinite(length) || length < 0)) {
+    return undefined;
+  }
+  return value;
+}
+
+function copyDasharray(value: readonly number[] | null): readonly number[] | null {
+  return value === null ? null : [...value];
+}
+
+function sameDasharray(left: readonly number[] | null, right: readonly number[] | null): boolean {
+  if (left === right) {
+    return true;
+  }
+  if (left === null || right === null || left.length !== right.length) {
+    return false;
+  }
+  return left.every((length, index) => length === right[index]);
 }

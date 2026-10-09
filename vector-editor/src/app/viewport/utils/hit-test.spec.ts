@@ -1,4 +1,4 @@
-import { createNewDocument, Document, VectorObject } from '@vector-editor/core';
+import { createNewDocument, Document, svgStrokeDefaults, VectorObject } from '@vector-editor/core';
 import { hitTestObject, localToDocument, objectsInRect } from './hit-test';
 
 describe('hitTestObject', () => {
@@ -7,7 +7,13 @@ describe('hitTestObject', () => {
       ...square('point'),
       kind: 'empty',
       source: { subpaths: [] },
-      style: { fill: null, stroke: null, strokeWidth: 0, fillRule: 'nonzero' },
+      style: {
+        ...svgStrokeDefaults,
+        fill: null,
+        stroke: null,
+        strokeWidth: 0,
+        fillRule: 'nonzero',
+      },
       transform: { x: 30, y: 40, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     };
     const document = doc([point]);
@@ -197,7 +203,13 @@ function square(id: string): VectorObject {
         },
       ],
     },
-    style: { fill: '#cccccc', stroke: '#111111', strokeWidth: 4, fillRule: 'nonzero' },
+    style: {
+      ...svgStrokeDefaults,
+      fill: '#cccccc',
+      stroke: '#111111',
+      strokeWidth: 4,
+      fillRule: 'nonzero',
+    },
     transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers: [],
   };

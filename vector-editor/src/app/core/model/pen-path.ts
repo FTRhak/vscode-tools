@@ -7,6 +7,7 @@ import {
   SourcePath,
   Style,
   Subpath,
+  svgStrokeDefaults,
   Vec2,
   VectorObject,
 } from './types';
@@ -22,6 +23,7 @@ const identityTransform: ObjectTransform = {
 };
 
 const penStyle: Style = {
+  ...svgStrokeDefaults,
   fill: null,
   stroke: '#1a1a1a',
   strokeWidth: 4,

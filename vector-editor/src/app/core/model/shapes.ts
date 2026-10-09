@@ -1,6 +1,16 @@
 import { createId } from './create-id';
 import { nextSeriesName } from './document-edits';
-import { Anchor, Document, ObjectTransform, Segment, SourcePath, Style, Vec2, VectorObject } from './types';
+import {
+  Anchor,
+  Document,
+  ObjectTransform,
+  Segment,
+  SourcePath,
+  Style,
+  svgStrokeDefaults,
+  Vec2,
+  VectorObject,
+} from './types';
 
 /** Four-cubic approximation of a circle or ellipse. */
 export const ELLIPSE_KAPPA = 0.5522847498307936;
@@ -23,6 +33,7 @@ const identityTransform: ObjectTransform = {
 };
 
 const shapeStyle: Style = {
+  ...svgStrokeDefaults,
   fill: '#c5d4f0',
   stroke: '#1a1a1a',
   strokeWidth: 4,
@@ -315,7 +326,12 @@ function rhombusSource(bounds: Bounds): SourcePath | null {
   );
 }
 
-function polygonSource(center: Vec2, radius: number, sides: number, rotation: number): SourcePath | null {
+function polygonSource(
+  center: Vec2,
+  radius: number,
+  sides: number,
+  rotation: number,
+): SourcePath | null {
   if (radius <= MIN_EXTENT || !Number.isFinite(rotation)) {
     return null;
   }

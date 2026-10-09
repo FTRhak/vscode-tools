@@ -1,18 +1,20 @@
-.width-form {
-  display: block;
+.stroke-form {
+  display: grid;
+  gap: 0.45rem;
   margin-top: 0.55rem;
 }
 
-.width-form label {
+.stroke-form label {
   display: grid;
   grid-template-columns: 6.5rem minmax(0, 1fr);
   align-items: center;
   gap: 0.4rem;
-  flex: 1;
   font-size: 0.85rem;
 }
 
-input[type='number'] {
+input[type='number'],
+input[type='text'],
+select {
   width: 100%;
   min-height: 1.75rem;
   border: 1px solid var(--line);

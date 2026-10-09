@@ -8,6 +8,7 @@ import {
   Segment,
   SourcePath,
   Style,
+  svgStrokeDefaults,
   Subpath,
   Swatch,
   Vec2,
@@ -47,6 +48,7 @@ const shapeTags = new Set(['path', 'rect', 'circle', 'ellipse', 'line', 'polylin
 const transparentTags = new Set(['a', 'switch']);
 
 const defaultStyle: Style = {
+  ...svgStrokeDefaults,
   fill: '#000000',
   stroke: null,
   strokeWidth: 1,
@@ -162,14 +164,7 @@ export function importSvg(markup: string): SvgImportResult {
         continue;
       }
       const layer = context.layer ?? ensureLoose();
-      const object = readObject(
-        child,
-        layer.id,
-        context,
-        claim,
-        operandLinks,
-        centerPointLinks,
-      );
+      const object = readObject(child, layer.id, context, claim, operandLinks, centerPointLinks);
       if (object) {
         layer.objects.push(object);
       }
@@ -305,7 +300,13 @@ function readObject(
       locked: payload.locked === true,
       kind: 'empty',
       source: { subpaths: [] },
-      style: { fill: null, stroke: null, strokeWidth: 0, fillRule: 'nonzero' },
+      style: {
+        ...svgStrokeDefaults,
+        fill: null,
+        stroke: null,
+        strokeWidth: 0,
+        fillRule: 'nonzero',
+      },
       transform: payload.transform,
       modifiers: [],
     };
@@ -723,9 +724,8 @@ function readGradients(svg: Element, used: Set<string>): Document['gradients'] {
         name: element.getAttribute('data-vector-editor-name') || 'Gradient',
         type: element.localName === 'radialGradient' ? 'radial' : 'linear',
         angle: Number.isFinite(angle) ? angle : 0,
-        proportions: Number.isFinite(Number(proportions)) && Number(proportions) > 0
-          ? Number(proportions)
-          : 1,
+        proportions:
+          Number.isFinite(Number(proportions)) && Number(proportions) > 0 ? Number(proportions) : 1,
         stops,
       },
     ];
@@ -755,6 +755,12 @@ function readStyle(element: Element, inherited: Style): Style {
   );
   const widthSource = inline['stroke-width'] ?? attributeValue(element, 'stroke-width');
   const ruleSource = inline['fill-rule'] ?? attributeValue(element, 'fill-rule');
+  const linecapSource = inline['stroke-linecap'] ?? attributeValue(element, 'stroke-linecap');
+  const linejoinSource = inline['stroke-linejoin'] ?? attributeValue(element, 'stroke-linejoin');
+  const miterSource = inline['stroke-miterlimit'] ?? attributeValue(element, 'stroke-miterlimit');
+  const opacitySource = inline['stroke-opacity'] ?? attributeValue(element, 'stroke-opacity');
+  const dashSource = inline['stroke-dasharray'] ?? attributeValue(element, 'stroke-dasharray');
+  const offsetSource = inline['stroke-dashoffset'] ?? attributeValue(element, 'stroke-dashoffset');
   return {
     fill,
     stroke,
@@ -762,6 +768,12 @@ function readStyle(element: Element, inherited: Style): Style {
       widthSource === undefined
         ? inherited.strokeWidth
         : strokeWidth(widthSource, inherited.strokeWidth),
+    strokeLinecap: readLinecap(linecapSource, inherited.strokeLinecap),
+    strokeLinejoin: readLinejoin(linejoinSource, inherited.strokeLinejoin),
+    strokeMiterlimit: readMiterlimit(miterSource, inherited.strokeMiterlimit),
+    strokeOpacity: readStrokeOpacity(opacitySource, inherited.strokeOpacity),
+    strokeDasharray: readDasharray(dashSource, inherited.strokeDasharray),
+    strokeDashoffset: readDashoffset(offsetSource, inherited.strokeDashoffset),
     fillRule:
       ruleSource === 'evenodd'
         ? 'evenodd'
@@ -797,6 +809,90 @@ function strokeWidth(value: string, fallback: number): number {
   }
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function readLinecap(
+  value: string | undefined,
+  inherited: Style['strokeLinecap'],
+): Style['strokeLinecap'] {
+  if (value === undefined || value.trim().toLowerCase() === 'inherit') {
+    return inherited;
+  }
+  const trimmed = value.trim().toLowerCase();
+  return trimmed === 'butt' || trimmed === 'round' || trimmed === 'square' ? trimmed : inherited;
+}
+
+function readLinejoin(
+  value: string | undefined,
+  inherited: Style['strokeLinejoin'],
+): Style['strokeLinejoin'] {
+  if (value === undefined || value.trim().toLowerCase() === 'inherit') {
+    return inherited;
+  }
+  const trimmed = value.trim().toLowerCase();
+  return trimmed === 'miter' || trimmed === 'round' || trimmed === 'bevel' ? trimmed : 'miter';
+}
+
+function readMiterlimit(value: string | undefined, inherited: number): number {
+  if (
+    value === undefined ||
+    value.trim().toLowerCase() === 'inherit' ||
+    value.trim().endsWith('%')
+  ) {
+    return inherited;
+  }
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) && parsed >= 1 ? parsed : inherited;
+}
+
+function readStrokeOpacity(value: string | undefined, inherited: number): number {
+  if (value === undefined || value.trim().toLowerCase() === 'inherit') {
+    return inherited;
+  }
+  const trimmed = value.trim();
+  const parsed = trimmed.endsWith('%')
+    ? Number.parseFloat(trimmed) / 100
+    : Number.parseFloat(trimmed);
+  if (!Number.isFinite(parsed)) {
+    return inherited;
+  }
+  return Math.min(1, Math.max(0, parsed));
+}
+
+function readDashoffset(value: string | undefined, inherited: number): number {
+  if (
+    value === undefined ||
+    value.trim().toLowerCase() === 'inherit' ||
+    value.trim().endsWith('%')
+  ) {
+    return inherited;
+  }
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : inherited;
+}
+
+function readDasharray(
+  value: string | undefined,
+  inherited: readonly number[] | null,
+): readonly number[] | null {
+  if (value === undefined || value.trim().toLowerCase() === 'inherit') {
+    return inherited;
+  }
+  const trimmed = value.trim();
+  if (trimmed === '' || trimmed.toLowerCase() === 'none') {
+    return null;
+  }
+  if (trimmed.includes('%')) {
+    return inherited;
+  }
+  const numbers = trimmed
+    .split(/[\s,]+/)
+    .filter((part) => part.length > 0)
+    .map((part) => Number.parseFloat(part));
+  if (numbers.length === 0 || numbers.some((length) => !Number.isFinite(length) || length < 0)) {
+    return inherited;
+  }
+  return numbers;
 }
 
 function attributeValue(element: Element, name: string): string | undefined {

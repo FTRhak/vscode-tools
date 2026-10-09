@@ -7,6 +7,7 @@ import {
   ObjectTransform,
   objectsInPaintOrder,
   sourceToPathData,
+  Style,
   ViewBox,
 } from '@vector-editor/core';
 
@@ -17,6 +18,12 @@ export interface SceneObject {
   readonly fill: string;
   readonly stroke: string;
   readonly strokeWidth: number;
+  readonly strokeLinecap: Style['strokeLinecap'];
+  readonly strokeLinejoin: Style['strokeLinejoin'];
+  readonly strokeMiterlimit: number;
+  readonly strokeOpacity: number;
+  readonly strokeDasharray: string;
+  readonly strokeDashoffset: number;
   readonly fillRule: 'nonzero' | 'evenodd';
 }
 
@@ -54,17 +61,29 @@ export function sceneFromDocument(document: Document, hold: ClipperHold | null =
         return [];
       }
       const evaluated = geometry.get(object.id);
-      return [{
-        id: object.id,
-        d: sourceToPathData({ subpaths: evaluated?.subpaths ?? object.source.subpaths }),
-        transform: formatObjectTransform(object.transform),
-        fill: object.style.fill ?? 'none',
-        stroke: object.style.stroke ?? 'none',
-        strokeWidth: object.style.strokeWidth,
-        fillRule: evaluated?.fillRule ?? object.style.fillRule,
-      }];
+      return [
+        {
+          id: object.id,
+          d: sourceToPathData({ subpaths: evaluated?.subpaths ?? object.source.subpaths }),
+          transform: formatObjectTransform(object.transform),
+          fill: object.style.fill ?? 'none',
+          stroke: object.style.stroke ?? 'none',
+          strokeWidth: object.style.strokeWidth,
+          strokeLinecap: object.style.strokeLinecap,
+          strokeLinejoin: object.style.strokeLinejoin,
+          strokeMiterlimit: object.style.strokeMiterlimit,
+          strokeOpacity: object.style.strokeOpacity,
+          strokeDasharray: formatDasharray(object.style.strokeDasharray),
+          strokeDashoffset: object.style.strokeDashoffset,
+          fillRule: evaluated?.fillRule ?? object.style.fillRule,
+        },
+      ];
     }),
   };
+}
+
+function formatDasharray(value: readonly number[] | null): string {
+  return value === null ? 'none' : value.join(' ');
 }
 
 export function formatObjectTransform(transform: ObjectTransform): string {

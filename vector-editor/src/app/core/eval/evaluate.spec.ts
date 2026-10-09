@@ -1,5 +1,5 @@
 import { addModifier, applyModifier } from '../model/modifier-edits';
-import { Modifier, SourcePath, Vec2, VectorObject } from '../model/types';
+import { Modifier, SourcePath, svgStrokeDefaults, Vec2, VectorObject } from '../model/types';
 import { sourceBounds } from './bounds';
 import { captureClipperHold, evaluateDocument, evaluateSource } from './evaluate';
 import { collectPoints } from './flatten';
@@ -660,7 +660,13 @@ function shape(id: string, source: SourcePath, modifiers: readonly Modifier[]): 
     visible: true,
     locked: false,
     source,
-    style: { fill: '#cccccc', stroke: null, strokeWidth: 1, fillRule: 'nonzero' },
+    style: {
+      ...svgStrokeDefaults,
+      fill: '#cccccc',
+      stroke: null,
+      strokeWidth: 1,
+      fillRule: 'nonzero',
+    },
     transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
     modifiers,
   };
