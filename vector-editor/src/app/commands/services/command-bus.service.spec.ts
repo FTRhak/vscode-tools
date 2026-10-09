@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { SessionService } from '@vector-editor/core';
+import { DUPLICATE_OFFSET, SessionService } from '@vector-editor/core';
 import { CommandBus } from './command-bus.service';
 
 describe('CommandBus', () => {
@@ -863,5 +863,44 @@ describe('CommandBus', () => {
       to: 'selection',
     });
     expect(session.history().entries).toHaveLength(recorded);
+  });
+
+  it('bakes transforms after alignment when apply transformation is requested', () => {
+    bus.dispatch({ type: 'document.new' });
+    const original = session.document()!.objects[0];
+    const anchor = original.source.subpaths[0].anchors[0].position;
+    bus.dispatch({ type: 'object.duplicate', ids: [original.id] });
+    const copyId = session.document()!.objects[1].id;
+
+    bus.dispatch({
+      type: 'object.align',
+      ids: [original.id, copyId],
+      edge: 'left',
+      to: 'selection',
+      applyTransform: true,
+    });
+
+    const copy = session.document()!.objects[1];
+    expect(session.history().entries.at(-1)?.label).toBe('Align left');
+    expect(copy.transform).toEqual({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      originX: 0,
+      originY: 0,
+    });
+    expect(copy.source.subpaths[0].anchors[0].position).toEqual({
+      x: anchor.x,
+      y: anchor.y + DUPLICATE_OFFSET,
+    });
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[1].transform).toMatchObject({
+      x: DUPLICATE_OFFSET,
+      y: DUPLICATE_OFFSET,
+    });
+    expect(session.document()!.objects[1].source.subpaths[0].anchors[0].position).toEqual(anchor);
   });
 });

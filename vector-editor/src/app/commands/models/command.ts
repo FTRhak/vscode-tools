@@ -142,6 +142,7 @@ export type Command =
       readonly ids: readonly string[];
       readonly edge: AlignEdge;
       readonly to: AlignTarget;
+      readonly applyTransform?: boolean;
     }
   | {
       readonly type: 'style.set';

@@ -33,5 +33,13 @@
         <option value="first">First selected</option>
       </select>
     </label>
+    <label class="check">
+      <input
+        type="checkbox"
+        [checked]="applyTransformation()"
+        (change)="setApplyTransformation($event)"
+      />
+      Apply transformation
+    </label>
   </div>
 </panel>

@@ -87,6 +87,7 @@ export class AlignPanel {
   ];
 
   protected readonly alignTo = signal<AlignTarget>('selection');
+  protected readonly applyTransformation = signal(false);
 
   private readonly selectedIds = computed(() => this.session.selectedObjectIds());
 
@@ -115,6 +116,13 @@ export class AlignPanel {
     }
   }
 
+  protected setApplyTransformation(event: Event): void {
+    const input = event.target;
+    if (input instanceof HTMLInputElement) {
+      this.applyTransformation.set(input.checked);
+    }
+  }
+
   protected align(edge: AlignEdge): void {
     if (!this.canAlign()) {
       return;
@@ -124,6 +132,7 @@ export class AlignPanel {
       ids: this.selectedIds(),
       edge,
       to: this.alignTo(),
+      applyTransform: this.applyTransformation(),
     });
   }
 }

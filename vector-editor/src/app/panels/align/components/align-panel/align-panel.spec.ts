@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommandBus } from '@vector-editor/commands';
-import { SessionService } from '@vector-editor/core';
+import { DUPLICATE_OFFSET, SessionService } from '@vector-editor/core';
 import { AlignPanel } from './align-panel';
 
 describe('AlignPanel', () => {
@@ -127,6 +127,54 @@ describe('AlignPanel', () => {
     expect(session.history().entries.at(-1)?.label).toBe('Align left');
   });
 
+  it('bakes the aligned transforms when apply transformation is checked', async () => {
+    bus.dispatch({ type: 'document.new' });
+    const original = session.document()!.objects[0];
+    const anchor = original.source.subpaths[0].anchors[0].position;
+    bus.dispatch({ type: 'object.duplicate', ids: [original.id] });
+    const copyId = session.document()!.objects[1].id;
+    bus.dispatch({
+      type: 'session.select',
+      target: 'object',
+      ids: [original.id, copyId],
+      op: 'replace',
+    });
+    await fixture.whenStable();
+
+    expect(applyTransformation().checked).toBe(false);
+    applyTransformation().click();
+    await fixture.whenStable();
+
+    const recorded = session.history().entries.length;
+    alignButton('Align left').click();
+    await fixture.whenStable();
+
+    const copy = session.document()!.objects[1];
+    expect(session.history().entries).toHaveLength(recorded + 1);
+    expect(session.history().entries.at(-1)?.label).toBe('Align left');
+    expect(copy.transform).toEqual({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      originX: 0,
+      originY: 0,
+    });
+    expect(copy.source.subpaths[0].anchors[0].position).toEqual({
+      x: anchor.x,
+      y: anchor.y + DUPLICATE_OFFSET,
+    });
+    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual(anchor);
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects[1].transform).toMatchObject({
+      x: DUPLICATE_OFFSET,
+      y: DUPLICATE_OFFSET,
+    });
+    expect(session.document()!.objects[1].source.subpaths[0].anchors[0].position).toEqual(anchor);
+  });
+
   function alignButton(label: string): HTMLButtonElement {
     const button = [...fixture.nativeElement.querySelectorAll('button')].find(
       (item) => item instanceof HTMLButtonElement && item.getAttribute('aria-label') === label,
@@ -143,5 +191,18 @@ describe('AlignPanel', () => {
       throw new Error('Align to select is missing');
     }
     return select;
+  }
+
+  function applyTransformation(): HTMLInputElement {
+    const input = [...fixture.nativeElement.querySelectorAll('input')].find(
+      (item) =>
+        item instanceof HTMLInputElement &&
+        item.type === 'checkbox' &&
+        item.closest('label')?.textContent?.includes('Apply transformation'),
+    );
+    if (!(input instanceof HTMLInputElement)) {
+      throw new Error('Apply transformation checkbox is missing');
+    }
+    return input;
   }
 });

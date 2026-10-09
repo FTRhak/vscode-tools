@@ -818,8 +818,15 @@ function applyAlign(
   state: SessionSlice,
   command: Extract<Command, { type: 'object.align' }>,
 ): SessionSlice {
-  return applyDocument(state, (document) =>
+  const aligned = applyDocument(state, (document) =>
     alignObjects(document, command.ids, command.edge, command.to),
+  );
+  if (!command.applyTransform) {
+    return aligned;
+  }
+  return command.ids.reduce(
+    (next, id) => applyBakedTransform(next, { type: 'object.applyTransform', id }),
+    aligned,
   );
 }
 
