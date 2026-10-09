@@ -1,5 +1,5 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, max, min } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
 import { SessionService, VectorObject } from '@vector-editor/core';
 import { SharedModule } from '@vector-editor/shared';
@@ -65,7 +65,10 @@ export class StrokePanel {
   );
 
   protected readonly strokeDraft = linkedSignal(() => this.strokeSource());
-  protected readonly strokeForm = form(this.strokeDraft);
+  protected readonly strokeForm = form(this.strokeDraft, (path) => {
+    min(path.strokeOpacity, 0, { message: 'Opacity must be at least 0.' });
+    max(path.strokeOpacity, 1, { message: 'Opacity must be at most 1.' });
+  });
 
   protected commitWidth(event?: Event): void {
     if (event instanceof KeyboardEvent) {

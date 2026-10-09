@@ -37,6 +37,8 @@ describe('StrokePanel', () => {
     expect(select('Line join').value).toBe('miter');
     expect(input('Miter limit').value).toBe('4');
     expect(input('Opacity').value).toBe('1');
+    expect(input('Opacity').min).toBe('0');
+    expect(input('Opacity').max).toBe('1');
     expect(input('Dash array').value).toBe('');
     expect(input('Dash offset').value).toBe('0');
   });
