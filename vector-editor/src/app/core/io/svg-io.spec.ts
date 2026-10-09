@@ -193,25 +193,61 @@ describe('exportSvg', () => {
     for (const mode of ['all', 'optimized'] as const) {
       const svg = exportSvg(aligned, mode);
       expect(svg).toContain('&quot;strokeAlign&quot;:&quot;inside&quot;');
-      expect(svg).toContain(`stroke-width="${width}"`);
-      expect(svg).not.toContain(`stroke-width="${width * 2}"`);
+      expect(svg).toContain(`&quot;strokeWidth&quot;:${width}`);
+      expect(svg).toContain('clip-path="url(#stroke-clip-0)"');
+      expect(svg).toContain(`stroke-width="${width * 2}"`);
+      expect(svg).not.toContain(`stroke-width="${width}"`);
       const result = importSvg(svg);
       expect(result.ok).toBe(true);
       if (!result.ok) {
         return;
       }
+      expect(result.document.objects).toHaveLength(1);
       expect(result.document.objects[0]?.style.strokeAlign).toBe('inside');
       expect(result.document.objects[0]?.style.strokeWidth).toBe(width);
     }
 
+    const outside = setObjectStyle(document, [id], { strokeAlign: 'outside' });
+    const outsideSvg = exportSvg(outside, 'all');
+    expect(outsideSvg).toContain('<use href="#stroke-paint-0"/>');
+    expect(outsideSvg).toContain('stroke="none"');
+    const outsideResult = importSvg(outsideSvg);
+    expect(outsideResult.ok).toBe(true);
+    if (!outsideResult.ok) {
+      return;
+    }
+    expect(outsideResult.document.objects).toHaveLength(1);
+    expect(outsideResult.document.objects[0]?.style).toMatchObject({
+      strokeAlign: 'outside',
+      strokeWidth: width,
+      stroke: outside.objects[0]?.style.stroke,
+    });
+
+    const open = {
+      ...aligned,
+      objects: aligned.objects.map((object) => ({
+        ...object,
+        source: {
+          subpaths: object.source.subpaths.map((subpath) => ({ ...subpath, closed: false })),
+        },
+      })),
+    };
+    const openSvg = exportSvg(open, 'all');
+    expect(openSvg).not.toContain('clip-path');
+    expect(openSvg).toContain(`stroke-width="${width}"`);
+    expect(openSvg).not.toContain(`stroke-width="${width * 2}"`);
+
     const minimal = exportSvg(aligned, 'minimal');
     expect(minimal).not.toContain('strokeAlign');
+    expect(minimal).toContain('clip-path="url(#stroke-clip-0)"');
+    expect(minimal).toContain(`stroke-width="${width * 2}"`);
     const imported = importSvg(minimal);
     expect(imported.ok).toBe(true);
     if (!imported.ok) {
       return;
     }
     expect(imported.document.objects[0]?.style.strokeAlign).toBe('default');
+    expect(imported.document.objects[0]?.style.strokeWidth).toBe(width * 2);
 
     const foreign = importSvg('<svg viewBox="0 0 10 10"><path d="M 0 0 L 10 0 L 10 10 Z"/></svg>');
     expect(foreign.ok).toBe(true);

@@ -324,10 +324,7 @@ function readObject(
     visible: !context.hidden && !elementHidden(element),
     locked: payload?.locked === true,
     source,
-    style: {
-      ...readStyle(element, context.style),
-      strokeAlign: payload?.strokeAlign ?? 'default',
-    },
+    style: styleFromPayload(readStyle(element, context.style), payload),
     transform: payload?.transform ?? identityTransform,
     modifiers: payload?.modifiers ?? [],
   };
@@ -415,6 +412,8 @@ function readObjectPayload(
   kind: 'path' | 'empty';
   modifiers: readonly Modifier[];
   strokeAlign: Style['strokeAlign'];
+  strokeWidth: number | undefined;
+  stroke: string | null | undefined;
 } | null {
   const json = parseJson(value);
   if (!isRecord(json)) {
@@ -432,6 +431,27 @@ function readObjectPayload(
     kind: json['kind'] === 'empty' ? 'empty' : 'path',
     modifiers: readModifiers(json['modifiers'], claim, operandLinks, centerPointLinks),
     strokeAlign: readStrokeAlign(json['strokeAlign']),
+    strokeWidth: readPayloadWidth(json['strokeWidth']),
+    stroke: readPayloadStroke(json['stroke']),
+  };
+}
+
+function styleFromPayload(
+  painted: Style,
+  payload: {
+    strokeAlign: Style['strokeAlign'];
+    strokeWidth: number | undefined;
+    stroke: string | null | undefined;
+  } | null,
+): Style {
+  if (!payload) {
+    return { ...painted, strokeAlign: 'default' };
+  }
+  return {
+    ...painted,
+    strokeAlign: payload.strokeAlign,
+    stroke: payload.stroke !== undefined ? payload.stroke : painted.stroke,
+    strokeWidth: payload.strokeWidth !== undefined ? payload.strokeWidth : painted.strokeWidth,
   };
 }
 
@@ -812,6 +832,20 @@ function paintValue(value: string | undefined, fallback: string | null): string 
 
 function readStrokeAlign(value: unknown): Style['strokeAlign'] {
   return value === 'inside' || value === 'outside' || value === 'default' ? value : 'default';
+}
+
+function readPayloadWidth(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
+function readPayloadStroke(value: unknown): string | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null) {
+    return null;
+  }
+  return typeof value === 'string' && value.trim() !== '' ? value : undefined;
 }
 
 function strokeWidth(value: string, fallback: number): number {

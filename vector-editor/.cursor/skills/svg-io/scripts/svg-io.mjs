@@ -36,8 +36,8 @@ export const cache = {
     emptyPoint: 'kind empty, zero subpaths; minimal save skips it',
   },
   files: [
-    { path: 'src/app/core/io/svg-export.ts', role: 'exportSvg and save modes', symbols: ['export function exportSvg', "export type SaveMode = 'all' | 'optimized' | 'minimal'", 'const formatVersion = 1', 'data-vector-editor-document', 'data-vector-editor-layer', 'indexedSource', 'operandIndex', 'centerPointIndex', "payload.kind = 'empty'", 'strokeAlign'] },
-    { path: 'src/app/core/io/svg-import.ts', role: 'importSvg', symbols: ['export function importSvg', 'skippedTags', 'shapeTags', 'transparentTags', 'operandIndex', 'centerPointIndex', 'readGradients', "json['kind'] === 'empty'", 'readStrokeAlign'] },
+    { path: 'src/app/core/io/svg-export.ts', role: 'exportSvg and save modes', symbols: ['export function exportSvg', "export type SaveMode = 'all' | 'optimized' | 'minimal'", 'const formatVersion = 1', 'data-vector-editor-document', 'data-vector-editor-layer', 'indexedSource', 'operandIndex', 'centerPointIndex', "payload.kind = 'empty'", 'stroke-clip-', 'stroke-paint-'] },
+    { path: 'src/app/core/io/svg-import.ts', role: 'importSvg', symbols: ['export function importSvg', 'skippedTags', 'shapeTags', 'transparentTags', 'operandIndex', 'centerPointIndex', 'readGradients', "json['kind'] === 'empty'", 'readStrokeAlign', 'readPayloadWidth'] },
     { path: 'src/app/core/io/index.ts', role: 'public io exports', symbols: ['exportSvg', 'importSvg', 'SaveMode', 'SvgImportResult'] },
     { path: 'src/app/core/io/path-data-parse.ts', role: 'SVG path data to SourcePath', symbols: ['export function parsePathData', "kind === 'Q'", "kind === 'A'"] },
     { path: 'src/app/core/io/shapes.ts', role: 'SVG primitives to SourcePath', symbols: ['export function primitiveToSource', 'const KAPPA'] },
@@ -55,7 +55,7 @@ export const cache = {
     'A foreign SVG has no payload: group and element transforms are baked into anchors and transform stays identity.',
     'Boolean operandIndex and mirror centerPointIndex refer to export order, not layer order in the file.',
     'Gradient fills stay as url(#id). Stops need a #rgb or #rrggbb color; other color syntax is dropped.',
-    'strokeAlign is inside/outside/default on the object payload for all and optimized. Missing or unknown values import as default. minimal keeps a centered stroke at the real stroke-width.',
+    'strokeAlign is inside/outside/default on the object payload for all and optimized. Inside exports a clip and a double stroke-width; outside exports a mask and a use. Payload strokeWidth is the real width when the attribute is doubled, and payload stroke restores the color when the attribute is none. minimal paints the alignment without a payload, so reopening it does not restore alignment.',
     'DOMParser is required. Tests run it through jsdom.',
   ],
 };
