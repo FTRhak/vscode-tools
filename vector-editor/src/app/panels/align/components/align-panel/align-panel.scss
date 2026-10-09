@@ -1,0 +1,46 @@
+.align-layout {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.align-buttons {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.align-buttons .chrome-button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 0.2rem;
+}
+
+.align-buttons svg {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.align-layout label {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+select {
+  width: 100%;
+  min-height: 1.75rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #1f1f1f;
+  color: var(--chrome-text);
+  font: inherit;
+  padding: 0.15rem 0.4rem;
+}

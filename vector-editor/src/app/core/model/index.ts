@@ -13,6 +13,8 @@ export {
   updateLayer,
 } from './document-edits';
 export { deleteLayer, deleteObjects, deletableObjectIds } from './delete-objects';
+export { alignObjects, countAlignable } from './align-objects';
+export type { AlignEdge, AlignTarget } from './align-objects';
 export { addEmptyPoint, isEmptyPoint } from './empty-point';
 export type { EmptyPointResult } from './empty-point';
 export {

@@ -1,0 +1,36 @@
+<panel [panelName]="panelName">
+  <div class="align-layout">
+    <div class="align-buttons" role="group" aria-label="Align objects">
+      @for (action of actions; track action.edge) {
+        <button
+          type="button"
+          class="chrome-button button-icon button-small"
+          [disabled]="!canAlign()"
+          [attr.aria-label]="action.label"
+          (click)="align(action.edge)"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            @for (line of action.lines; track $index) {
+              <line
+                [attr.x1]="line[0]"
+                [attr.y1]="line[1]"
+                [attr.x2]="line[2]"
+                [attr.y2]="line[3]"
+              />
+            }
+          </svg>
+        </button>
+      }
+    </div>
+    @if (hint()) {
+      <p>{{ hint() }}</p>
+    }
+    <label>
+      Align to
+      <select [value]="alignTo()" (change)="setAlignTo($event)">
+        <option value="selection">Selection</option>
+        <option value="artboard">Artboard</option>
+      </select>
+    </label>
+  </div>
+</panel>

@@ -46,6 +46,18 @@ export const cache = {
     },
     'object.duplicate': { handler: 'applyDuplicate', history: 'Duplicate' },
     'object.delete': { handler: 'applyDelete', history: 'Delete' },
+    'object.align': {
+      handler: 'applyAlign',
+      history: 'Align left',
+      labels: [
+        'Align left',
+        'Align center',
+        'Align right',
+        'Align top',
+        'Align middle',
+        'Align bottom',
+      ],
+    },
     'style.set': {
       handler: 'setObjectStyle',
       history: 'Set style',

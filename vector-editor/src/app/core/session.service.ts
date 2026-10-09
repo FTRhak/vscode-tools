@@ -10,6 +10,7 @@ import {
   SessionSnapshot,
 } from '../commands/models/history';
 import { captureClipperHold, ClipperHold } from './eval/evaluate';
+import { alignObjects } from './model/align-objects';
 import { createNewDocument } from './model/create-document';
 import {
   addLayer,
@@ -154,6 +155,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyDuplicate(state, command);
     case 'object.delete':
       return applyDelete(state, command);
+    case 'object.align':
+      return applyAlign(state, command);
     case 'style.set':
       return applyDocument(state, (document) =>
         setObjectStyle(document, command.objectIds, {
@@ -809,6 +812,15 @@ function applyDuplicate(
       selectedSegmentIds: [],
     },
   };
+}
+
+function applyAlign(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'object.align' }>,
+): SessionSlice {
+  return applyDocument(state, (document) =>
+    alignObjects(document, command.ids, command.edge, command.to),
+  );
 }
 
 function applyDelete(

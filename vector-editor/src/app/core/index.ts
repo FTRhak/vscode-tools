@@ -15,6 +15,8 @@ export {
   deleteLayer,
   deleteObjects,
   deletableObjectIds,
+  alignObjects,
+  countAlignable,
   addEmptyPoint,
   isEmptyPoint,
   addShape,
@@ -44,6 +46,8 @@ export {
   updateLayer,
 } from './model';
 export type {
+  AlignEdge,
+  AlignTarget,
   Anchor,
   AnchorPointType,
   Document,

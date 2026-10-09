@@ -149,6 +149,7 @@ describe('EditorPage', () => {
     expect(headings).toEqual([
       'Outliner',
       'Options',
+      'Align',
       'Modifiers',
       'Tools',
       'Color',

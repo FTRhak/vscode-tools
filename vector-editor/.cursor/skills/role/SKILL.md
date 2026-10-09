@@ -57,7 +57,7 @@ disable-model-invocation: false
 ## Склад інтерфейсу
 
 - Головна робоча область: малювання документа, pan/zoom, режими Object і Edit. Колесо масштабує до курсора в межах zoom `[0.02, 64]`. Новий `id` документа один раз вписує артборд (`fitArtboard`, відступ 24).
-- Бічна колонка панелей: Outliner, Options, Modifiers, Tools, Color, Stroke, Swatches, Preview, History.
+- Бічна колонка панелей: Outliner, Options, Align, Modifiers, Tools, Color, Stroke, Swatches, Preview, History.
 - Інструменти: select (`V`), direct select (`A`), pen (`P`), add point (`+` або `=`), empty point (`E`), фігури — rectangle (`M`), ellipse (`L`), star (`S`), polygon (`N`), rhombus (`R`).
 - Модифікатори: array, mirror, bevel, round, boolean (union, difference, intersect).
 

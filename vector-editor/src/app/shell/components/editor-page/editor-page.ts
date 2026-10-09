@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { KeymapService } from '@vector-editor/keymap';
+import { AlignPanel } from '@vector-editor/panels/align';
 import { PanelColorModule } from '@vector-editor/panels/color';
 import { HistoryPanel } from '@vector-editor/panels/history';
 import { PanelModifiersModule } from '@vector-editor/panels/modifiers';
@@ -25,6 +26,7 @@ import { TopBar } from '../top-bar/top-bar';
     Viewport,
     OutlinerModule,
     PanelOptionsModule,
+    AlignPanel,
     PanelModifiersModule,
     ToolsModule,
     PanelColorModule,

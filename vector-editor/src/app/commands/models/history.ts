@@ -59,6 +59,8 @@ export function historyLabel(command: Command): string | null {
       return 'Duplicate';
     case 'object.delete':
       return 'Delete';
+    case 'object.align':
+      return alignHistoryLabel(command.edge);
     case 'object.setFlags':
       if (command.name !== undefined) {
         return 'Rename';
@@ -167,6 +169,23 @@ export function recordHistory(
   const entries = history.entries.slice(0, history.index + 1);
   entries.push({ label, before, after });
   return { entries, index: entries.length - 1 };
+}
+
+function alignHistoryLabel(edge: Extract<Command, { type: 'object.align' }>['edge']): string {
+  switch (edge) {
+    case 'left':
+      return 'Align left';
+    case 'horizontalCenter':
+      return 'Align center';
+    case 'right':
+      return 'Align right';
+    case 'top':
+      return 'Align top';
+    case 'verticalCenter':
+      return 'Align middle';
+    case 'bottom':
+      return 'Align bottom';
+  }
 }
 
 function styleLabel(command: Extract<Command, { type: 'style.set' }>): string {

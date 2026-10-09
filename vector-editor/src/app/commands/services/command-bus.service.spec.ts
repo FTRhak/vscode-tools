@@ -831,4 +831,37 @@ describe('CommandBus', () => {
     bus.dispatch({ type: 'history.undo' });
     expect(session.document()!.objects[0].modifiers).toHaveLength(2);
   });
+
+  it('aligns objects to one edge and skips a selection of one', () => {
+    bus.dispatch({ type: 'document.new' });
+    const original = session.document()!.objects[0];
+    bus.dispatch({ type: 'object.duplicate', ids: [original.id] });
+    const copyId = session.document()!.objects[1].id;
+    const before = session.document()!.objects.map((object) => object.transform.x);
+    const selected = session.selectedObjectIds();
+
+    bus.dispatch({
+      type: 'object.align',
+      ids: [original.id, copyId],
+      edge: 'left',
+      to: 'selection',
+    });
+
+    expect(session.history().entries.at(-1)?.label).toBe('Align left');
+    expect(session.document()!.objects.map((object) => object.transform.x)).not.toEqual(before);
+    expect(session.selectedObjectIds()).toEqual(selected);
+    expect(session.mode()).toBe('object');
+
+    bus.dispatch({ type: 'history.undo' });
+    expect(session.document()!.objects.map((object) => object.transform.x)).toEqual(before);
+
+    const recorded = session.history().entries.length;
+    bus.dispatch({
+      type: 'object.align',
+      ids: [original.id],
+      edge: 'left',
+      to: 'selection',
+    });
+    expect(session.history().entries).toHaveLength(recorded);
+  });
 });

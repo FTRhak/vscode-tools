@@ -1,3 +1,4 @@
+import type { AlignEdge, AlignTarget } from '../../core/model/align-objects';
 import type { AnchorPointType } from '../../core/model/edit-path';
 import type { ModifierKind, ModifierPatch } from '../../core/model/modifier-edits';
 import type {
@@ -136,6 +137,12 @@ export type Command =
     }
   | { readonly type: 'object.duplicate'; readonly ids: readonly string[] }
   | { readonly type: 'object.delete'; readonly ids: readonly string[] }
+  | {
+      readonly type: 'object.align';
+      readonly ids: readonly string[];
+      readonly edge: AlignEdge;
+      readonly to: AlignTarget;
+    }
   | {
       readonly type: 'style.set';
       readonly objectIds: readonly string[];
