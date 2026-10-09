@@ -41,18 +41,6 @@
       }
     </div>
     <app-gradient-editor />
-    <form class="width-form" (submit)="$event.preventDefault()">
-      <label>
-        Stroke width
-        <input
-          type="number"
-          step="any"
-          [formField]="widthForm.strokeWidth"
-          (blur)="commitWidth()"
-          (keydown.enter)="commitWidth($event)"
-        />
-      </label>
-    </form>
   } @else {
     <p>No color yet.</p>
   }

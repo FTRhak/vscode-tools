@@ -1,13 +1,8 @@
-import { Component, computed, inject, linkedSignal } from '@angular/core';
-import { form } from '@angular/forms/signals';
+import { Component, computed, inject } from '@angular/core';
 import { ColorSlot, CommandBus } from '@vector-editor/commands';
 import { Gradient, SessionService, VectorObject } from '@vector-editor/core';
 import { ColorTarget } from '../../services/color-target';
 import { gradientBackground } from '../../../../viewport/utils/scene';
-
-interface WidthDraft {
-  readonly strokeWidth: number | null;
-}
 
 type SharedColor =
   | { readonly kind: 'color'; readonly value: string }
@@ -50,15 +45,6 @@ export class ColorPanel {
       ? active.value
       : '#000000';
   });
-  private readonly widthSource = computed(
-    (): WidthDraft => ({
-      strokeWidth: shared(this.selectedObjects(), (object) => object.style.strokeWidth),
-    }),
-    { equal: (left, right) => left.strokeWidth === right.strokeWidth },
-  );
-
-  protected readonly widthDraft = linkedSignal(() => this.widthSource());
-  protected readonly widthForm = form(this.widthDraft);
 
   protected chipBackground(color: SharedColor): string | null {
     if (color.kind !== 'color') {
@@ -95,25 +81,6 @@ export class ColorPanel {
       type: 'style.set',
       objectIds: objects.map((object) => object.id),
       [slot]: null,
-    });
-  }
-
-  protected commitWidth(event?: Event): void {
-    if (event instanceof KeyboardEvent) {
-      event.preventDefault();
-    }
-    const value = this.widthDraft().strokeWidth;
-    const objects = this.selectedObjects();
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || objects.length === 0) {
-      return;
-    }
-    if (value === shared(objects, (object) => object.style.strokeWidth)) {
-      return;
-    }
-    this.bus.dispatch({
-      type: 'style.set',
-      objectIds: objects.map((object) => object.id),
-      strokeWidth: value,
     });
   }
 

@@ -140,7 +140,11 @@ describe('EditorPage', () => {
 
   it('renders the shell sections', () => {
     const headings = [...fixture.nativeElement.querySelectorAll('h2')].map((heading) =>
-      heading.textContent?.trim(),
+      [...heading.childNodes]
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent?.trim() ?? '')
+        .filter((text) => text.length > 0)
+        .join(' '),
     );
     expect(headings).toEqual([
       'Outliner',
@@ -148,6 +152,7 @@ describe('EditorPage', () => {
       'Modifiers',
       'Tools',
       'Color',
+      'Stroke',
       'Color Collections',
       'Preview',
       'History',

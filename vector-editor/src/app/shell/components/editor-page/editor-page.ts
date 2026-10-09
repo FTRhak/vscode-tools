@@ -6,6 +6,7 @@ import { PanelModifiersModule } from '@vector-editor/panels/modifiers';
 import { PanelOptionsModule } from '@vector-editor/panels/options';
 import { OutlinerModule } from '@vector-editor/panels/outliner';
 import { PanelPreviewModule } from '@vector-editor/panels/preview';
+import { StrokePanel } from '@vector-editor/panels/stroke';
 import { SwatchesPanel } from '@vector-editor/panels/swatches';
 import { ToolsModule } from '@vector-editor/panels/tools';
 import { Viewport } from '@vector-editor/viewport';
@@ -27,6 +28,7 @@ import { TopBar } from '../top-bar/top-bar';
     PanelModifiersModule,
     ToolsModule,
     PanelColorModule,
+    StrokePanel,
     SwatchesPanel,
     PanelPreviewModule,
     HistoryPanel,

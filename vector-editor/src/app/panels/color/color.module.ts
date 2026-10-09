@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { FormField } from '@angular/forms/signals';
 import { SharedModule } from '@vector-editor/shared';
 import { ColorPanel, GradientEditor } from './components';
 import { ColorTarget } from './services/color-target';
@@ -9,6 +8,6 @@ import { ColorTarget } from './services/color-target';
   declarations: [ColorPanel],
   exports: [ColorPanel],
   providers: [ColorTarget],
-  imports: [CommonModule, FormField, SharedModule, GradientEditor],
+  imports: [CommonModule, SharedModule, GradientEditor],
 })
 export class PanelColorModule {}

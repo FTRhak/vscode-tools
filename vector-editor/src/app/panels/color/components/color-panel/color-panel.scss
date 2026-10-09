@@ -48,8 +48,7 @@
   background: repeating-linear-gradient(135deg, #1f1f1f, #1f1f1f 3px, #8a8a8a 3px, #8a8a8a 6px);
 }
 
-.picker,
-.width-form {
+.picker {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -57,29 +56,13 @@
   margin-top: 0.55rem;
 }
 
-.picker label,
-.width-form label {
+.picker label {
   display: grid;
   grid-template-columns: 6.5rem minmax(0, 1fr);
   align-items: center;
   gap: 0.4rem;
   flex: 1;
   font-size: 0.85rem;
-}
-
-.width-form {
-  display: block;
-}
-
-input[type='number'] {
-  width: 100%;
-  min-height: 1.75rem;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #1f1f1f;
-  color: var(--chrome-text);
-  font: inherit;
-  padding: 0.15rem 0.4rem;
 }
 
 input[type='color'] {
