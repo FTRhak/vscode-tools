@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
+import { ImagePlace } from '../../services/image-place.service';
 import { Viewport } from './viewport';
 
 describe('Viewport', () => {
@@ -694,6 +695,63 @@ describe('Viewport', () => {
     expect(sized?.source.subpaths[0]?.anchors[2]?.position).toEqual({ x: 356, y: 316 });
   });
 
+  it('places an image at native size, from a drag, and with shift', async () => {
+    vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
+    const before = session.document()!.objects.length;
+    bus.dispatch({ type: 'session.setTool', tool: 'image' });
+    pointer(canvas(), 'pointerdown', 124, 144);
+    pointer(canvas(), 'pointerup', 124, 144);
+    await fixture.whenStable();
+    expect(session.document()!.objects).toHaveLength(before);
+
+    TestBed.inject(ImagePlace).arm({
+      fileName: 'photo.png',
+      name: 'Photo',
+      mime: 'image/png',
+      dataUrl: pixel,
+      pixelWidth: 10,
+      pixelHeight: 20,
+    });
+    pointer(canvas(), 'pointerdown', 124, 144);
+    pointer(canvas(), 'pointerup', 126, 146);
+    await fixture.whenStable();
+
+    const clicked = session.document()!.objects.at(-1);
+    expect(clicked?.kind).toBe('image');
+    expect(clicked?.image).toMatchObject({
+      width: 10,
+      height: 20,
+      preserveAspectRatio: 'xMidYMid meet',
+    });
+    expect(clicked?.transform).toMatchObject({ x: 100, y: 120 });
+    expect(session.history().entries.at(-1)?.label).toBe('Add image');
+    expect(canvas().querySelector('image')).not.toBeNull();
+
+    pointer(canvas(), 'pointerdown', 224, 224);
+    pointer(canvas(), 'pointermove', 324, 274);
+    await fixture.whenStable();
+    expect(canvas().querySelector('.image-preview')).not.toBeNull();
+    pointer(canvas(), 'pointerup', 324, 274);
+    await fixture.whenStable();
+    expect(session.document()!.objects.at(-1)?.image).toMatchObject({
+      width: 100,
+      height: 50,
+      preserveAspectRatio: 'none',
+    });
+    expect(session.document()!.objects.at(-1)?.transform).toMatchObject({ x: 200, y: 200 });
+
+    pointer(canvas(), 'pointerdown', 400, 400, true);
+    pointer(canvas(), 'pointermove', 500, 420, true);
+    pointer(canvas(), 'pointerup', 500, 420, true);
+    await fixture.whenStable();
+    expect(session.document()!.objects.at(-1)?.image).toMatchObject({
+      width: 100,
+      height: 200,
+      preserveAspectRatio: 'xMidYMid meet',
+    });
+    expect(canvas().querySelector('.image-preview')).toBeNull();
+  });
+
   it('places an empty point, moves it, and hides it in edit mode', async () => {
     vi.spyOn(canvas(), 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1248, 848));
     bus.dispatch({ type: 'session.setTool', tool: 'empty-point' });
@@ -733,7 +791,7 @@ async function chooseSnap(fixture: ComponentFixture<Viewport>, mode: string): Pr
   await fixture.whenStable();
 }
 
-function pointer(target: HTMLElement, type: string, x: number, y: number): void {
+function pointer(target: HTMLElement, type: string, x: number, y: number, shiftKey = false): void {
   target.dispatchEvent(
     new PointerEvent(type, {
       bubbles: true,
@@ -742,6 +800,10 @@ function pointer(target: HTMLElement, type: string, x: number, y: number): void 
       button: 0,
       clientX: x,
       clientY: y,
+      shiftKey,
     }),
   );
 }
+
+const pixel =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';

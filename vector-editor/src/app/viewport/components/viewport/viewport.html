@@ -49,7 +49,43 @@
           [attr.transform]="object.transform"
           [attr.opacity]="editing() && activeId() !== object.id ? 0.4 : null"
         >
-          @if (object.strokeAlign === 'default') {
+          @if (object.kind === 'image') {
+            @if (object.href) {
+              <image
+                [attr.href]="object.href"
+                x="0"
+                y="0"
+                [attr.width]="object.imageWidth"
+                [attr.height]="object.imageHeight"
+                [attr.preserveAspectRatio]="object.preserveAspectRatio"
+              />
+            } @else {
+              <rect
+                x="0"
+                y="0"
+                [attr.width]="object.imageWidth"
+                [attr.height]="object.imageHeight"
+                fill="none"
+                stroke="#737373"
+                stroke-dasharray="4 3"
+                vector-effect="non-scaling-stroke"
+              />
+            }
+            @if (selectedIds().has(object.id)) {
+              <rect
+                class="selection"
+                x="0"
+                y="0"
+                [attr.width]="object.imageWidth"
+                [attr.height]="object.imageHeight"
+                fill="none"
+                stroke="#1d4ed8"
+                stroke-width="1.5"
+                vector-effect="non-scaling-stroke"
+                pointer-events="none"
+              />
+            }
+          } @else if (object.strokeAlign === 'default') {
             <path
               [attr.d]="object.d"
               [attr.fill]="object.fill"
@@ -205,6 +241,17 @@
       }
       @if (shapePreview(); as preview) {
         <path class="shape-preview" [attr.d]="preview" />
+      }
+      @if (imagePreview(); as preview) {
+        <image
+          class="image-preview"
+          [attr.href]="preview.href"
+          [attr.x]="preview.x"
+          [attr.y]="preview.y"
+          [attr.width]="preview.width"
+          [attr.height]="preview.height"
+          [attr.preserveAspectRatio]="preview.preserveAspectRatio"
+        />
       }
       @if (marquee(); as rect) {
         <rect

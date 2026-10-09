@@ -23,6 +23,7 @@ export const EDITOR_TOOLS: readonly EditorToolDefinition[] = [
   { id: 'star', label: 'Star', shortcut: 'S', group: 'Shapes' },
   { id: 'polygon', label: 'Polygon', shortcut: 'N', group: 'Shapes' },
   { id: 'rhombus', label: 'Rhombus', shortcut: 'R', group: 'Shapes' },
+  { id: 'image', label: 'Add image', shortcut: 'I', group: 'Image' },
 ];
 
 export function editorToolGroups(

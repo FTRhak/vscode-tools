@@ -1,5 +1,6 @@
 import { applyMatrix, matrixFromTransform } from '../io/matrix';
 import { isEmptyPoint } from '../model/empty-point';
+import { isImage } from '../model/image';
 import { SourcePath, Vec2, VectorObject } from '../model/types';
 import { collectPoints } from './flatten';
 
@@ -48,6 +49,35 @@ export function documentBounds(object: VectorObject, evaluated?: SourcePath): Bo
       return null;
     }
     return { minX: x, minY: y, maxX: x, maxY: y };
+  }
+
+  if (isImage(object)) {
+    const image = object.image;
+    if (!image) {
+      return null;
+    }
+    const matrix = matrixFromTransform(object.transform);
+    const corners = [
+      { x: 0, y: 0 },
+      { x: image.width, y: 0 },
+      { x: image.width, y: image.height },
+      { x: 0, y: image.height },
+    ];
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const corner of corners) {
+      const world = applyMatrix(matrix, corner);
+      if (!Number.isFinite(world.x) || !Number.isFinite(world.y)) {
+        return null;
+      }
+      minX = Math.min(minX, world.x);
+      minY = Math.min(minY, world.y);
+      maxX = Math.max(maxX, world.x);
+      maxY = Math.max(maxY, world.y);
+    }
+    return { minX, minY, maxX, maxY };
   }
 
   const matrix = matrixFromTransform(object.transform);

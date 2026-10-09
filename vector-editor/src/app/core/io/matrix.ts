@@ -80,6 +80,51 @@ export function transformSource(source: SourcePath, matrix: Matrix): SourcePath 
   };
 }
 
+export function placementOf(matrix: Matrix, origin: Vec2): ObjectTransform | null {
+  const linear = decomposePlacement({ ...matrix, e: 0, f: 0 });
+  if (!linear) {
+    return null;
+  }
+  const world = applyMatrix(matrix, origin);
+  if (!Number.isFinite(world.x) || !Number.isFinite(world.y)) {
+    return null;
+  }
+  return {
+    x: world.x,
+    y: world.y,
+    rotation: linear.rotation,
+    scaleX: linear.scaleX,
+    scaleY: linear.scaleY,
+    originX: 0,
+    originY: 0,
+  };
+}
+
+function decomposePlacement(matrix: Matrix): {
+  readonly rotation: number;
+  readonly scaleX: number;
+  readonly scaleY: number;
+} | null {
+  const { a, b, c, d } = matrix;
+  if (![a, b, c, d].every((value) => Number.isFinite(value))) {
+    return null;
+  }
+  const scaleX = Math.hypot(a, b);
+  const scaleY = Math.hypot(c, d);
+  if (scaleX < 1e-8 || scaleY < 1e-8) {
+    return null;
+  }
+  if (Math.abs(a * c + b * d) > 1e-4 * scaleX * scaleY) {
+    return null;
+  }
+  const determinant = a * d - b * c;
+  return {
+    rotation: (Math.atan2(b, a) * 180) / Math.PI,
+    scaleX,
+    scaleY: determinant < 0 ? -scaleY : scaleY,
+  };
+}
+
 export function parseSvgTransform(value: string | null): Matrix {
   if (!value) {
     return identityMatrix;

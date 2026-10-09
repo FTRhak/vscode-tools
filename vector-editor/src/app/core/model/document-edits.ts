@@ -209,6 +209,9 @@ export function setObjectStyle(
     if (!wanted.has(object.id)) {
       return object;
     }
+    if (object.kind === 'image') {
+      return object;
+    }
     const style = nextStyle(object.style, normalized);
     if (style === object.style) {
       return object;

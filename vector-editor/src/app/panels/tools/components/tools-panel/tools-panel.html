@@ -14,4 +14,14 @@
       }
     }
   </div>
+  @if (activeTool() === 'image') {
+    <label class="image-link">
+      <input
+        type="checkbox"
+        [checked]="linked() === 'link'"
+        (change)="setPlacement($event)"
+      />
+      Link
+    </label>
+  }
 </panel>

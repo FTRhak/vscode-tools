@@ -1,7 +1,11 @@
 import { createId } from '../model/create-id';
+import { imageContent, isImageDataUrl, isImageMime } from '../model/image';
 import {
   Anchor,
   Document,
+  ImageAspect,
+  ImageMime,
+  ImagePlacement,
   Layer,
   Modifier,
   ObjectTransform,
@@ -19,6 +23,7 @@ import {
   Matrix,
   multiplyMatrix,
   parseSvgTransform,
+  placementOf,
   transformSource,
 } from './matrix';
 import { parsePathData } from './path-data-parse';
@@ -137,6 +142,16 @@ export function importSvg(markup: string): SvgImportResult {
     for (const child of container.children) {
       const name = child.localName;
       if (ignoredTags.has(name)) {
+        continue;
+      }
+      if (name === 'image') {
+        const layer = context.layer ?? ensureLoose();
+        const object = readImage(child, layer.id, context, claim);
+        if (object) {
+          layer.objects.push(object);
+        } else {
+          skipped += 1;
+        }
         continue;
       }
       if (skippedTags.has(name)) {
@@ -328,6 +343,248 @@ function readObject(
     transform: payload?.transform ?? identityTransform,
     modifiers: payload?.modifiers ?? [],
   };
+}
+
+function readImage(
+  element: Element,
+  layerId: string,
+  context: WalkContext,
+  claim: (id: string | null) => string,
+): VectorObject | null {
+  const href = imageHref(element);
+  const payload = readImagePayload(element.getAttribute(objectAttribute));
+  const foreign = payload ? null : foreignImage(element, href, context);
+  const resolved = payload ?? foreign;
+  if (!resolved) {
+    return null;
+  }
+  const dataUrl = resolved.dataUrl || dataUrlFromHref(href, resolved.mime);
+  const content = imageContent({
+    name: resolved.name || 'Image',
+    placement: resolved.placement,
+    fileName: resolved.fileName,
+    mime: resolved.mime,
+    dataUrl,
+    pixelWidth: resolved.pixelWidth,
+    pixelHeight: resolved.pixelHeight,
+    x: 0,
+    y: 0,
+    width: resolved.width,
+    height: resolved.height,
+    preserveAspectRatio: resolved.preserveAspectRatio,
+  });
+  if (!content) {
+    return null;
+  }
+  return {
+    id: claim(element.getAttribute('id')),
+    name: resolved.name || 'Image',
+    layerId,
+    visible: !context.hidden && !elementHidden(element),
+    locked: resolved.locked,
+    kind: 'image',
+    source: { subpaths: [] },
+    image: content,
+    style: {
+      ...svgStrokeDefaults,
+      fill: null,
+      stroke: null,
+      strokeWidth: 0,
+      fillRule: 'nonzero',
+    },
+    transform: resolved.transform,
+    modifiers: [],
+  };
+}
+
+function imageHref(element: Element): string | null {
+  return (
+    element.getAttribute('href') ||
+    element.getAttributeNS('http://www.w3.org/1999/xlink', 'href') ||
+    element.getAttribute('xlink:href')
+  );
+}
+
+function dataUrlFromHref(href: string | null, mime: ImageMime): string {
+  if (!href || !isImageDataUrl(href, mime)) {
+    return '';
+  }
+  return href;
+}
+
+interface ImageRead {
+  readonly name: string;
+  readonly placement: ImagePlacement;
+  readonly fileName: string;
+  readonly mime: ImageMime;
+  readonly dataUrl: string;
+  readonly pixelWidth: number;
+  readonly pixelHeight: number;
+  readonly width: number;
+  readonly height: number;
+  readonly preserveAspectRatio: ImageAspect;
+  readonly transform: ObjectTransform;
+  readonly locked: boolean;
+}
+
+function readImagePayload(value: string | null): ImageRead | null {
+  const json = parseJson(value);
+  if (!isRecord(json) || json['kind'] !== 'image') {
+    return null;
+  }
+  const mime = stringField(json, 'mime');
+  const placement = json['placement'] === 'link' ? 'link' : json['placement'] === 'embed' ? 'embed' : null;
+  const aspect = json['preserveAspectRatio'] === 'none' ? 'none' : 'xMidYMid meet';
+  const width = finiteField(json, 'width', Number.NaN);
+  const height = finiteField(json, 'height', Number.NaN);
+  const pixelWidth = finiteField(json, 'pixelWidth', width);
+  const pixelHeight = finiteField(json, 'pixelHeight', height);
+  const fileName = stringField(json, 'fileName') ?? 'image.png';
+  if (!mime || !isImageMime(mime) || !placement || width <= 0 || height <= 0) {
+    return null;
+  }
+  return {
+    name: stringField(json, 'name') ?? 'Image',
+    placement,
+    fileName,
+    mime,
+    dataUrl: stringField(json, 'dataUrl') ?? '',
+    pixelWidth,
+    pixelHeight,
+    width,
+    height,
+    preserveAspectRatio: aspect,
+    transform: readTransform(json['transform']),
+    locked: booleanField(json, 'locked') === true,
+  };
+}
+
+function foreignImage(element: Element, href: string | null, context: WalkContext): ImageRead | null {
+  const box = imageBox(element);
+  if (!box || !href) {
+    return null;
+  }
+  const matrix = multiplyMatrix(context.matrix, parseSvgTransform(element.getAttribute('transform')));
+  const transform = placementOf(matrix, { x: box.x, y: box.y });
+  if (!transform) {
+    return null;
+  }
+  const aspect = element.getAttribute('preserveAspectRatio')?.trim().startsWith('none')
+    ? 'none'
+    : 'xMidYMid meet';
+  const embedded = readEmbeddedHref(href);
+  if (embedded) {
+    return {
+      name: 'Image',
+      placement: 'embed',
+      fileName: `image.${embedded.mime === 'image/jpeg' ? 'jpg' : embedded.mime.slice('image/'.length)}`,
+      mime: embedded.mime,
+      dataUrl: embedded.dataUrl,
+      pixelWidth: box.width,
+      pixelHeight: box.height,
+      width: box.width,
+      height: box.height,
+      preserveAspectRatio: aspect,
+      transform,
+      locked: false,
+    };
+  }
+  const fileName = safeLinkName(href);
+  if (!fileName) {
+    return null;
+  }
+  const mime = mimeFromName(fileName);
+  if (!mime) {
+    return null;
+  }
+  return {
+    name: fileName.replace(/\.[^.]+$/, '') || 'Image',
+    placement: 'link',
+    fileName,
+    mime,
+    dataUrl: '',
+    pixelWidth: box.width,
+    pixelHeight: box.height,
+    width: box.width,
+    height: box.height,
+    preserveAspectRatio: aspect,
+    transform,
+    locked: false,
+  };
+}
+
+function imageBox(element: Element): { x: number; y: number; width: number; height: number } | null {
+  const x = readUserUnit(element.getAttribute('x')) ?? 0;
+  const y = readUserUnit(element.getAttribute('y')) ?? 0;
+  const width = readUserUnit(element.getAttribute('width'));
+  const height = readUserUnit(element.getAttribute('height'));
+  if (width === null || height === null || width <= 0 || height <= 0) {
+    return null;
+  }
+  return { x, y, width, height };
+}
+
+function readUserUnit(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.endsWith('%')) {
+    return null;
+  }
+  const number = Number(trimmed);
+  return Number.isFinite(number) ? number : null;
+}
+
+function readEmbeddedHref(href: string): { readonly mime: ImageMime; readonly dataUrl: string } | null {
+  const match = /^data:(image\/(?:png|jpeg|gif|webp));base64,/i.exec(href);
+  if (!match) {
+    return null;
+  }
+  const mime = match[1].toLowerCase();
+  if (!isImageMime(mime)) {
+    return null;
+  }
+  const body = href.slice(match[0].length).replace(/\s/g, '');
+  if (!isImageDataUrl(`data:${mime};base64,${body}`, mime)) {
+    return null;
+  }
+  return { mime, dataUrl: `data:${mime};base64,${body}` };
+}
+
+function safeLinkName(href: string): string | null {
+  if (
+    href.includes(':') ||
+    href.includes('\\') ||
+    href.includes('?') ||
+    href.includes('#') ||
+    href.startsWith('/') ||
+    href.includes('..')
+  ) {
+    return null;
+  }
+  const name = href.replace(/^\.\//, '');
+  if (!name || name.includes('/')) {
+    return null;
+  }
+  return name;
+}
+
+function mimeFromName(fileName: string): ImageMime | null {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'gif':
+      return 'image/gif';
+    case 'webp':
+      return 'image/webp';
+    default:
+      return null;
+  }
 }
 
 function geometrySource(element: Element, context: WalkContext): SourcePath | null {

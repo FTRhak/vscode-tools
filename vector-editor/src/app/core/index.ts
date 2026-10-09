@@ -20,6 +20,10 @@ export {
   countAlignable,
   addEmptyPoint,
   isEmptyPoint,
+  addImage,
+  imageObjectName,
+  isImage,
+  isImageMime,
   addShape,
   clampShapeCount,
   ELLIPSE_KAPPA,
@@ -57,6 +61,12 @@ export type {
   Gradient,
   GradientStop,
   GradientType,
+  ImageAspect,
+  ImageContent,
+  ImageDraft,
+  ImageMime,
+  ImageObjectResult,
+  ImagePlacement,
   Modifier,
   ObjectTransform,
   Segment,
@@ -79,6 +89,6 @@ export type {
 export { captureClipperHold, evaluateDocument, evaluateObject } from './eval/evaluate';
 export type { ClipperHold, EvaluatedGeometry } from './eval/evaluate';
 export { exportSvg, importSvg } from './io';
-export type { SaveMode, SvgImportResult } from './io';
+export type { ExportedImageFile, ImageLocation, SaveMode, SvgExport, SvgImportResult } from './io';
 export { SessionService } from './session.service';
 export type { SessionSlice } from './session.service';

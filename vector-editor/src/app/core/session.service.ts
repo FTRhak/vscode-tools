@@ -44,15 +44,24 @@ import {
 } from './model/modifier-edits';
 import { isInteractionLocked, layersFrontToBack } from './model/paint-order';
 import { addEmptyPoint, isEmptyPoint } from './model/empty-point';
+import { addImage, isImage } from './model/image';
 import { addShape } from './model/shapes';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
 import { identityTransform, matrixFromTransform, transformSource } from './io/matrix';
 import { rotationOriginDocument, transformWithRotationOrigin } from './model/transform';
-import { Document, ObjectTransform, SourcePath, VectorObject, ViewportCamera } from './model/types';
+import {
+  Document,
+  ImagePlacement,
+  ObjectTransform,
+  SourcePath,
+  VectorObject,
+  ViewportCamera,
+} from './model/types';
 
 export interface SessionSlice {
   readonly mode: EditorMode;
   readonly tool: EditorTool;
+  readonly imagePlacement: ImagePlacement;
   readonly document: Document | null;
   readonly viewport: ViewportCamera;
   readonly selection: SelectionState;
@@ -64,6 +73,7 @@ export interface SessionSlice {
 const initialSession: SessionSlice = {
   mode: 'object',
   tool: 'select',
+  imagePlacement: 'embed',
   document: null,
   viewport: { panX: 0, panY: 0, zoom: 1 },
   selection: emptySelection,
@@ -83,6 +93,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyMode(state, command.mode);
     case 'session.setTool':
       return applyTool(state, command.tool);
+    case 'session.setImagePlacement':
+      return applyImagePlacement(state, command.placement);
     case 'session.setEditSelectionKind':
       return applyEditSelectionKind(state, command.kind);
     case 'document.new': {
@@ -196,6 +208,8 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyPointAdd(state, command);
     case 'shape.add':
       return applyShapeAdd(state, command);
+    case 'image.add':
+      return applyImageAdd(state, command);
     case 'layer.update':
       return applyDocument(state, (document) => updateLayer(document, command.id, command));
     case 'layer.reorder':
@@ -273,6 +287,7 @@ export class SessionService {
 
   readonly mode = computed(() => this.state().mode);
   readonly tool = computed(() => this.state().tool);
+  readonly imagePlacement = computed(() => this.state().imagePlacement);
   readonly document = computed(() => this.state().document);
   readonly viewport = computed(() => this.state().viewport);
   readonly activeObjectId = computed(() => this.state().selection.activeObjectId);
@@ -435,6 +450,10 @@ function withoutEmptySelection(state: SessionSlice): SessionSlice['selection'] {
   };
 }
 
+function applyImagePlacement(state: SessionSlice, placement: ImagePlacement): SessionSlice {
+  return state.imagePlacement === placement ? state : { ...state, imagePlacement: placement };
+}
+
 function applyTool(state: SessionSlice, tool: EditorTool): SessionSlice {
   const penObjectId = tool === 'pen' ? state.penObjectId : null;
   if (state.tool === tool && state.penObjectId === penObjectId) {
@@ -514,7 +533,7 @@ function applyDeleteAnchors(
     return state;
   }
   const object = state.document.objects.find((item) => item.id === command.objectId);
-  if (!object || isInteractionLocked(state.document, object)) {
+  if (!object || isImage(object) || isInteractionLocked(state.document, object)) {
     return state;
   }
   const source = deleteAnchors(object.source, command.anchorIds);
@@ -538,7 +557,7 @@ function applyInsertPoint(
     return state;
   }
   const object = state.document.objects.find((item) => item.id === command.objectId);
-  if (!object || isInteractionLocked(state.document, object)) {
+  if (!object || isImage(object) || isInteractionLocked(state.document, object)) {
     return state;
   }
   const inserted = insertPoint(object.source, command.segmentId, command.t);
@@ -570,7 +589,7 @@ function replaceSource(
     return state;
   }
   const document = mapObjects(current, [objectId], (object) => {
-    if (isInteractionLocked(current, object)) {
+    if (isInteractionLocked(current, object) || isImage(object)) {
       return object;
     }
     const source = update(object.source);
@@ -758,6 +777,9 @@ function applyBakedTransform(
     if (isInteractionLocked(current, object) || isIdentityTransform(object.transform)) {
       return object;
     }
+    if (isImage(object)) {
+      return bakeImageScale(object);
+    }
     return {
       ...object,
       source: transformSource(object.source, matrixFromTransform(object.transform)),
@@ -765,6 +787,23 @@ function applyBakedTransform(
     };
   });
   return document === current ? state : { ...state, document };
+}
+
+function bakeImageScale(object: VectorObject): VectorObject {
+  const image = object.image;
+  if (!image || (object.transform.scaleX === 1 && object.transform.scaleY === 1)) {
+    return object;
+  }
+  const width = image.width * object.transform.scaleX;
+  const height = image.height * object.transform.scaleY;
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return object;
+  }
+  return {
+    ...object,
+    image: { ...image, width, height },
+    transform: { ...object.transform, scaleX: 1, scaleY: 1 },
+  };
 }
 
 function isIdentityTransform(transform: ObjectTransform): boolean {
@@ -1128,6 +1167,48 @@ function applyShapeAdd(
     state.document,
     command.name,
     command.source,
+    state.selectedLayerId ?? undefined,
+  );
+  if (!created) {
+    return state;
+  }
+  return {
+    ...state,
+    mode: 'object',
+    document: created.document,
+    selection: {
+      ...state.selection,
+      activeObjectId: created.objectId,
+      selectedObjectIds: [created.objectId],
+      selectedAnchorIds: [],
+      selectedSegmentIds: [],
+    },
+  };
+}
+
+function applyImageAdd(
+  state: SessionSlice,
+  command: Extract<Command, { type: 'image.add' }>,
+): SessionSlice {
+  if (!state.document) {
+    return state;
+  }
+  const created = addImage(
+    state.document,
+    {
+      name: command.name,
+      placement: command.placement,
+      fileName: command.fileName,
+      mime: command.mime,
+      dataUrl: command.dataUrl,
+      pixelWidth: command.pixelWidth,
+      pixelHeight: command.pixelHeight,
+      x: command.x,
+      y: command.y,
+      width: command.width,
+      height: command.height,
+      preserveAspectRatio: command.preserveAspectRatio,
+    },
     state.selectedLayerId ?? undefined,
   );
   if (!created) {

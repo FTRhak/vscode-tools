@@ -4,6 +4,7 @@ import {
   evaluateDocument,
   Gradient,
   isEmptyPoint,
+  isImage,
   ObjectTransform,
   objectsInPaintOrder,
   sourceToPathData,
@@ -23,7 +24,12 @@ export interface SceneMaskRect {
 
 export interface SceneObject {
   readonly id: string;
+  readonly kind: 'path' | 'image';
   readonly d: string;
+  readonly href: string | null;
+  readonly imageWidth: number;
+  readonly imageHeight: number;
+  readonly preserveAspectRatio: string | null;
   readonly transform: string;
   readonly fill: string;
   readonly stroke: string;
@@ -87,9 +93,41 @@ export function sceneFromDocument(
   return {
     viewBox: document.viewBox,
     gradients: document.gradients,
-    objects: objectsInPaintOrder(document).flatMap((object) => {
+    objects: objectsInPaintOrder(document).flatMap((object): SceneObject[] => {
       if (isEmptyPoint(object)) {
         return [];
+      }
+      if (isImage(object)) {
+        const image = object.image;
+        if (!image) {
+          return [];
+        }
+        return [
+          {
+            id: object.id,
+            kind: 'image' as const,
+            d: '',
+            href: image.dataUrl || null,
+            imageWidth: image.width,
+            imageHeight: image.height,
+            preserveAspectRatio: image.preserveAspectRatio,
+            transform: formatObjectTransform(object.transform),
+            fill: 'none',
+            stroke: 'none',
+            strokeWidth: 0,
+            strokeLinecap: object.style.strokeLinecap,
+            strokeLinejoin: object.style.strokeLinejoin,
+            strokeMiterlimit: object.style.strokeMiterlimit,
+            strokeOpacity: object.style.strokeOpacity,
+            strokeDasharray: 'none',
+            strokeDashoffset: 0,
+            strokeAlign: 'default' as const,
+            clipId: null,
+            maskId: null,
+            maskRect: null,
+            fillRule: object.style.fillRule,
+          },
+        ];
       }
       const evaluated = geometry.get(object.id);
       const subpaths = evaluated?.subpaths ?? object.source.subpaths;
@@ -100,7 +138,12 @@ export function sceneFromDocument(
       return [
         {
           id: object.id,
+          kind: 'path' as const,
           d: sourceToPathData({ subpaths }),
+          href: null,
+          imageWidth: 0,
+          imageHeight: 0,
+          preserveAspectRatio: null,
           transform: formatObjectTransform(object.transform),
           fill: object.style.fill ?? 'none',
           stroke: object.style.stroke ?? 'none',

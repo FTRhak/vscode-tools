@@ -4,6 +4,9 @@ import type { ModifierKind, ModifierPatch } from '../../core/model/modifier-edit
 import type {
   Document,
   Gradient,
+  ImageAspect,
+  ImageMime,
+  ImagePlacement,
   ObjectTransform,
   SourcePath,
   Style,
@@ -24,7 +27,8 @@ export type EditorTool =
   | 'ellipse'
   | 'star'
   | 'polygon'
-  | 'rhombus';
+  | 'rhombus'
+  | 'image';
 
 export const EDITOR_TOOLS_ICONS: { [K in EditorTool]: string } = {
   select: '&#xe107;',
@@ -37,6 +41,7 @@ export const EDITOR_TOOLS_ICONS: { [K in EditorTool]: string } = {
   star: '',
   polygon: '',
   rhombus: '',
+  image: '',
 };
 
 export type SelectOperation = 'replace' | 'add' | 'toggle' | 'clear';
@@ -52,6 +57,7 @@ export type HandleSlot = 'in' | 'out';
 export type Command =
   | { readonly type: 'session.setMode'; readonly mode: EditorMode }
   | { readonly type: 'session.setTool'; readonly tool: EditorTool }
+  | { readonly type: 'session.setImagePlacement'; readonly placement: ImagePlacement }
   | { readonly type: 'session.setEditSelectionKind'; readonly kind: EditSelectionKind }
   | { readonly type: 'document.new'; readonly width?: number; readonly height?: number }
   | { readonly type: 'document.replace'; readonly document: Document }
@@ -190,6 +196,21 @@ export type Command =
   | { readonly type: 'path.add'; readonly layerId: string }
   | { readonly type: 'point.add'; readonly position: Vec2 }
   | { readonly type: 'shape.add'; readonly name: string; readonly source: SourcePath }
+  | {
+      readonly type: 'image.add';
+      readonly name: string;
+      readonly placement: ImagePlacement;
+      readonly fileName: string;
+      readonly mime: ImageMime;
+      readonly dataUrl: string;
+      readonly pixelWidth: number;
+      readonly pixelHeight: number;
+      readonly x: number;
+      readonly y: number;
+      readonly width: number;
+      readonly height: number;
+      readonly preserveAspectRatio: ImageAspect;
+    }
   | { readonly type: 'pen.begin'; readonly position: Vec2 }
   | { readonly type: 'pen.addPoint'; readonly objectId: string; readonly position: Vec2 }
   | {

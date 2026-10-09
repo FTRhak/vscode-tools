@@ -2,6 +2,31 @@ import { createNewDocument, Document, svgStrokeDefaults, VectorObject } from '@v
 import { hitTestObject, localToDocument, objectsInRect } from './hit-test';
 
 describe('hitTestObject', () => {
+  it('hits an image frame and a marquee over that frame', () => {
+    const image: VectorObject = {
+      ...square('image'),
+      kind: 'image',
+      source: { subpaths: [] },
+      image: {
+        placement: 'embed',
+        fileName: 'photo.png',
+        mime: 'image/png',
+        dataUrl: 'data:image/png;base64,aaaa',
+        pixelWidth: 10,
+        pixelHeight: 10,
+        width: 10,
+        height: 10,
+        preserveAspectRatio: 'none',
+      },
+    };
+    const document = doc([image]);
+
+    expect(hitTestObject(document, { x: 4, y: 6 }, 1)).toBe('image');
+    expect(hitTestObject(document, { x: 12, y: 6 }, 1)).toBeNull();
+    expect(objectsInRect(document, { x: 2, y: 2, width: 4, height: 4 })).toEqual(['image']);
+    expect(objectsInRect(document, { x: 20, y: 20, width: 4, height: 4 })).toEqual([]);
+  });
+
   it('hits an empty point inside its screen radius and a marquee that contains it', () => {
     const point: VectorObject = {
       ...square('point'),

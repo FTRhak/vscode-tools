@@ -30,6 +30,13 @@ import { EditorTool } from '@vector-editor/commands';
           <path d="M8 2 14 8 8 14 2 8 Z" />
         </svg>
       }
+      @case ('image') {
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <rect x="2" y="3" width="12" height="10" />
+          <circle cx="6" cy="6.5" r="1.2" />
+          <path d="M3.5 11.5 6.5 8.5 9 10.5 11 8 13 11.5" />
+        </svg>
+      }
       @default {
         <i class="icon" [innerHTML]="glyph()"></i>
       }

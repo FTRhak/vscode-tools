@@ -3,6 +3,7 @@ import {
   Document,
   evaluateDocument,
   isEmptyPoint,
+  isImage,
   EvaluatedGeometry,
   objectsInPaintOrder,
   ObjectTransform,
@@ -50,6 +51,13 @@ export function hitTestObject(
       }
       continue;
     }
+    if (isImage(object)) {
+      const local = documentToLocal(object.transform, point);
+      if (local && hitsImage(object, local)) {
+        return object.id;
+      }
+      continue;
+    }
     const local = documentToLocal(object.transform, point);
     if (!local) {
       continue;
@@ -77,12 +85,54 @@ export function objectsInRect(
       }
       continue;
     }
+    if (isImage(object)) {
+      const bounds = imageBounds(object);
+      if (bounds && intersects(bounds, box)) {
+        hits.push(object.id);
+      }
+      continue;
+    }
     const bounds = objectBounds(object, geometry.get(object.id));
     if (bounds && intersects(bounds, box)) {
       hits.push(object.id);
     }
   }
   return hits;
+}
+
+function hitsImage(object: VectorObject, point: Vec2): boolean {
+  const image = object.image;
+  if (!image) {
+    return false;
+  }
+  return point.x >= 0 && point.y >= 0 && point.x <= image.width && point.y <= image.height;
+}
+
+function imageBounds(object: VectorObject): Bounds | null {
+  const image = object.image;
+  if (!image) {
+    return null;
+  }
+  const corners = [
+    { x: 0, y: 0 },
+    { x: image.width, y: 0 },
+    { x: image.width, y: image.height },
+    { x: 0, y: image.height },
+  ].map((point) => localToDocument(object.transform, point));
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const point of corners) {
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+      return null;
+    }
+    minX = Math.min(minX, point.x);
+    minY = Math.min(minY, point.y);
+    maxX = Math.max(maxX, point.x);
+    maxY = Math.max(maxY, point.y);
+  }
+  return { minX, minY, maxX, maxY };
 }
 
 function geometryById(

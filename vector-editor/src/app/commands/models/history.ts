@@ -119,6 +119,8 @@ export function historyLabel(command: Command): string | null {
       return 'Add empty point';
     case 'shape.add':
       return 'Add shape';
+    case 'image.add':
+      return 'Add image';
     case 'pen.begin':
     case 'pen.addPoint':
     case 'pen.setHandles':
@@ -139,6 +141,7 @@ export function historyLabel(command: Command): string | null {
       return 'Apply modifiers';
     case 'session.setMode':
     case 'session.setTool':
+    case 'session.setImagePlacement':
     case 'session.setViewport':
     case 'session.setEditSelectionKind':
     case 'session.selectLayer':

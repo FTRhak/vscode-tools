@@ -3,8 +3,13 @@ import { setObjectStyle } from '../model/document-edits';
 import { addEmptyPoint } from '../model/empty-point';
 import { Document, SourcePath, svgStrokeDefaults, Vec2, VectorObject } from '../model/types';
 import { parsePathData } from './path-data-parse';
-import { exportSvg } from './svg-export';
+import { addImage } from '../model/image';
+import { exportSvg as exportSvgResult, ImageLocation, SaveMode } from './svg-export';
 import { importSvg } from './svg-import';
+
+function exportSvg(document: Document, mode: SaveMode, images?: ImageLocation): string {
+  return exportSvgResult(document, mode, images).svg;
+}
 
 describe('parsePathData', () => {
   it('reads relative lines and axis commands', () => {
@@ -714,6 +719,114 @@ describe('exportSvg', () => {
     }
     expect(minimalResult.document.objects[0]?.modifiers).toEqual([]);
     expect(minimalResult.document.objects[0]?.source.subpaths[0]?.segments[0]?.kind).toBe('line');
+  });
+});
+
+const pixel =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+describe('image svg', () => {
+  it('round-trips embed, link, and preserve without fetching external urls', () => {
+    const document = createNewDocument();
+    const embedded = addImage(
+      document,
+      {
+        name: 'Photo',
+        placement: 'embed',
+        fileName: 'photo.png',
+        mime: 'image/png',
+        dataUrl: pixel,
+        pixelWidth: 1,
+        pixelHeight: 1,
+        x: 4,
+        y: 6,
+        width: 20,
+        height: 10,
+        preserveAspectRatio: 'none',
+      },
+      document.layers[0].id,
+    );
+    expect(embedded).not.toBeNull();
+    const linked = addImage(
+      embedded!.document,
+      {
+        name: 'Scan',
+        placement: 'link',
+        fileName: 'scan.png',
+        mime: 'image/png',
+        dataUrl: pixel,
+        pixelWidth: 1,
+        pixelHeight: 1,
+        x: 30,
+        y: 8,
+        width: 12,
+        height: 12,
+        preserveAspectRatio: 'xMidYMid meet',
+      },
+      document.layers[0].id,
+    );
+    expect(linked).not.toBeNull();
+    const current = linked!.document;
+
+    for (const mode of ['all', 'optimized', 'minimal'] as const) {
+      const preserved = exportSvgResult(current, mode, 'preserve');
+      expect(preserved.svg).toContain(`href="${pixel}"`);
+      expect(preserved.svg).toContain('xlink:href="scan.png"');
+      expect(preserved.files.map((file) => file.name)).toEqual(['scan.png']);
+      const embed = exportSvgResult(current, mode, 'embed');
+      expect(embed.svg).not.toContain('href="scan.png"');
+      expect(embed.svg).not.toContain('href="photo.png"');
+      expect(embed.files).toEqual([]);
+      const link = exportSvgResult(current, mode, 'link');
+      expect(link.svg).not.toContain(`href="${pixel}"`);
+      expect(link.svg).toContain('href="photo.png"');
+      expect(link.files.map((file) => file.name)).toEqual(['photo.png', 'scan.png']);
+
+      if (mode === 'minimal') {
+        const opened = importSvg(embed.svg);
+        expect(opened.ok).toBe(true);
+        if (opened.ok) {
+          expect(opened.document.objects.filter((object) => object.kind === 'image')).toHaveLength(2);
+          expect(opened.document.objects.some((object) => object.image?.dataUrl === pixel)).toBe(true);
+        }
+        continue;
+      }
+      const opened = importSvg(preserved.svg);
+      expect(opened.ok).toBe(true);
+      if (!opened.ok) {
+        return;
+      }
+      const images = opened.document.objects.filter((object) => object.kind === 'image');
+      expect(images.map((object) => object.image?.placement)).toEqual(['embed', 'link']);
+      expect(images.every((object) => object.image?.dataUrl === pixel)).toBe(true);
+      expect(images[0]?.transform).toMatchObject({ x: 4, y: 6 });
+      expect(images[0]?.image).toMatchObject({ width: 20, height: 10, preserveAspectRatio: 'none' });
+    }
+  });
+
+  it('reads a foreign image and skips remote and skewed references', () => {
+    const foreign = importSvg(`
+      <svg viewBox="0 0 100 100">
+        <image href="${pixel}" x="2" y="3" width="8" height="5" preserveAspectRatio="none"/>
+        <image href="https://example.test/a.png" x="0" y="0" width="4" height="4"/>
+        <image href="photo.png" x="1" y="1" width="6" height="6" transform="skewX(20)"/>
+        <image href="../secret.png" x="1" y="1" width="6" height="6"/>
+      </svg>
+    `);
+    expect(foreign.ok).toBe(true);
+    if (!foreign.ok) {
+      return;
+    }
+    expect(foreign.skipped).toBe(3);
+    expect(foreign.document.objects).toHaveLength(1);
+    expect(foreign.document.objects[0]?.image).toMatchObject({
+      placement: 'embed',
+      dataUrl: pixel,
+      width: 8,
+      height: 5,
+      preserveAspectRatio: 'none',
+    });
+    expect(foreign.document.objects[0]?.transform).toMatchObject({ x: 2, y: 3, scaleX: 1, scaleY: 1 });
   });
 });
 

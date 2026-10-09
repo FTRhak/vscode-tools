@@ -1,5 +1,6 @@
 import { applyMatrix, identityTransform, invertMatrix, matrixFromTransform } from '../io/matrix';
 import { isEmptyPoint } from '../model/empty-point';
+import { isImage } from '../model/image';
 import {
   Modifier,
   SourcePath,
@@ -152,7 +153,7 @@ function walkStack(
   byId: ReadonlyMap<string, VectorObject>,
   evaluate: (object: VectorObject) => StackResult,
 ): StackResult {
-  if (isEmptyPoint(object)) {
+  if (isEmptyPoint(object) || isImage(object)) {
     return { source: { subpaths: [] }, diagnostics: [], booleanRan: false };
   }
   const diagnostics: string[] = [];
@@ -249,7 +250,7 @@ function applyBooleanModifier(
     return { source: null, diagnostics: ['Boolean operands form a cycle.'], ran: false };
   }
   const operand = byId.get(modifier.operandId);
-  if (!operand || isEmptyPoint(operand)) {
+  if (!operand || isEmptyPoint(operand) || isImage(operand)) {
     return { source: null, diagnostics: ['Boolean operand is missing.'], ran: false };
   }
   const placed = placeOperand(object.transform, operand.transform, evaluate(operand).source);

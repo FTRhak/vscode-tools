@@ -903,4 +903,56 @@ describe('CommandBus', () => {
     });
     expect(session.document()!.objects[1].source.subpaths[0].anchors[0].position).toEqual(anchor);
   });
+
+  it('adds an image in one undo step and ignores style and placement chrome', () => {
+    bus.dispatch({ type: 'document.new' });
+    const recorded = session.history().entries.length;
+    bus.dispatch({ type: 'session.setImagePlacement', placement: 'link' });
+    expect(session.imagePlacement()).toBe('link');
+    expect(session.history().entries).toHaveLength(recorded);
+
+    bus.dispatch({
+      type: 'image.add',
+      name: 'Photo',
+      placement: 'link',
+      fileName: 'photo.png',
+      mime: 'image/png',
+      dataUrl: pixel,
+      pixelWidth: 1,
+      pixelHeight: 1,
+      x: 8,
+      y: 9,
+      width: 20,
+      height: 10,
+      preserveAspectRatio: 'none',
+    });
+
+    const image = session.document()!.objects.find((object) => object.kind === 'image');
+    expect(image?.image).toMatchObject({ placement: 'link', width: 20, height: 10 });
+    expect(session.selectedObjectIds()).toEqual([image?.id]);
+    expect(session.history().entries.at(-1)?.label).toBe('Add image');
+
+    const before = session.history().entries.length;
+    bus.dispatch({
+      type: 'style.set',
+      objectIds: [image!.id],
+      fill: '#ff0000',
+    });
+    bus.dispatch({ type: 'object.setTransform', ids: [image!.id], transform: { scaleX: 2, scaleY: 3 } });
+    bus.dispatch({ type: 'object.applyTransform', id: image!.id });
+    expect(session.document()!.objects.find((object) => object.id === image?.id)?.image).toMatchObject({
+      width: 40,
+      height: 30,
+    });
+    expect(session.document()!.objects.find((object) => object.id === image?.id)?.transform).toMatchObject({
+      x: 8,
+      y: 9,
+      scaleX: 1,
+      scaleY: 1,
+    });
+    expect(session.history().entries).toHaveLength(before + 2);
+  });
 });
+
+const pixel =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';

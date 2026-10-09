@@ -2,6 +2,8 @@
   @if (active(); as object) {
     @if (emptyPoint()) {
       <p>Modifiers do not apply to empty points.</p>
+    } @else if (image()) {
+      <p>Modifiers do not apply to images.</p>
     } @else {
     <div class="modifier-actions">
       <button class="chrome-button modifier-action-button" [cdkMenuTriggerFor]="menu">

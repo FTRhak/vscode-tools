@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { DestroyRef, inject, Service, signal } from '@angular/core';
-import { exportSvg, importSvg, SaveMode, SessionService } from '@vector-editor/core';
+import { exportSvg, ImageLocation, importSvg, SaveMode, SessionService } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
 
 @Service()
@@ -49,11 +49,19 @@ export class FileActions {
     this.restoreFocus('[data-file-save]');
   }
 
-  confirmSave(mode: SaveMode): void {
+  confirmSave(mode: SaveMode, images: ImageLocation = 'preserve'): void {
     const current = this.session.document();
     this.saveDialogOpen.set(false);
     if (current) {
-      downloadSvg(this.documentRef, exportSvg(current, mode), fileName(current.name));
+      const exported = exportSvg(current, mode, images);
+      downloadBlob(this.documentRef, new Blob([exported.svg], { type: 'image/svg+xml' }), fileName(current.name));
+      for (const file of exported.files) {
+        const bytes = Uint8Array.from(file.bytes);
+        downloadBlob(this.documentRef, new Blob([bytes], { type: file.mime }), file.name);
+      }
+      if (exported.files.length > 0) {
+        this.status.set('Save the image files next to the SVG.');
+      }
     }
     this.restoreFocus('[data-file-save]');
   }
@@ -76,6 +84,10 @@ export class FileActions {
 
   clearStatus(): void {
     this.status.set(null);
+  }
+
+  report(message: string | null): void {
+    this.status.set(message);
   }
 
   private async read(file: File): Promise<void> {
@@ -109,8 +121,7 @@ export class FileActions {
   }
 }
 
-function downloadSvg(documentRef: Document, contents: string, name: string): void {
-  const blob = new Blob([contents], { type: 'image/svg+xml' });
+function downloadBlob(documentRef: Document, blob: Blob, name: string): void {
   const url = URL.createObjectURL(blob);
   const anchor = documentRef.createElement('a');
   anchor.href = url;

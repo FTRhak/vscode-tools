@@ -34,7 +34,28 @@
   </defs>
   @for (object of objects(); track object.id) {
     <g [attr.transform]="object.transform">
-      @if (object.strokeAlign === 'default') {
+      @if (object.kind === 'image') {
+        @if (object.href) {
+          <image
+            [attr.href]="object.href"
+            x="0"
+            y="0"
+            [attr.width]="object.imageWidth"
+            [attr.height]="object.imageHeight"
+            [attr.preserveAspectRatio]="object.preserveAspectRatio"
+          />
+        } @else {
+          <rect
+            x="0"
+            y="0"
+            [attr.width]="object.imageWidth"
+            [attr.height]="object.imageHeight"
+            fill="none"
+            stroke="#737373"
+            stroke-dasharray="4 3"
+          />
+        }
+      } @else if (object.strokeAlign === 'default') {
         <path
           [attr.d]="object.d"
           [attr.fill]="object.fill"

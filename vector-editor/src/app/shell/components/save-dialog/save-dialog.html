@@ -42,6 +42,38 @@
           </label>
         </div>
       </fieldset>
+      <fieldset>
+        <legend>Images</legend>
+        <div class="choices">
+          <label>
+            <input
+              type="radio"
+              name="image-location"
+              [checked]="images() === 'preserve'"
+              (change)="chooseImages('preserve')"
+            />
+            Preserve
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="image-location"
+              [checked]="images() === 'embed'"
+              (change)="chooseImages('embed')"
+            />
+            Embed
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="image-location"
+              [checked]="images() === 'link'"
+              (change)="chooseImages('link')"
+            />
+            Link
+          </label>
+        </div>
+      </fieldset>
       <div class="actions">
         <button type="button" class="chrome-button" (click)="cancel()">Cancel</button>
         <button type="button" class="chrome-button" (click)="confirm()">Save</button>

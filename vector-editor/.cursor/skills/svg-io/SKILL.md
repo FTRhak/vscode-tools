@@ -25,7 +25,7 @@ The file is SVG. Visible markup (`d`, fill, stroke, groups) is the presentation.
 
 - `all`: ids, locks, swatches, source ids, and modifier objects as stored.
 - `optimized`: names and geometry without ids, locks, or swatches. Segment ends are anchor indexes. Boolean operands and mirror centers are indexes into export order.
-- `minimal`: evaluated visible paths only. No editor attributes. Empty points are omitted. Import puts them on one layer.
+- `minimal`: evaluated visible paths only. No editor attributes. Empty points are omitted. Import puts them on one layer. Visible images stay as `<image>`.
 
 `all` serializes each modifier object. `optimized` builds an explicit payload in `modifierPayload`, so a new modifier field must be added there and read back in `readModifier`.
 
@@ -43,6 +43,6 @@ The file is SVG. Visible markup (`d`, fill, stroke, groups) is the presentation.
 - `importSvg` returns `{ ok: false }` for empty text, a parser error, or a root that is not `svg`.
 - `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, and `polygon` become paths. `Q`, `T`, and `A` are stored as cubics.
 - A top-level `g` or nested `svg` is a layer. Groups inside a layer stay on that layer.
-- `text`, `image`, `use`, `foreignObject`, filters, clips, masks, patterns, symbols, scripts, and styles increment `skipped`. `title`, `desc`, and `metadata` do not.
+- `text`, `use`, `foreignObject`, filters, clips, masks, patterns, symbols, scripts, and styles increment `skipped`. A readable `<image>` becomes `kind: 'image'`. Remote URLs, `..` paths, and skewed transforms still increment `skipped`. `title`, `desc`, and `metadata` do not.
 - `linearGradient` and `radialGradient` in `defs` become document gradients. A fill of `url(#id)` is kept as that string.
 - `FileActions` dispatches `document.replace` after a successful import and downloads `exportSvg` from the save dialog.

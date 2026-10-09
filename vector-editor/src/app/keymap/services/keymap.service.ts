@@ -5,6 +5,7 @@ import { Command, CommandBus, EditorTool, oppositeMode } from '@vector-editor/co
 import { deletableObjectIds, SessionService } from '@vector-editor/core';
 import { fromEvent } from 'rxjs';
 import { FileActions } from '../../shell/services/file-actions.service';
+import { ImagePlace } from '@vector-editor/viewport';
 
 const toolKeys: Readonly<Record<string, EditorTool>> = {
   v: 'select',
@@ -16,6 +17,7 @@ const toolKeys: Readonly<Record<string, EditorTool>> = {
   s: 'star',
   n: 'polygon',
   r: 'rhombus',
+  i: 'image',
 };
 
 @Service()
@@ -23,6 +25,7 @@ export class KeymapService {
   private readonly bus = inject(CommandBus);
   private readonly session = inject(SessionService);
   private readonly files = inject(FileActions);
+  private readonly images = inject(ImagePlace);
   private readonly document = inject(DOCUMENT);
 
   constructor() {
@@ -40,6 +43,9 @@ export class KeymapService {
       }
       event.preventDefault();
       this.bus.dispatch(command);
+      if (command.type === 'session.setTool' && command.tool === 'image') {
+        this.images.requestPick();
+      }
     };
 
     fromEvent<KeyboardEvent>(this.document, 'keydown')

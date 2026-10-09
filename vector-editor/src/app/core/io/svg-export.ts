@@ -1,34 +1,87 @@
 import { sourceBounds } from '../eval/bounds';
 import { evaluateDocument, EvaluatedGeometry } from '../eval/evaluate';
 import { isEmptyPoint } from '../model/empty-point';
+import { imageExtension, isImage, safeImageFileName } from '../model/image';
 import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '../model/paint-order';
 import { sourceToPathData } from '../model/path-data';
-import { Document, Layer, Modifier, SourcePath, Style, VectorObject } from '../model/types';
-import { matrixFromTransform, transformSource } from './matrix';
+import {
+  Document,
+  ImageAspect,
+  ImageMime,
+  ImagePlacement,
+  Layer,
+  Modifier,
+  SourcePath,
+  Style,
+  VectorObject,
+} from '../model/types';
+import { identityTransform, matrixFromTransform, transformSource } from './matrix';
 
 export type SaveMode = 'all' | 'optimized' | 'minimal';
 
+export type ImageLocation = 'preserve' | 'embed' | 'link';
+
+export interface ExportedImageFile {
+  readonly name: string;
+  readonly mime: ImageMime;
+  readonly bytes: Uint8Array;
+}
+
+export interface SvgExport {
+  readonly svg: string;
+  readonly files: readonly ExportedImageFile[];
+}
+
 const formatVersion = 1;
 
-export function exportSvg(document: Document, mode: SaveMode): string {
+export function exportSvg(
+  document: Document,
+  mode: SaveMode,
+  images: ImageLocation = 'preserve',
+): SvgExport {
+  const exported = renderSvg(document, mode, images);
+  return exported;
+}
+
+function renderSvg(document: Document, mode: SaveMode, images: ImageLocation): SvgExport {
   const geometry = new Map(evaluateDocument(document.objects).map((item) => [item.objectId, item]));
   const order = exportedObjects(document);
   const defs = gradientDefs(document);
   const ids = { next: 0 };
+  const files: ExportedImageFile[] = [];
+  const usedNames = new Set<string>();
+  const imageState = { present: false };
   const body: string[] = [];
+  const write = (object: VectorObject, pad: string) => {
+    const markup = objectTag(
+      object,
+      mode,
+      images,
+      geometry.get(object.id),
+      order,
+      defs,
+      ids,
+      files,
+      usedNames,
+      imageState,
+    );
+    if (markup) {
+      body.push(block(markup, pad));
+    }
+  };
   if (mode === 'minimal') {
     for (const object of objectsInPaintOrder(document)) {
       if (isEmptyPoint(object)) {
         continue;
       }
-      body.push(block(pathTag(object, mode, geometry.get(object.id), order, defs, ids), '  '));
+      write(object, '  ');
     }
   } else {
     const known = new Set(document.layers.map((layer) => layer.id));
     for (const layer of layersBackToFront(document)) {
       body.push(`  ${groupOpen(layer, mode)}`);
       for (const object of objectsOnLayer(document, layer.id)) {
-        body.push(block(pathTag(object, mode, geometry.get(object.id), order, defs, ids), '    '));
+        write(object, '    ');
       }
       body.push('  </g>');
     }
@@ -37,17 +90,134 @@ export function exportSvg(document: Document, mode: SaveMode): string {
       const label = escapeXml(JSON.stringify({ name: 'Layer', visible: true }));
       body.push(`  <g data-vector-editor-layer="${label}">`);
       for (const object of orphans) {
-        body.push(block(pathTag(object, mode, geometry.get(object.id), order, defs, ids), '    '));
+        write(object, '    ');
       }
       body.push('  </g>');
     }
   }
-  const lines = [svgOpen(document, mode)];
+  const lines = [svgOpen(document, mode, imageState.present)];
   if (defs.length > 0) {
     lines.push('  <defs>', ...defs, '  </defs>');
   }
   lines.push(...body, '</svg>');
-  return lines.join('\n');
+  return { svg: lines.join('\n'), files };
+}
+
+function objectTag(
+  object: VectorObject,
+  mode: SaveMode,
+  images: ImageLocation,
+  evaluated: EvaluatedGeometry | undefined,
+  order: readonly VectorObject[],
+  defs: string[],
+  ids: { next: number },
+  files: ExportedImageFile[],
+  usedNames: Set<string>,
+  imageState: { present: boolean },
+): string {
+  if (isImage(object)) {
+    return imageTag(object, mode, images, order, files, usedNames, imageState);
+  }
+  return pathTag(object, mode, evaluated, order, defs, ids);
+}
+
+function imageTag(
+  object: VectorObject,
+  mode: SaveMode,
+  images: ImageLocation,
+  order: readonly VectorObject[],
+  files: ExportedImageFile[],
+  usedNames: Set<string>,
+  imageState: { present: boolean },
+): string {
+  const image = object.image;
+  if (!image) {
+    return '';
+  }
+  const linked =
+    images === 'link' || (images === 'preserve' && image.placement === 'link');
+  let href = image.dataUrl;
+  let dataUrl: string | undefined;
+  if (linked) {
+    href = uniqueImageName(image.fileName, image.mime, usedNames);
+    const bytes = image.dataUrl ? dataUrlBytes(image.dataUrl) : null;
+    if (bytes) {
+      files.push({ name: href, mime: image.mime, bytes });
+    }
+    if (mode !== 'minimal' && image.dataUrl) {
+      dataUrl = image.dataUrl;
+    }
+  } else if (!image.dataUrl) {
+    return '';
+  }
+  imageState.present = true;
+  const attributes = [
+    mode === 'all' ? `id="${escapeXml(object.id)}"` : null,
+    'x="0"',
+    'y="0"',
+    `width="${formatNumber(image.width)}"`,
+    `height="${formatNumber(image.height)}"`,
+    `preserveAspectRatio="${image.preserveAspectRatio}"`,
+    `href="${escapeXml(href)}"`,
+    `xlink:href="${escapeXml(href)}"`,
+    imageTransform(object.transform),
+    object.visible ? null : 'display="none"',
+    editorPayload(object, mode, order, dataUrl ? { dataUrl } : undefined),
+  ].filter((item): item is string => item !== null);
+  return `<image ${attributes.join(' ')} />`;
+}
+
+function uniqueImageName(fileName: string, mime: ImageMime, used: Set<string>): string {
+  const safe = safeImageFileName(fileName, mime) ?? `image.${imageExtension(mime)}`;
+  if (!used.has(safe)) {
+    used.add(safe);
+    return safe;
+  }
+  const dot = safe.lastIndexOf('.');
+  const stem = dot > 0 ? safe.slice(0, dot) : safe;
+  const extension = dot > 0 ? safe.slice(dot) : '';
+  let index = 2;
+  let next = `${stem}-${index}${extension}`;
+  while (used.has(next)) {
+    index += 1;
+    next = `${stem}-${index}${extension}`;
+  }
+  used.add(next);
+  return next;
+}
+
+function dataUrlBytes(dataUrl: string): Uint8Array | null {
+  const comma = dataUrl.indexOf(',');
+  if (comma < 0) {
+    return null;
+  }
+  try {
+    const binary = atob(dataUrl.slice(comma + 1));
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function imageTransform(transform: VectorObject['transform']): string | null {
+  if (
+    transform.x === identityTransform.x &&
+    transform.y === identityTransform.y &&
+    transform.rotation === identityTransform.rotation &&
+    transform.scaleX === identityTransform.scaleX &&
+    transform.scaleY === identityTransform.scaleY &&
+    transform.originX === identityTransform.originX &&
+    transform.originY === identityTransform.originY
+  ) {
+    return null;
+  }
+  const matrix = matrixFromTransform(transform);
+  const values = [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f].map(formatNumber);
+  return `transform="matrix(${values.join(' ')})"`;
 }
 
 function gradientDefs(document: Document): string[] {
@@ -88,13 +258,14 @@ function exportedObjects(document: Document): readonly VectorObject[] {
   return objects;
 }
 
-function svgOpen(document: Document, mode: SaveMode): string {
+function svgOpen(document: Document, mode: SaveMode, xlink: boolean): string {
   const viewBox = `${formatNumber(document.viewBox.x)} ${formatNumber(document.viewBox.y)} ${formatNumber(document.viewBox.width)} ${formatNumber(document.viewBox.height)}`;
   const metadata =
     mode === 'minimal'
       ? ''
       : ` data-vector-editor-document="${escapeXml(JSON.stringify(documentPayload(document, mode)))}"`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"${metadata}>`;
+  const link = xlink ? ' xmlns:xlink="http://www.w3.org/1999/xlink"' : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg"${link} viewBox="${viewBox}"${metadata}>`;
 }
 
 function documentPayload(document: Document, mode: SaveMode): unknown {
@@ -263,7 +434,11 @@ function editorPayload(
   object: VectorObject,
   mode: SaveMode,
   order: readonly VectorObject[],
-  paint?: { readonly strokeWidth?: number; readonly stroke?: string | null },
+  paint?: {
+    readonly strokeWidth?: number;
+    readonly stroke?: string | null;
+    readonly dataUrl?: string;
+  },
 ): string | null {
   if (mode === 'minimal') {
     return null;
@@ -288,12 +463,12 @@ function objectPayload(
   object: VectorObject,
   mode: SaveMode,
   order: readonly VectorObject[],
-  paint?: { readonly strokeWidth?: number; readonly stroke?: string | null },
+  paint?: { readonly strokeWidth?: number; readonly stroke?: string | null; readonly dataUrl?: string },
 ): unknown {
   const payload: {
     version: number;
     name: string;
-    kind?: 'empty';
+    kind?: 'empty' | 'image';
     source: SourcePath | ReturnType<typeof indexedSource>;
     transform: VectorObject['transform'];
     modifiers: unknown[];
@@ -301,6 +476,15 @@ function objectPayload(
     strokeAlign?: Style['strokeAlign'];
     strokeWidth?: number;
     stroke?: string | null;
+    placement?: ImagePlacement;
+    fileName?: string;
+    mime?: ImageMime;
+    pixelWidth?: number;
+    pixelHeight?: number;
+    width?: number;
+    height?: number;
+    preserveAspectRatio?: ImageAspect;
+    dataUrl?: string;
   } = {
     version: formatVersion,
     name: object.name,
@@ -313,6 +497,20 @@ function objectPayload(
   };
   if (isEmptyPoint(object)) {
     payload.kind = 'empty';
+  }
+  if (isImage(object) && object.image) {
+    payload.kind = 'image';
+    payload.placement = object.image.placement;
+    payload.fileName = object.image.fileName;
+    payload.mime = object.image.mime;
+    payload.pixelWidth = object.image.pixelWidth;
+    payload.pixelHeight = object.image.pixelHeight;
+    payload.width = object.image.width;
+    payload.height = object.image.height;
+    payload.preserveAspectRatio = object.image.preserveAspectRatio;
+    if (paint?.dataUrl) {
+      payload.dataUrl = paint.dataUrl;
+    }
   }
   if (mode === 'all') {
     payload.locked = object.locked;

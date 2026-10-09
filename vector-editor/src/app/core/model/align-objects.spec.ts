@@ -14,6 +14,30 @@ describe('alignObjects', () => {
     expect(result.objects[1].transform).toEqual({ ...right.transform, x: 0 });
   });
 
+  it('aligns an image by its frame', () => {
+    const box = rect('box', 0, 0, 10, 10);
+    const image: VectorObject = {
+      ...object('image', 30, 8, { subpaths: [] }),
+      kind: 'image',
+      image: {
+        placement: 'embed',
+        fileName: 'photo.png',
+        mime: 'image/png',
+        dataUrl:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        pixelWidth: 1,
+        pixelHeight: 1,
+        width: 10,
+        height: 4,
+        preserveAspectRatio: 'none',
+      },
+    };
+    const result = alignObjects(doc([box, image]), [box.id, image.id], 'left', 'selection');
+
+    expect(result.objects[1].transform.x).toBe(0);
+    expect(result.objects[1].image).toBe(image.image);
+  });
+
   it('aligns the other objects to the first selected object', () => {
     const left = rect('left', 0, 0, 10, 10);
     const right = rect('right', 30, 4, 10, 10);

@@ -34,7 +34,7 @@ Screen points become document points with `screenToDocument` after subtracting t
 1. Ignore events from `[data-shape-dialog]`.
 2. Space + primary, or the middle button, starts pan.
 3. Any other non-primary button returns.
-4. Route the active tool: `pen`, `add-point`, `empty-point`, a shape kind, `direct-select`, otherwise `select`.
+4. Route the active tool: `pen`, `add-point`, `empty-point`, `image`, a shape kind, `direct-select`, otherwise `select`.
 
 `onPointerMove` and `onPointerUp` continue the gesture that owns `pointerId`. Capture the pointer on the host and release it when the gesture ends.
 

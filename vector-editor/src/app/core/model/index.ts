@@ -18,6 +18,16 @@ export type { AlignEdge, AlignTarget } from './align-objects';
 export { addEmptyPoint, isEmptyPoint } from './empty-point';
 export type { EmptyPointResult } from './empty-point';
 export {
+  addImage,
+  imageExtension,
+  imageObjectName,
+  isImage,
+  isImageDataUrl,
+  isImageMime,
+  safeImageFileName,
+} from './image';
+export type { ImageDraft, ImageObjectResult } from './image';
+export {
   addShape,
   clampShapeCount,
   ELLIPSE_KAPPA,
@@ -55,6 +65,10 @@ export type {
   Gradient,
   GradientStop,
   GradientType,
+  ImageAspect,
+  ImageContent,
+  ImageMime,
+  ImagePlacement,
   Modifier,
   ObjectTransform,
   Segment,

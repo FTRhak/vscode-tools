@@ -15,6 +15,7 @@ export const cache = {
   commands: {
     'session.setMode': { handler: 'applyMode', history: null },
     'session.setTool': { handler: 'applyTool', history: null },
+    'session.setImagePlacement': { handler: 'applyImagePlacement', history: null },
     'session.setEditSelectionKind': { handler: 'applyEditSelectionKind', history: null },
     'document.new': { handler: 'createNewDocument', history: 'New document' },
     'document.replace': { handler: 'defaultLayerId(command.document)', history: 'Open' },
@@ -91,6 +92,7 @@ export const cache = {
     'path.add': { handler: 'applyAddPath', history: 'Add path' },
     'point.add': { handler: 'applyPointAdd', history: 'Add empty point' },
     'shape.add': { handler: 'applyShapeAdd', history: 'Add shape' },
+    'image.add': { handler: 'applyImageAdd', history: 'Add image' },
     'pen.begin': { handler: 'applyPenBegin', history: 'Pen' },
     'pen.addPoint': { handler: 'applyPenAddPoint', history: 'Pen' },
     'pen.setHandles': { handler: 'applyPenSetHandles', history: 'Pen' },

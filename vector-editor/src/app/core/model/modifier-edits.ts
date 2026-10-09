@@ -2,6 +2,7 @@ import { evaluateObjectPrefix } from '../eval/evaluate';
 import { remintSource } from '../eval/remint';
 import { createId } from './create-id';
 import { isEmptyPoint } from './empty-point';
+import { isImage } from './image';
 import { Modifier, Style, VectorObject } from './types';
 
 export interface ModifierPatch {
@@ -23,12 +24,16 @@ export interface ModifierPatch {
 
 export type ModifierKind = 'array' | 'mirror' | 'bevel' | 'round' | 'boolean';
 
+function blocksModifiers(object: VectorObject): boolean {
+  return isEmptyPoint(object) || isImage(object);
+}
+
 export function addModifier(
   object: VectorObject,
   kind: ModifierKind,
   objects: readonly VectorObject[] = [],
 ): VectorObject {
-  if (isEmptyPoint(object)) {
+  if (blocksModifiers(object)) {
     return object;
   }
   const modifier = defaultModifier(object, kind, objects);
@@ -40,7 +45,7 @@ export function updateModifier(
   modifierId: string,
   patch: ModifierPatch,
 ): VectorObject {
-  if (isEmptyPoint(object)) {
+  if (blocksModifiers(object)) {
     return object;
   }
   let changed = false;
@@ -58,7 +63,7 @@ export function updateModifier(
 }
 
 export function removeModifier(object: VectorObject, modifierId: string): VectorObject {
-  if (isEmptyPoint(object)) {
+  if (blocksModifiers(object)) {
     return object;
   }
   const modifiers = object.modifiers.filter((modifier) => modifier.id !== modifierId);
@@ -70,7 +75,7 @@ export function reorderModifier(
   modifierId: string,
   index: number,
 ): VectorObject {
-  if (isEmptyPoint(object)) {
+  if (blocksModifiers(object)) {
     return object;
   }
   const from = object.modifiers.findIndex((modifier) => modifier.id === modifierId);
@@ -95,7 +100,7 @@ export function applyModifier(
   modifierId: string,
   objects: readonly VectorObject[] = [object],
 ): VectorObject {
-  if (isEmptyPoint(object)) {
+  if (blocksModifiers(object)) {
     return object;
   }
   const index = object.modifiers.findIndex((modifier) => modifier.id === modifierId);
@@ -113,7 +118,7 @@ export function applyAllModifiers(
   object: VectorObject,
   objects: readonly VectorObject[] = [object],
 ): VectorObject {
-  if (isEmptyPoint(object) || object.modifiers.length === 0) {
+  if (blocksModifiers(object) || object.modifiers.length === 0) {
     return object;
   }
   return bake(object, evaluateObjectPrefix(object, object.modifiers, objects), []);
@@ -203,7 +208,9 @@ function defaultRound(object: VectorObject, objects: readonly VectorObject[]): M
 }
 
 function defaultBoolean(objectId: string, objects: readonly VectorObject[]): Modifier {
-  const operand = objects.find((item) => item.id !== objectId && !isEmptyPoint(item));
+  const operand = objects.find(
+    (item) => item.id !== objectId && !isEmptyPoint(item) && !isImage(item),
+  );
   return {
     id: createId(),
     type: 'boolean',

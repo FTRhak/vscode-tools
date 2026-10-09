@@ -1,7 +1,7 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, computed, inject } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { evaluateDocument, isEmptyPoint, Modifier, SessionService } from '@vector-editor/core';
+import { evaluateDocument, isEmptyPoint, isImage, Modifier, SessionService } from '@vector-editor/core';
 import { ModifierKind } from '../../../../core/model/modifier-edits';
 
 @Component({
@@ -31,6 +31,11 @@ export class ModifiersPanel {
   protected readonly emptyPoint = computed(() => {
     const object = this.active();
     return object !== null && isEmptyPoint(object);
+  });
+
+  protected readonly image = computed(() => {
+    const object = this.active();
+    return object !== null && isImage(object);
   });
 
   protected readonly objects = computed(() => this.session.document()?.objects ?? []);

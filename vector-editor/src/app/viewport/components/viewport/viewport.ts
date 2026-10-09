@@ -5,6 +5,7 @@ import {
   clampShapeCount,
   Document,
   isEmptyPoint,
+  isImage,
   isInteractionLocked,
   isShapeKind,
   objectsInPaintOrder,
@@ -20,6 +21,8 @@ import {
   VectorObject,
 } from '@vector-editor/core';
 import { anchorsInRect } from '../../utils/anchor-hit';
+import { imageFrameAt, imageFrameFromDrag, ImageFrame } from '../../utils/image-frame';
+import { ArmedImage, ImagePlace } from '../../services/image-place.service';
 import {
   ARTBOARD_FIT_PADDING,
   cameraTransformAttribute,
@@ -129,6 +132,7 @@ export class Viewport {
   private readonly bus = inject(CommandBus);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly images = inject(ImagePlace);
 
   private readonly hostSize = signal({ width: 0, height: 0 });
   private fittedDocumentId: string | null = null;
@@ -138,6 +142,7 @@ export class Viewport {
   private direct: DirectDrag | null = null;
   private pen: PenDrag | null = null;
   private shape: ShapeGesture | null = null;
+  private imageDrag: ImageGesture | null = null;
   private starPoints = 5;
   private polygonSides = 6;
   private starRatio = 0.5;
@@ -154,6 +159,7 @@ export class Viewport {
   protected readonly marquee = signal<DocumentRect | null>(null);
   protected readonly shapeDialog = signal<ShapeDialogRequest | null>(null);
   protected readonly shapePreview = signal<string | null>(null);
+  protected readonly imagePreview = signal<(ImageFrame & { readonly href: string }) | null>(null);
   protected readonly editing = computed(() => this.session.mode() === 'edit');
   protected readonly directCursor = computed(
     () => this.editing() && this.session.tool() === 'direct-select',
@@ -204,7 +210,7 @@ export class Viewport {
     const document = this.session.document();
     const activeId = this.session.activeObjectId();
     const object = document?.objects.find((item) => item.id === activeId);
-    if (!object || isEmptyPoint(object)) {
+    if (!object || isEmptyPoint(object) || isImage(object)) {
       return null;
     }
     const selected = new Set(this.session.selectedAnchorIds());
@@ -293,6 +299,10 @@ export class Viewport {
       this.beginEmptyPoint(event);
       return;
     }
+    if (this.session.tool() === 'image') {
+      this.beginImage(event);
+      return;
+    }
     const tool = this.session.tool();
     if (isShapeKind(tool)) {
       this.beginShape(event, tool);
@@ -316,6 +326,10 @@ export class Viewport {
     }
     if (this.shape && event.pointerId === this.shape.pointerId) {
       this.updateShapeGesture(event);
+      return;
+    }
+    if (this.imageDrag && event.pointerId === this.imageDrag.pointerId) {
+      this.updateImageGesture(event);
       return;
     }
     if (this.direct && event.pointerId === this.direct.pointerId) {
@@ -344,6 +358,10 @@ export class Viewport {
     }
     if (this.shape && event.pointerId === this.shape.pointerId) {
       this.finishShape(event);
+      return;
+    }
+    if (this.imageDrag && event.pointerId === this.imageDrag.pointerId) {
+      this.finishImage(event);
       return;
     }
     if (this.direct && event.pointerId === this.direct.pointerId) {
@@ -835,7 +853,7 @@ export class Viewport {
     }
     const object = this.activeObject();
     const document = this.session.document();
-    if (!object || !document || isEmptyPoint(object)) {
+    if (!object || !document || isEmptyPoint(object) || isImage(object)) {
       return;
     }
     const localPoint = documentToLocal(object.transform, this.pointerToDocument(event));
@@ -924,6 +942,7 @@ export class Viewport {
       !document ||
       !object ||
       isEmptyPoint(object) ||
+      isImage(object) ||
       this.session.mode() !== 'edit' ||
       isInteractionLocked(document, object)
     ) {
@@ -1190,6 +1209,101 @@ export class Viewport {
     this.shapeDialog.set(null);
   }
 
+  private beginImage(event: PointerEvent): void {
+    const armed = this.images.armed();
+    if (!this.session.document() || !armed) {
+      return;
+    }
+    const origin = this.snapAbsolute(this.pointerToDocument(event), new Set(), this.shapeLayerId());
+    this.imageDrag = {
+      pointerId: event.pointerId,
+      originClientX: event.clientX,
+      originClientY: event.clientY,
+      origin,
+      current: origin,
+      shift: event.shiftKey,
+      armed,
+    };
+    this.host.nativeElement.setPointerCapture?.(event.pointerId);
+    this.refreshImagePreview();
+  }
+
+  private updateImageGesture(event: PointerEvent): void {
+    const gesture = this.imageDrag;
+    if (!gesture) {
+      return;
+    }
+    gesture.current = this.snapAbsolute(this.pointerToDocument(event), new Set(), this.shapeLayerId());
+    gesture.shift = event.shiftKey;
+    this.refreshImagePreview();
+  }
+
+  private finishImage(event: PointerEvent): void {
+    const gesture = this.imageDrag;
+    if (!gesture) {
+      return;
+    }
+    this.updateImageGesture(event);
+    const travel = Math.hypot(event.clientX - gesture.originClientX, event.clientY - gesture.originClientY);
+    const armed = gesture.armed;
+    const origin = gesture.origin;
+    const current = gesture.current;
+    const shift = gesture.shift;
+    this.clearImageGesture();
+    const frame =
+      travel < GESTURE_THRESHOLD_PX
+        ? imageFrameAt(origin, armed.pixelWidth, armed.pixelHeight)
+        : imageFrameFromDrag(origin, current, armed.pixelWidth, armed.pixelHeight, shift);
+    if (!frame) {
+      return;
+    }
+    this.bus.dispatch({
+      type: 'image.add',
+      name: armed.name,
+      placement: this.session.imagePlacement(),
+      fileName: armed.fileName,
+      mime: armed.mime,
+      dataUrl: armed.dataUrl,
+      pixelWidth: armed.pixelWidth,
+      pixelHeight: armed.pixelHeight,
+      x: frame.x,
+      y: frame.y,
+      width: frame.width,
+      height: frame.height,
+      preserveAspectRatio: frame.preserveAspectRatio,
+    });
+  }
+
+  private refreshImagePreview(): void {
+    const gesture = this.imageDrag;
+    if (!gesture) {
+      this.imagePreview.set(null);
+      return;
+    }
+    const travel = Math.hypot(
+      gesture.current.x - gesture.origin.x,
+      gesture.current.y - gesture.origin.y,
+    );
+    const frame =
+      travel < 1e-6
+        ? imageFrameAt(gesture.origin, gesture.armed.pixelWidth, gesture.armed.pixelHeight)
+        : imageFrameFromDrag(
+            gesture.origin,
+            gesture.current,
+            gesture.armed.pixelWidth,
+            gesture.armed.pixelHeight,
+            gesture.shift,
+          );
+    this.imagePreview.set(frame ? { ...frame, href: gesture.armed.dataUrl } : null);
+  }
+
+  private clearImageGesture(): void {
+    const pointerId = this.imageDrag?.pointerId;
+    this.imageDrag = null;
+    this.imagePreview.set(null);
+    this.release(pointerId);
+  }
+
   private beginShape(event: PointerEvent, kind: ShapeKind): void {
     if (!this.session.document()) {
       return;
@@ -1384,6 +1498,16 @@ export class Viewport {
 
 function isSpace(event: KeyboardEvent): boolean {
   return event.key === ' ' || event.code === 'Space';
+}
+
+interface ImageGesture {
+  readonly pointerId: number;
+  readonly originClientX: number;
+  readonly originClientY: number;
+  readonly origin: Vec2;
+  current: Vec2;
+  shift: boolean;
+  readonly armed: ArmedImage;
 }
 
 interface ShapeGesture {

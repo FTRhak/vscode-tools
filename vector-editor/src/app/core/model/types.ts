@@ -129,15 +129,34 @@ export type Modifier =
       readonly enabled: boolean;
     };
 
+export type ImagePlacement = 'embed' | 'link';
+
+export type ImageMime = 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';
+
+export type ImageAspect = 'xMidYMid meet' | 'none';
+
+export interface ImageContent {
+  readonly placement: ImagePlacement;
+  readonly fileName: string;
+  readonly mime: ImageMime;
+  readonly dataUrl: string;
+  readonly pixelWidth: number;
+  readonly pixelHeight: number;
+  readonly width: number;
+  readonly height: number;
+  readonly preserveAspectRatio: ImageAspect;
+}
+
 export interface VectorObject {
   readonly id: string;
   readonly name: string;
   readonly layerId: string;
   readonly visible: boolean;
   readonly locked: boolean;
-  /** Missing kind is a path. Empty points exist only as movable reference markers. */
-  readonly kind?: 'path' | 'empty';
+  /** Missing kind is a path. Empty points are reference markers. Images are raster frames. */
+  readonly kind?: 'path' | 'empty' | 'image';
   readonly source: SourcePath;
+  readonly image?: ImageContent;
   readonly style: Style;
   readonly transform: ObjectTransform;
   readonly modifiers: readonly Modifier[];
