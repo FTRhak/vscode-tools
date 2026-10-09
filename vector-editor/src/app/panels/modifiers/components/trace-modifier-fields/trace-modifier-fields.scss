@@ -1,0 +1,67 @@
+:host {
+  display: contents;
+}
+
+.fields {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fields > label {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.axis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 0.85rem;
+}
+
+.axis legend {
+  padding: 0;
+}
+
+.axis label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+label.check {
+  grid-template-columns: auto auto;
+  justify-content: start;
+}
+
+input[type='number'],
+select {
+  width: 100%;
+  min-height: 1.75rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #1f1f1f;
+  color: var(--chrome-text);
+  font: inherit;
+  padding: 0.15rem 0.4rem;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #8eb4ff;
+  outline-offset: 1px;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: #8eb4ff;
+  width: 1rem;
+  height: 1rem;
+}

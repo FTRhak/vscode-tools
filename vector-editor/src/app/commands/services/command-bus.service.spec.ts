@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { DUPLICATE_OFFSET, SessionService } from '@vector-editor/core';
+import { DUPLICATE_OFFSET, SessionService, traceRaster } from '@vector-editor/core';
 import { CommandBus } from './command-bus.service';
 
 describe('CommandBus', () => {
@@ -951,6 +951,80 @@ describe('CommandBus', () => {
       scaleY: 1,
     });
     expect(session.history().entries).toHaveLength(before + 2);
+  });
+
+  it('expands an image trace into one path per color and undo restores the image', () => {
+    bus.dispatch({ type: 'document.new' });
+    const pathId = session.document()!.objects[0].id;
+    bus.dispatch({ type: 'modifier.add', objectId: pathId, kind: 'trace' });
+    expect(session.document()!.objects[0].modifiers).toEqual([]);
+
+    bus.dispatch({ type: 'point.add', position: { x: 1, y: 2 } });
+    const pointId = session.document()!.objects.find((object) => object.kind === 'empty')?.id;
+    bus.dispatch({ type: 'modifier.add', objectId: pointId ?? '', kind: 'trace' });
+    expect(session.document()!.objects.find((object) => object.id === pointId)?.modifiers).toEqual([]);
+
+    const width = 8;
+    const height = 4;
+    const rgba = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const offset = (y * width + x) * 4;
+        rgba[offset] = x < 4 ? 255 : 0;
+        rgba[offset + 2] = x < 4 ? 0 : 255;
+        rgba[offset + 3] = 255;
+      }
+    }
+    const regions = traceRaster({
+      width,
+      height,
+      rgba,
+      frameWidth: width,
+      frameHeight: height,
+      mode: 'color',
+      colors: 8,
+      threshold: 128,
+      paths: 100,
+      corners: 100,
+      noise: 0,
+      ignoreWhite: false,
+    });
+    bus.dispatch({
+      type: 'image.add',
+      name: 'Photo',
+      placement: 'embed',
+      fileName: 'photo.png',
+      mime: 'image/png',
+      dataUrl: pixel,
+      pixelWidth: width,
+      pixelHeight: height,
+      x: 3,
+      y: 4,
+      width,
+      height,
+      preserveAspectRatio: 'none',
+    });
+    const imageId = session.document()!.objects.find((object) => object.kind === 'image')?.id ?? '';
+    bus.dispatch({ type: 'modifier.add', objectId: imageId, kind: 'trace', trace: { regions } });
+    bus.dispatch({ type: 'modifier.add', objectId: imageId, kind: 'trace', trace: { regions } });
+    const traced = session.document()!.objects.find((object) => object.id === imageId);
+    expect(traced?.kind).toBe('image');
+    expect(traced?.modifiers).toHaveLength(1);
+    expect(traced?.modifiers[0]).toMatchObject({ type: 'trace', mode: 'color', colors: 16, view: 'result' });
+    const modifierId = traced?.modifiers[0]?.id ?? '';
+    bus.dispatch({ type: 'modifier.apply', objectId: imageId, modifierId });
+
+    expect(session.document()!.objects.some((object) => object.kind === 'image')).toBe(false);
+    expect(session.history().entries.at(-1)?.label).toBe('Apply modifier');
+    const created = session.selectedObjectIds().map((id) => session.document()!.objects.find((object) => object.id === id));
+    expect(created.map((object) => object?.style.fill).sort()).toEqual(['#0000ff', '#ff0000']);
+    expect(created.every((object) => object?.style.fillRule === 'evenodd' && object.modifiers.length === 0)).toBe(true);
+    expect(created.every((object) => object?.kind !== 'image')).toBe(true);
+
+    bus.dispatch({ type: 'history.undo' });
+    const restored = session.document()!.objects.find((object) => object.kind === 'image');
+    expect(restored?.image?.dataUrl).toBe(pixel);
+    expect(restored?.modifiers[0]).toMatchObject({ type: 'trace', regions });
   });
 });
 

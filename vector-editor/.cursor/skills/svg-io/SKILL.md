@@ -25,7 +25,7 @@ The file is SVG. Visible markup (`d`, fill, stroke, groups) is the presentation.
 
 - `all`: ids, locks, swatches, source ids, and modifier objects as stored.
 - `optimized`: names and geometry without ids, locks, or swatches. Segment ends are anchor indexes. Boolean operands and mirror centers are indexes into export order.
-- `minimal`: evaluated visible paths only. No editor attributes. Empty points are omitted. Import puts them on one layer. Visible images stay as `<image>`.
+- `minimal`: evaluated visible paths only. No editor attributes. Empty points are omitted. Import puts them on one layer. Visible images stay as `<image>`, except an enabled image trace with regions, which becomes ordinary filled paths.
 
 `all` serializes each modifier object. `optimized` builds an explicit payload in `modifierPayload`, so a new modifier field must be added there and read back in `readModifier`.
 

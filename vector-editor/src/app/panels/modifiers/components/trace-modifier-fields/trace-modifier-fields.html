@@ -1,0 +1,128 @@
+<form class="fields" (submit)="$event.preventDefault()">
+  <label>
+    Preset
+    <select [value]="presetId()" (change)="commitPreset($event)">
+      <option value="">Custom</option>
+      @for (preset of presets; track preset.id) {
+        <option [value]="preset.id">{{ preset.label }}</option>
+      }
+    </select>
+  </label>
+  <fieldset class="axis">
+    <legend>View</legend>
+    <label>
+      <input
+        type="radio"
+        [name]="'view-' + modifier().id"
+        [checked]="modifier().view === 'result'"
+        (change)="commitView('result')"
+      />
+      Result
+    </label>
+    <label>
+      <input
+        type="radio"
+        [name]="'view-' + modifier().id"
+        [checked]="modifier().view === 'outlines'"
+        (change)="commitView('outlines')"
+      />
+      Outlines
+    </label>
+    <label>
+      <input
+        type="radio"
+        [name]="'view-' + modifier().id"
+        [checked]="modifier().view === 'source'"
+        (change)="commitView('source')"
+      />
+      Source image
+    </label>
+  </fieldset>
+  <fieldset class="axis">
+    <legend>Mode</legend>
+    <label>
+      <input
+        type="radio"
+        [name]="'mode-' + modifier().id"
+        [checked]="modifier().mode === 'color'"
+        (change)="commitMode('color')"
+      />
+      Color
+    </label>
+    <label>
+      <input
+        type="radio"
+        [name]="'mode-' + modifier().id"
+        [checked]="modifier().mode === 'grayscale'"
+        (change)="commitMode('grayscale')"
+      />
+      Grayscale
+    </label>
+    <label>
+      <input
+        type="radio"
+        [name]="'mode-' + modifier().id"
+        [checked]="modifier().mode === 'blackAndWhite'"
+        (change)="commitMode('blackAndWhite')"
+      />
+      Black and white
+    </label>
+  </fieldset>
+  @if (modifier().mode === 'blackAndWhite') {
+    <label>
+      Threshold
+      <input
+        type="number"
+        step="1"
+        [formField]="traceForm.threshold"
+        (blur)="commitNumber('threshold')"
+        (keydown.enter)="commitNumber('threshold', $event)"
+      />
+    </label>
+  } @else {
+    <label>
+      Colors
+      <input
+        type="number"
+        step="1"
+        [formField]="traceForm.colors"
+        (blur)="commitNumber('colors')"
+        (keydown.enter)="commitNumber('colors', $event)"
+      />
+    </label>
+  }
+  <label>
+    Paths
+    <input
+      type="number"
+      step="1"
+      [formField]="traceForm.paths"
+      (blur)="commitNumber('paths')"
+      (keydown.enter)="commitNumber('paths', $event)"
+    />
+  </label>
+  <label>
+    Corners
+    <input
+      type="number"
+      step="1"
+      [formField]="traceForm.corners"
+      (blur)="commitNumber('corners')"
+      (keydown.enter)="commitNumber('corners', $event)"
+    />
+  </label>
+  <label>
+    Noise
+    <input
+      type="number"
+      step="1"
+      [formField]="traceForm.noise"
+      (blur)="commitNumber('noise')"
+      (keydown.enter)="commitNumber('noise', $event)"
+    />
+  </label>
+  <label class="check">
+    <input type="checkbox" [checked]="modifier().ignoreWhite" (change)="commitIgnore($event)" />
+    Ignore white
+  </label>
+</form>

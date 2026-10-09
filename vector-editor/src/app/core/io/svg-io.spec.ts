@@ -4,6 +4,8 @@ import { addEmptyPoint } from '../model/empty-point';
 import { Document, SourcePath, svgStrokeDefaults, Vec2, VectorObject } from '../model/types';
 import { parsePathData } from './path-data-parse';
 import { addImage } from '../model/image';
+import { traceRaster } from '../model/image-trace';
+import { addModifier } from '../model/modifier-edits';
 import { exportSvg as exportSvgResult, ImageLocation, SaveMode } from './svg-export';
 import { importSvg } from './svg-import';
 
@@ -802,6 +804,99 @@ describe('image svg', () => {
       expect(images[0]?.transform).toMatchObject({ x: 4, y: 6 });
       expect(images[0]?.image).toMatchObject({ width: 20, height: 10, preserveAspectRatio: 'none' });
     }
+  });
+
+  it('keeps a live image trace in all and optimized and bakes minimal paths', () => {
+    const width = 8;
+    const height = 4;
+    const rgba = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const offset = (y * width + x) * 4;
+        rgba[offset] = x < 4 ? 255 : 0;
+        rgba[offset + 2] = x < 4 ? 0 : 255;
+        rgba[offset + 3] = 255;
+      }
+    }
+    const regions = traceRaster({
+      width,
+      height,
+      rgba,
+      frameWidth: width,
+      frameHeight: height,
+      mode: 'color',
+      colors: 8,
+      threshold: 128,
+      paths: 100,
+      corners: 100,
+      noise: 0,
+      ignoreWhite: false,
+    });
+    const document = createNewDocument();
+    const added = addImage(
+      document,
+      {
+        name: 'Photo',
+        placement: 'embed',
+        fileName: 'photo.png',
+        mime: 'image/png',
+        dataUrl: pixel,
+        pixelWidth: width,
+        pixelHeight: height,
+        x: 4,
+        y: 6,
+        width,
+        height,
+        preserveAspectRatio: 'none',
+      },
+      document.layers[0].id,
+    );
+    expect(added).not.toBeNull();
+    const traced = {
+      ...added!.document,
+      objects: added!.document.objects.map((object) =>
+        object.id === added!.objectId ? addModifier(object, 'trace', added!.document.objects, { regions }) : object,
+      ),
+    };
+
+    const all = importSvg(exportSvg(traced, 'all'));
+    expect(exportSvg(traced, 'all')).toContain('<g ');
+    expect(exportSvg(traced, 'all')).toContain('fill="#ff0000"');
+    expect(exportSvg(traced, 'all')).not.toContain('<image ');
+    expect(all.ok).toBe(true);
+    if (!all.ok) {
+      return;
+    }
+    const allImage = all.document.objects.find((object) => object.kind === 'image');
+    expect(allImage?.image?.dataUrl).toBe(pixel);
+    expect(allImage?.transform).toMatchObject({ x: 4, y: 6 });
+    expect(allImage?.modifiers[0]).toMatchObject({ type: 'trace', mode: 'color', colors: 16 });
+    expect(allImage?.modifiers[0]?.type === 'trace' ? allImage.modifiers[0].regions : []).toHaveLength(2);
+
+    const optimized = importSvg(exportSvg(traced, 'optimized'));
+    expect(optimized.ok).toBe(true);
+    if (!optimized.ok) {
+      return;
+    }
+    const optimizedImage = optimized.document.objects.find((object) => object.kind === 'image');
+    expect(optimizedImage?.modifiers).toHaveLength(1);
+    expect(optimizedImage?.modifiers[0]).toMatchObject({ type: 'trace', view: 'result' });
+    expect(optimizedImage?.modifiers[0]?.type === 'trace' ? optimizedImage.modifiers[0].regions : []).toHaveLength(2);
+    expect(optimizedImage?.image?.dataUrl).toBe(pixel);
+
+    const minimalSvg = exportSvg(traced, 'minimal');
+    expect(minimalSvg).toContain('fill="#0000ff"');
+    expect(minimalSvg).not.toContain('data-vector-editor');
+    expect(minimalSvg).not.toContain('<image ');
+    const minimal = importSvg(minimalSvg);
+    expect(minimal.ok).toBe(true);
+    if (!minimal.ok) {
+      return;
+    }
+    expect(minimal.document.objects.some((object) => object.kind === 'image')).toBe(false);
+    const fills = minimal.document.objects.map((object) => object.style.fill);
+    expect(fills).toContain('#ff0000');
+    expect(fills).toContain('#0000ff');
   });
 
   it('reads a foreign image and skips remote and skewed references', () => {

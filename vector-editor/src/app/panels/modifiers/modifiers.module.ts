@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormField } from '@angular/forms/signals';
 import { SharedModule } from '@vector-editor/shared';
-import { ArrayModifierFields, BevelModifierFields, BooleanModifierFields, MirrorModifierFields, ModifierRow, ModifiersPanel, RoundModifierFields } from './components';
+import { ArrayModifierFields, BevelModifierFields, BooleanModifierFields, MirrorModifierFields, ModifierRow, ModifiersPanel, RoundModifierFields, TraceModifierFields } from './components';
 
 @NgModule({
   declarations: [
@@ -13,6 +13,7 @@ import { ArrayModifierFields, BevelModifierFields, BooleanModifierFields, Mirror
     BevelModifierFields,
     BooleanModifierFields,
     RoundModifierFields,
+    TraceModifierFields,
     ModifierRow,
     MirrorModifierFields,
   ],

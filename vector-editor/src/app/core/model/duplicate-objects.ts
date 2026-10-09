@@ -73,5 +73,15 @@ function cloneModifier(modifier: Modifier, objectIds: ReadonlyMap<string, string
       operandId: objectIds.get(modifier.operandId) ?? modifier.operandId,
     };
   }
+  if (modifier.type === 'trace') {
+    return {
+      ...modifier,
+      id,
+      regions: modifier.regions.map((region) => ({
+        fill: region.fill,
+        source: cloneSource(region.source),
+      })),
+    };
+  }
   return { ...modifier, id };
 }

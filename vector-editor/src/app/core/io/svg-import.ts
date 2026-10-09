@@ -1,5 +1,6 @@
 import { createId } from '../model/create-id';
 import { imageContent, isImageDataUrl, isImageMime } from '../model/image';
+import { clampTraceSettings } from '../model/image-trace';
 import {
   Anchor,
   Document,
@@ -15,6 +16,7 @@ import {
   svgStrokeDefaults,
   Subpath,
   Swatch,
+  TraceRegion,
   Vec2,
   VectorObject,
 } from '../model/types';
@@ -146,7 +148,7 @@ export function importSvg(markup: string): SvgImportResult {
       }
       if (name === 'image') {
         const layer = context.layer ?? ensureLoose();
-        const object = readImage(child, layer.id, context, claim);
+        const object = readImage(child, layer.id, context, claim, operandLinks, centerPointLinks);
         if (object) {
           layer.objects.push(object);
         } else {
@@ -160,6 +162,16 @@ export function importSvg(markup: string): SvgImportResult {
       }
       if (name === 'defs') {
         skipped += countSkipped(child);
+        continue;
+      }
+      if (name === 'g' && imagePayload(child)) {
+        const layer = context.layer ?? ensureLoose();
+        const traced = readImage(child, layer.id, context, claim, operandLinks, centerPointLinks);
+        if (traced) {
+          layer.objects.push(traced);
+        } else {
+          skipped += 1;
+        }
         continue;
       }
       if (name === 'g' || name === 'svg') {
@@ -345,11 +357,18 @@ function readObject(
   };
 }
 
+function imagePayload(element: Element): boolean {
+  const json = parseJson(element.getAttribute(objectAttribute));
+  return isRecord(json) && json['kind'] === 'image';
+}
+
 function readImage(
   element: Element,
   layerId: string,
   context: WalkContext,
   claim: (id: string | null) => string,
+  operandLinks: OperandLink[],
+  centerPointLinks: CenterPointLink[],
 ): VectorObject | null {
   const href = imageHref(element);
   const payload = readImagePayload(element.getAttribute(objectAttribute));
@@ -376,6 +395,7 @@ function readImage(
   if (!content) {
     return null;
   }
+  const raw = parseJson(element.getAttribute(objectAttribute));
   return {
     id: claim(element.getAttribute('id')),
     name: resolved.name || 'Image',
@@ -393,7 +413,7 @@ function readImage(
       fillRule: 'nonzero',
     },
     transform: resolved.transform,
-    modifiers: [],
+    modifiers: readModifiers(isRecord(raw) ? raw['modifiers'] : undefined, claim, operandLinks, centerPointLinks),
   };
 }
 
@@ -826,7 +846,46 @@ function readModifier(
     }
     return { id, type: 'boolean', operation, operandId, enabled };
   }
+  if (value['type'] === 'trace') {
+    const settings = clampTraceSettings({
+      mode: value['mode'] === 'grayscale' || value['mode'] === 'blackAndWhite' ? value['mode'] : 'color',
+      colors: finiteField(value, 'colors', 16),
+      threshold: finiteField(value, 'threshold', 128),
+      paths: finiteField(value, 'paths', 50),
+      corners: finiteField(value, 'corners', 75),
+      noise: finiteField(value, 'noise', 10),
+      ignoreWhite: booleanField(value, 'ignoreWhite') === true,
+    });
+    const view = value['view'];
+    const regions = readTraceRegions(value['regions'], claim);
+    return {
+      id: claim(stringField(value, 'id')),
+      type: 'trace',
+      ...settings,
+      view: view === 'outlines' || view === 'source' ? view : 'result',
+      regions,
+      ...(value['fault'] === 'unread' && regions.length === 0 ? { fault: 'unread' as const } : {}),
+      enabled,
+    };
+  }
   return null;
+}
+
+function readTraceRegions(value: unknown, claim: (id: string | null) => string): TraceRegion[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item) => {
+    if (!isRecord(item)) {
+      return [];
+    }
+    const fill = stringField(item, 'fill')?.toLowerCase();
+    const source = readSource(item['source']);
+    if (!fill || !/^#[0-9a-f]{6}$/.test(fill) || !source || source.subpaths.length === 0) {
+      return [];
+    }
+    return [{ fill, source: claimSource(source, claim) }];
+  });
 }
 
 function readSource(value: unknown): SourcePath | null {

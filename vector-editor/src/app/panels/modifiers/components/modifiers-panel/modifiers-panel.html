@@ -2,8 +2,6 @@
   @if (active(); as object) {
     @if (emptyPoint()) {
       <p>Modifiers do not apply to empty points.</p>
-    } @else if (image()) {
-      <p>Modifiers do not apply to images.</p>
     } @else {
     <div class="modifier-actions">
       <button class="chrome-button modifier-action-button" [cdkMenuTriggerFor]="menu">
@@ -12,11 +10,9 @@
       </button>
       <ng-template #menu>
         <div class="modifier-list-menu menu-panel-content" cdkMenu>
-          <button cdkMenuItem (click)="add('array')">Array</button>
-          <button cdkMenuItem (click)="add('mirror')">Mirror</button>
-          <button cdkMenuItem (click)="add('bevel')">Bevel</button>
-          <button cdkMenuItem (click)="add('round')">Round</button>
-          <button cdkMenuItem (click)="add('boolean')">Boolean</button>
+          @for (item of addKinds(); track item.kind) {
+            <button cdkMenuItem (click)="add(item.kind)">{{ item.label }}</button>
+          }
         </div>
       </ng-template>
       

@@ -50,7 +50,22 @@
           [attr.opacity]="editing() && activeId() !== object.id ? 0.4 : null"
         >
           @if (object.kind === 'image') {
-            @if (object.href) {
+            @if (object.tracePaths.length > 0) {
+              @for (path of object.tracePaths; track $index) {
+                @if (object.traceOutlines) {
+                  <path
+                    [attr.d]="path.d"
+                    fill="none"
+                    [attr.stroke]="path.fill"
+                    stroke-width="1"
+                    vector-effect="non-scaling-stroke"
+                    fill-rule="evenodd"
+                  />
+                } @else {
+                  <path [attr.d]="path.d" [attr.fill]="path.fill" stroke="none" fill-rule="evenodd" />
+                }
+              }
+            } @else if (object.href) {
               <image
                 [attr.href]="object.href"
                 x="0"

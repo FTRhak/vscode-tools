@@ -34,6 +34,7 @@ import {
   setAnchorPosition,
   translateAnchors,
 } from './model/edit-path';
+import { expandTrace } from './model/expand-trace';
 import {
   addModifier,
   applyAllModifiers,
@@ -226,7 +227,7 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyPenFinish(state, command);
     case 'modifier.add':
       return applyObjectChange(state, command.objectId, (object) =>
-        addModifier(object, command.kind, state.document?.objects ?? []),
+        addModifier(object, command.kind, state.document?.objects ?? [], command.trace),
       );
     case 'modifier.update':
       return applyObjectChange(state, command.objectId, (object) =>
@@ -241,13 +242,9 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
         reorderModifier(object, command.modifierId, command.index),
       );
     case 'modifier.apply':
-      return applyBakedModifier(state, command.objectId, (object) =>
-        applyModifier(object, command.modifierId, state.document?.objects ?? []),
-      );
+      return applyModifierCommand(state, command.objectId, command.modifierId);
     case 'modifier.applyAll':
-      return applyBakedModifier(state, command.objectId, (object) =>
-        applyAllModifiers(object, state.document?.objects ?? []),
-      );
+      return applyModifierCommand(state, command.objectId);
   }
 }
 
@@ -1077,6 +1074,40 @@ function applyObjectChange(
   update: (object: VectorObject) => VectorObject,
 ): SessionSlice {
   return applyDocument(state, (document) => mapObjects(document, [objectId], update));
+}
+
+function applyModifierCommand(
+  state: SessionSlice,
+  objectId: string,
+  modifierId?: string,
+): SessionSlice {
+  const document = state.document;
+  if (!document) {
+    return state;
+  }
+  const expanded = expandTrace(document, objectId, modifierId);
+  if (expanded) {
+    if (expanded.document === document) {
+      return state;
+    }
+    return {
+      ...state,
+      document: expanded.document,
+      selection: {
+        ...state.selection,
+        activeObjectId: expanded.newIds.at(-1) ?? null,
+        selectedObjectIds: expanded.newIds,
+        selectedAnchorIds: [],
+        selectedSegmentIds: [],
+      },
+    };
+  }
+  if (modifierId === undefined) {
+    return applyBakedModifier(state, objectId, (object) => applyAllModifiers(object, document.objects));
+  }
+  return applyBakedModifier(state, objectId, (object) =>
+    applyModifier(object, modifierId, document.objects),
+  );
 }
 
 function applyBakedModifier(

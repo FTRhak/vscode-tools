@@ -36,8 +36,8 @@ export const cache = {
     emptyPoint: 'kind empty, zero subpaths; minimal save skips it',
   },
   files: [
-    { path: 'src/app/core/io/svg-export.ts', role: 'exportSvg and save modes', symbols: ['export function exportSvg', "export type SaveMode = 'all' | 'optimized' | 'minimal'", "export type ImageLocation = 'preserve' | 'embed' | 'link'", 'const formatVersion = 1', 'data-vector-editor-document', 'data-vector-editor-layer', 'indexedSource', 'operandIndex', 'centerPointIndex', "payload.kind = 'empty'", "payload.kind = 'image'", 'xlink:href', 'stroke-clip-', 'stroke-paint-'] },
-    { path: 'src/app/core/io/svg-import.ts', role: 'importSvg', symbols: ['export function importSvg', 'skippedTags', 'shapeTags', 'transparentTags', 'operandIndex', 'centerPointIndex', 'readGradients', "json['kind'] === 'empty'", "json['kind'] !== 'image'", 'readStrokeAlign', 'readPayloadWidth', 'function readImage'] },
+    { path: 'src/app/core/io/svg-export.ts', role: 'exportSvg and save modes', symbols: ['export function exportSvg', "export type SaveMode = 'all' | 'optimized' | 'minimal'", "export type ImageLocation = 'preserve' | 'embed' | 'link'", 'const formatVersion = 1', 'data-vector-editor-document', 'data-vector-editor-layer', 'indexedSource', 'operandIndex', 'centerPointIndex', "payload.kind = 'empty'", "payload.kind = 'image'", 'xlink:href', 'stroke-clip-', 'stroke-paint-', "case 'trace'"] },
+    { path: 'src/app/core/io/svg-import.ts', role: 'importSvg', symbols: ['export function importSvg', 'skippedTags', 'shapeTags', 'transparentTags', 'operandIndex', 'centerPointIndex', 'readGradients', "json['kind'] === 'empty'", "json['kind'] !== 'image'", 'readStrokeAlign', 'readPayloadWidth', 'function readImage', "value['type'] === 'trace'"] },
     { path: 'src/app/core/io/index.ts', role: 'public io exports', symbols: ['exportSvg', 'importSvg', 'SaveMode', 'SvgImportResult'] },
     { path: 'src/app/core/io/path-data-parse.ts', role: 'SVG path data to SourcePath', symbols: ['export function parsePathData', "kind === 'Q'", "kind === 'A'"] },
     { path: 'src/app/core/io/shapes.ts', role: 'SVG primitives to SourcePath', symbols: ['export function primitiveToSource', 'const KAPPA'] },
@@ -58,6 +58,7 @@ export const cache = {
     'strokeAlign is inside/outside/default on the object payload for all and optimized. Inside exports a clip and a double stroke-width; outside exports a mask and a use. Payload strokeWidth is the real width when the attribute is doubled, and payload stroke restores the color when the attribute is none. minimal paints the alignment without a payload, so reopening it does not restore alignment.',
     'DOMParser is required. Tests run it through jsdom.',
     'Images export as <image> with href and xlink:href. ImageLocation preserve, embed, or link is an export argument. External URLs are skipped on import. all and optimized keep dataUrl in the payload when the visible href is a file name.',
+    'An enabled image trace with regions exports a group of filled paths in all and optimized. The group payload kind is image, so import keeps one image object and ignores the children. Minimal exports those paths with no editor attributes.',
   ],
 };
 

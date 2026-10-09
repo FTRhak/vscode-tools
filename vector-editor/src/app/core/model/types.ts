@@ -89,6 +89,17 @@ export const svgStrokeDefaults: Pick<
   strokeAlign: 'default',
 };
 
+export type TraceMode = 'color' | 'grayscale' | 'blackAndWhite';
+
+export type TraceView = 'result' | 'outlines' | 'source';
+
+export type TraceFault = 'unread';
+
+export interface TraceRegion {
+  readonly fill: string;
+  readonly source: SourcePath;
+}
+
 export type Modifier =
   | {
       readonly id: string;
@@ -126,6 +137,21 @@ export type Modifier =
       readonly type: 'boolean';
       readonly operation: 'union' | 'difference' | 'intersect';
       readonly operandId: string;
+      readonly enabled: boolean;
+    }
+  | {
+      readonly id: string;
+      readonly type: 'trace';
+      readonly mode: TraceMode;
+      readonly colors: number;
+      readonly threshold: number;
+      readonly paths: number;
+      readonly corners: number;
+      readonly noise: number;
+      readonly ignoreWhite: boolean;
+      readonly view: TraceView;
+      readonly regions: readonly TraceRegion[];
+      readonly fault?: TraceFault;
       readonly enabled: boolean;
     };
 

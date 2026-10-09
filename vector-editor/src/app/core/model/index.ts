@@ -27,6 +27,18 @@ export {
   safeImageFileName,
 } from './image';
 export type { ImageDraft, ImageObjectResult } from './image';
+export { expandTrace } from './expand-trace';
+export {
+  TRACE_SAMPLE_LIMIT,
+  clampTraceSettings,
+  defaultTraceSettings,
+  enabledTrace,
+  imageTraceDiagnostics,
+  tracePreview,
+  tracePresets,
+  traceRaster,
+} from './image-trace';
+export type { TracePreset, TraceRasterInput, TraceSettings } from './image-trace';
 export {
   addShape,
   clampShapeCount,
@@ -70,6 +82,10 @@ export type {
   ImageMime,
   ImagePlacement,
   Modifier,
+  TraceFault,
+  TraceMode,
+  TraceRegion,
+  TraceView,
   ObjectTransform,
   Segment,
   SourcePath,

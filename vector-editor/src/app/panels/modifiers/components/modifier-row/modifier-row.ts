@@ -1,8 +1,9 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { isEmptyPoint, isImage, Modifier, VectorObject } from '@vector-editor/core';
-
-type BooleanOperation = 'union' | 'difference' | 'intersect';
+import { isEmptyPoint, isImage, Modifier, TraceSettings, VectorObject } from '@vector-editor/core';
+import { traceImageContent } from '@vector-editor/viewport';
+import { ModifierPatch } from '../../../../core/model/modifier-edits';
+import { TraceModifierPatch } from '../trace-modifier-fields/trace-modifier-fields';
 
 @Component({
   selector: 'app-modifier-row',
@@ -12,6 +13,7 @@ type BooleanOperation = 'union' | 'difference' | 'intersect';
 })
 export class ModifierRow {
   private readonly bus = inject(CommandBus);
+  private traceSerial = 0;
 
   readonly modifier = input.required<Modifier>();
   readonly objectId = input.required<string>();
@@ -29,6 +31,8 @@ export class ModifierRow {
         return 'Round';
       case 'boolean':
         return 'Boolean';
+      case 'trace':
+        return 'Image to vector';
     }
   });
 
@@ -55,6 +59,11 @@ export class ModifierRow {
   protected readonly booleanModifier = computed(() => {
     const modifier = this.modifier();
     return modifier.type === 'boolean' ? modifier : null;
+  });
+
+  protected readonly traceModifier = computed(() => {
+    const modifier = this.modifier();
+    return modifier.type === 'trace' ? modifier : null;
   });
 
   protected readonly peers = computed(() =>
@@ -85,22 +94,46 @@ export class ModifierRow {
     });
   }
 
-  protected patch(patch: {
-    readonly enabled?: boolean;
-    readonly count?: number;
-    readonly offsetX?: number;
-    readonly offsetY?: number;
-    readonly axis?: 'x' | 'y' | 'xy' | 'none';
-    readonly centerPointId?: string | null;
-    readonly distance?: number;
-    readonly join?: 'bevel' | 'miter' | 'round';
-    readonly miterLimit?: number;
-    readonly mode?: 'direct' | 'smooth' | 'circle';
-    readonly anchorCount?: number;
-    readonly roundness?: number;
-    readonly operation?: BooleanOperation;
-    readonly operandId?: string;
-  }): void {
+  protected async commitTrace(patch: TraceModifierPatch): Promise<void> {
+    const modifier = this.traceModifier();
+    const object = this.objects().find((item) => item.id === this.objectId());
+    if (!modifier || !object?.image) {
+      return;
+    }
+    const retrace =
+      patch.traceMode !== undefined ||
+      patch.colors !== undefined ||
+      patch.threshold !== undefined ||
+      patch.paths !== undefined ||
+      patch.corners !== undefined ||
+      patch.noise !== undefined ||
+      patch.ignoreWhite !== undefined;
+    if (!retrace) {
+      this.patch(patch);
+      return;
+    }
+    const serial = ++this.traceSerial;
+    const settings: TraceSettings = {
+      mode: patch.traceMode ?? modifier.mode,
+      colors: patch.colors ?? modifier.colors,
+      threshold: patch.threshold ?? modifier.threshold,
+      paths: patch.paths ?? modifier.paths,
+      corners: patch.corners ?? modifier.corners,
+      noise: patch.noise ?? modifier.noise,
+      ignoreWhite: patch.ignoreWhite ?? modifier.ignoreWhite,
+    };
+    const traced = await traceImageContent(object.image, settings);
+    if (serial !== this.traceSerial) {
+      return;
+    }
+    this.patch({
+      ...patch,
+      regions: traced.regions,
+      fault: traced.fault ?? null,
+    });
+  }
+
+  protected patch(patch: ModifierPatch): void {
     this.bus.dispatch({
       type: 'modifier.update',
       objectId: this.objectId(),

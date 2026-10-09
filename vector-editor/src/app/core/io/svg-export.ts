@@ -2,6 +2,7 @@ import { sourceBounds } from '../eval/bounds';
 import { evaluateDocument, EvaluatedGeometry } from '../eval/evaluate';
 import { isEmptyPoint } from '../model/empty-point';
 import { imageExtension, isImage, safeImageFileName } from '../model/image';
+import { enabledTrace } from '../model/image-trace';
 import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '../model/paint-order';
 import { sourceToPathData } from '../model/path-data';
 import {
@@ -13,6 +14,7 @@ import {
   Modifier,
   SourcePath,
   Style,
+  TraceRegion,
   VectorObject,
 } from '../model/types';
 import { identityTransform, matrixFromTransform, transformSource } from './matrix';
@@ -134,6 +136,10 @@ function imageTag(
   if (!image) {
     return '';
   }
+  const trace = enabledTrace(object);
+  if (trace && trace.regions.length > 0) {
+    return tracedImageTag(object, trace.regions, mode, images, order, files, usedNames);
+  }
   const linked =
     images === 'link' || (images === 'preserve' && image.placement === 'link');
   let href = image.dataUrl;
@@ -165,6 +171,57 @@ function imageTag(
     editorPayload(object, mode, order, dataUrl ? { dataUrl } : undefined),
   ].filter((item): item is string => item !== null);
   return `<image ${attributes.join(' ')} />`;
+}
+
+function tracedImageTag(
+  object: VectorObject,
+  regions: readonly TraceRegion[],
+  mode: SaveMode,
+  images: ImageLocation,
+  order: readonly VectorObject[],
+  files: ExportedImageFile[],
+  usedNames: Set<string>,
+): string {
+  const image = object.image;
+  if (!image) {
+    return '';
+  }
+  const linked = images === 'link' || (images === 'preserve' && image.placement === 'link');
+  if (linked && image.dataUrl) {
+    const href = uniqueImageName(image.fileName, image.mime, usedNames);
+    const bytes = dataUrlBytes(image.dataUrl);
+    if (bytes) {
+      files.push({ name: href, mime: image.mime, bytes });
+    }
+  }
+  if (mode === 'minimal') {
+    return regions
+      .map((region) => {
+        const attributes = [
+          `d="${escapeXml(sourceToPathData(region.source))}"`,
+          `fill="${escapeXml(region.fill)}"`,
+          'stroke="none"',
+          'fill-rule="evenodd"',
+          imageTransform(object.transform),
+          object.visible ? null : 'display="none"',
+        ].filter((item): item is string => item !== null);
+        return `<path ${attributes.join(' ')} />`;
+      })
+      .join('\n');
+  }
+  const paths = regions
+    .map(
+      (region) =>
+        `  <path d="${escapeXml(sourceToPathData(region.source))}" fill="${escapeXml(region.fill)}" stroke="none" fill-rule="evenodd" />`,
+    )
+    .join('\n');
+  const attributes = [
+    mode === 'all' ? `id="${escapeXml(object.id)}"` : null,
+    imageTransform(object.transform),
+    object.visible ? null : 'display="none"',
+    editorPayload(object, mode, order, image.dataUrl ? { dataUrl: image.dataUrl } : undefined),
+  ].filter((item): item is string => item !== null);
+  return `<g ${attributes.join(' ')}>\n${paths}\n</g>`;
 }
 
 function uniqueImageName(fileName: string, mime: ImageMime, used: Set<string>): string {
@@ -583,6 +640,24 @@ function modifierPayload(
         enabled: modifier.enabled,
       };
     }
+    case 'trace':
+      return {
+        type: modifier.type,
+        mode: modifier.mode,
+        colors: modifier.colors,
+        threshold: modifier.threshold,
+        paths: modifier.paths,
+        corners: modifier.corners,
+        noise: modifier.noise,
+        ignoreWhite: modifier.ignoreWhite,
+        view: modifier.view,
+        enabled: modifier.enabled,
+        ...(modifier.fault ? { fault: modifier.fault } : {}),
+        regions: modifier.regions.map((region) => ({
+          fill: region.fill,
+          source: indexedSource(region.source),
+        })),
+      };
   }
 }
 

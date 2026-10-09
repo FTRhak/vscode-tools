@@ -3,7 +3,14 @@ import { remintSource } from '../eval/remint';
 import { createId } from './create-id';
 import { isEmptyPoint } from './empty-point';
 import { isImage } from './image';
-import { Modifier, Style, VectorObject } from './types';
+import {
+  clampTraceSettings,
+  defaultTraceSettings,
+  sanitizeTraceRegions,
+  traceFault,
+  traceView,
+} from './image-trace';
+import { Modifier, Style, TraceFault, TraceMode, TraceRegion, TraceView, VectorObject } from './types';
 
 export interface ModifierPatch {
   readonly enabled?: boolean;
@@ -20,9 +27,24 @@ export interface ModifierPatch {
   readonly roundness?: number;
   readonly operation?: 'union' | 'difference' | 'intersect';
   readonly operandId?: string;
+  readonly traceMode?: TraceMode;
+  readonly colors?: number;
+  readonly threshold?: number;
+  readonly paths?: number;
+  readonly corners?: number;
+  readonly noise?: number;
+  readonly ignoreWhite?: boolean;
+  readonly view?: TraceView;
+  readonly regions?: readonly TraceRegion[];
+  readonly fault?: TraceFault | null;
 }
 
-export type ModifierKind = 'array' | 'mirror' | 'bevel' | 'round' | 'boolean';
+export interface TraceAdd {
+  readonly regions: readonly TraceRegion[];
+  readonly fault?: TraceFault;
+}
+
+export type ModifierKind = 'array' | 'mirror' | 'bevel' | 'round' | 'boolean' | 'trace';
 
 function blocksModifiers(object: VectorObject): boolean {
   return isEmptyPoint(object) || isImage(object);
@@ -32,11 +54,12 @@ export function addModifier(
   object: VectorObject,
   kind: ModifierKind,
   objects: readonly VectorObject[] = [],
+  trace?: TraceAdd,
 ): VectorObject {
-  if (blocksModifiers(object)) {
+  if (isEmptyPoint(object) || !acceptsKind(object, kind)) {
     return object;
   }
-  const modifier = defaultModifier(object, kind, objects);
+  const modifier = defaultModifier(object, kind, objects, trace);
   return { ...object, modifiers: [...object.modifiers, modifier] };
 }
 
@@ -45,7 +68,7 @@ export function updateModifier(
   modifierId: string,
   patch: ModifierPatch,
 ): VectorObject {
-  if (blocksModifiers(object)) {
+  if (isEmptyPoint(object)) {
     return object;
   }
   let changed = false;
@@ -63,7 +86,7 @@ export function updateModifier(
 }
 
 export function removeModifier(object: VectorObject, modifierId: string): VectorObject {
-  if (blocksModifiers(object)) {
+  if (isEmptyPoint(object)) {
     return object;
   }
   const modifiers = object.modifiers.filter((modifier) => modifier.id !== modifierId);
@@ -75,7 +98,7 @@ export function reorderModifier(
   modifierId: string,
   index: number,
 ): VectorObject {
-  if (blocksModifiers(object)) {
+  if (isEmptyPoint(object)) {
     return object;
   }
   const from = object.modifiers.findIndex((modifier) => modifier.id === modifierId);
@@ -144,10 +167,18 @@ function bake(
   };
 }
 
+function acceptsKind(object: VectorObject, kind: ModifierKind): boolean {
+  if (kind === 'trace') {
+    return isImage(object) && !object.modifiers.some((modifier) => modifier.type === 'trace');
+  }
+  return !isImage(object);
+}
+
 function defaultModifier(
   object: VectorObject,
   kind: ModifierKind,
   objects: readonly VectorObject[],
+  trace?: TraceAdd,
 ): Modifier {
   switch (kind) {
     case 'array':
@@ -160,7 +191,22 @@ function defaultModifier(
       return defaultRound(object, objects);
     case 'boolean':
       return defaultBoolean(object.id, objects);
+    case 'trace':
+      return defaultTrace(trace);
   }
+}
+
+function defaultTrace(trace?: TraceAdd): Modifier {
+  const regions = sanitizeTraceRegions(trace?.regions ?? []);
+  return {
+    id: createId(),
+    type: 'trace',
+    ...defaultTraceSettings,
+    view: 'result',
+    regions,
+    ...(regions.length === 0 && trace?.fault === 'unread' ? { fault: 'unread' as const } : {}),
+    enabled: true,
+  };
 }
 
 function defaultArray(): Modifier {
@@ -294,6 +340,9 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
     }
     return { ...modifier, enabled, mode, anchorCount, roundness };
   }
+  if (modifier.type === 'trace') {
+    return patchTrace(modifier, patch, enabled);
+  }
   const operation = patch.operation ?? modifier.operation;
   const operandId = patch.operandId !== undefined ? patch.operandId : modifier.operandId;
   if (
@@ -304,6 +353,49 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
     return modifier;
   }
   return { ...modifier, enabled, operation, operandId };
+}
+
+function patchTrace(
+  modifier: Extract<Modifier, { type: 'trace' }>,
+  patch: ModifierPatch,
+  enabled: boolean,
+): Modifier {
+  const settings = clampTraceSettings({
+    mode: patch.traceMode ?? modifier.mode,
+    colors: patch.colors ?? modifier.colors,
+    threshold: patch.threshold ?? modifier.threshold,
+    paths: patch.paths ?? modifier.paths,
+    corners: patch.corners ?? modifier.corners,
+    noise: patch.noise ?? modifier.noise,
+    ignoreWhite: patch.ignoreWhite ?? modifier.ignoreWhite,
+  });
+  const view = traceView(patch.view, modifier.view);
+  const regions = patch.regions !== undefined ? sanitizeTraceRegions(patch.regions) : modifier.regions;
+  const fault =
+    regions.length > 0 ? undefined : traceFault(patch.fault, modifier.fault);
+  if (
+    enabled === modifier.enabled &&
+    settings.mode === modifier.mode &&
+    settings.colors === modifier.colors &&
+    settings.threshold === modifier.threshold &&
+    settings.paths === modifier.paths &&
+    settings.corners === modifier.corners &&
+    settings.noise === modifier.noise &&
+    settings.ignoreWhite === modifier.ignoreWhite &&
+    view === modifier.view &&
+    fault === modifier.fault &&
+    regions === modifier.regions
+  ) {
+    return modifier;
+  }
+  return {
+    ...modifier,
+    ...settings,
+    view,
+    regions,
+    enabled,
+    ...(fault ? { fault } : { fault: undefined }),
+  };
 }
 
 function finite(value: number | undefined, fallback: number): number {

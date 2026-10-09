@@ -1,10 +1,12 @@
 import {
   ClipperHold,
   Document,
+  enabledTrace,
   evaluateDocument,
   Gradient,
   isEmptyPoint,
   isImage,
+  tracePreview,
   ObjectTransform,
   objectsInPaintOrder,
   sourceToPathData,
@@ -22,10 +24,17 @@ export interface SceneMaskRect {
   readonly height: number;
 }
 
+export interface SceneTracePath {
+  readonly d: string;
+  readonly fill: string;
+}
+
 export interface SceneObject {
   readonly id: string;
   readonly kind: 'path' | 'image';
   readonly d: string;
+  readonly tracePaths: readonly SceneTracePath[];
+  readonly traceOutlines: boolean;
   readonly href: string | null;
   readonly imageWidth: number;
   readonly imageHeight: number;
@@ -102,12 +111,16 @@ export function sceneFromDocument(
         if (!image) {
           return [];
         }
+        const trace = enabledTrace(object);
+        const preview = trace ? tracePreview(trace) : null;
         return [
           {
             id: object.id,
             kind: 'image' as const,
             d: '',
-            href: image.dataUrl || null,
+            tracePaths: preview?.paths ?? [],
+            traceOutlines: preview?.outlines ?? false,
+            href: preview ? null : image.dataUrl || null,
             imageWidth: image.width,
             imageHeight: image.height,
             preserveAspectRatio: image.preserveAspectRatio,
@@ -140,6 +153,8 @@ export function sceneFromDocument(
           id: object.id,
           kind: 'path' as const,
           d: sourceToPathData({ subpaths }),
+          tracePaths: [],
+          traceOutlines: false,
           href: null,
           imageWidth: 0,
           imageHeight: 0,

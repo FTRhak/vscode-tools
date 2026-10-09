@@ -1,7 +1,15 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, computed, inject } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { evaluateDocument, isEmptyPoint, isImage, Modifier, SessionService } from '@vector-editor/core';
+import {
+  defaultTraceSettings,
+  evaluateDocument,
+  isEmptyPoint,
+  isImage,
+  Modifier,
+  SessionService,
+} from '@vector-editor/core';
+import { traceImageContent } from '@vector-editor/viewport';
 import { ModifierKind } from '../../../../core/model/modifier-edits';
 
 @Component({
@@ -13,6 +21,7 @@ import { ModifierKind } from '../../../../core/model/modifier-edits';
 export class ModifiersPanel {
   private readonly session = inject(SessionService);
   private readonly bus = inject(CommandBus);
+  private tracing = false;
 
   public readonly panelName = 'Modifiers';
 
@@ -40,6 +49,19 @@ export class ModifiersPanel {
 
   protected readonly objects = computed(() => this.session.document()?.objects ?? []);
 
+  protected readonly addKinds = computed(() => {
+    if (this.image()) {
+      return [{ kind: 'trace' as const, label: 'Image to vector' }];
+    }
+    return [
+      { kind: 'array' as const, label: 'Array' },
+      { kind: 'mirror' as const, label: 'Mirror' },
+      { kind: 'bevel' as const, label: 'Bevel' },
+      { kind: 'round' as const, label: 'Round' },
+      { kind: 'boolean' as const, label: 'Boolean' },
+    ];
+  });
+
   protected readonly diagnostics = computed(() => {
     const document = this.session.document();
     const object = this.active();
@@ -53,12 +75,37 @@ export class ModifiersPanel {
     );
   });
 
-  protected add(kind: ModifierKind): void {
+  protected async add(kind: ModifierKind): Promise<void> {
     const object = this.active();
     if (!object) {
       return;
     }
-    this.bus.dispatch({ type: 'modifier.add', objectId: object.id, kind });
+    if (kind !== 'trace') {
+      this.bus.dispatch({ type: 'modifier.add', objectId: object.id, kind });
+      return;
+    }
+    if (this.tracing || !object.image) {
+      return;
+    }
+    this.tracing = true;
+    try {
+      const traced = await traceImageContent(object.image, defaultTraceSettings);
+      const current = this.active();
+      if (!current || current.id !== object.id || !isImage(current)) {
+        return;
+      }
+      this.bus.dispatch({
+        type: 'modifier.add',
+        objectId: current.id,
+        kind: 'trace',
+        trace: {
+          regions: traced.regions,
+          ...(traced.fault ? { fault: traced.fault } : {}),
+        },
+      });
+    } finally {
+      this.tracing = false;
+    }
   }
 
   protected applyAll(): void {

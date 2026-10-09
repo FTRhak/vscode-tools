@@ -1,5 +1,6 @@
 import { applyMatrix, identityTransform, invertMatrix, matrixFromTransform } from '../io/matrix';
 import { isEmptyPoint } from '../model/empty-point';
+import { imageTraceDiagnostics } from '../model/image-trace';
 import { isImage } from '../model/image';
 import {
   Modifier,
@@ -153,8 +154,11 @@ function walkStack(
   byId: ReadonlyMap<string, VectorObject>,
   evaluate: (object: VectorObject) => StackResult,
 ): StackResult {
-  if (isEmptyPoint(object) || isImage(object)) {
+  if (isEmptyPoint(object)) {
     return { source: { subpaths: [] }, diagnostics: [], booleanRan: false };
+  }
+  if (isImage(object)) {
+    return { source: { subpaths: [] }, diagnostics: imageTraceDiagnostics(object), booleanRan: false };
   }
   const diagnostics: string[] = [];
   let current = object.source;
@@ -197,6 +201,9 @@ function walkStack(
       if (modifier.type === 'boolean') {
         booleanRan = true;
       }
+      continue;
+    }
+    if (modifier.type === 'trace') {
       continue;
     }
     if (modifier.type === 'bevel') {

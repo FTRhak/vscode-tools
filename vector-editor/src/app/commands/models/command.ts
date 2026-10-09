@@ -1,6 +1,6 @@
 import type { AlignEdge, AlignTarget } from '../../core/model/align-objects';
 import type { AnchorPointType } from '../../core/model/edit-path';
-import type { ModifierKind, ModifierPatch } from '../../core/model/modifier-edits';
+import type { ModifierKind, ModifierPatch, TraceAdd } from '../../core/model/modifier-edits';
 import type {
   Document,
   Gradient,
@@ -226,6 +226,7 @@ export type Command =
       readonly type: 'modifier.add';
       readonly objectId: string;
       readonly kind: ModifierKind;
+      readonly trace?: TraceAdd;
     }
   | {
       readonly type: 'modifier.update';

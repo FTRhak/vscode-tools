@@ -53,5 +53,7 @@
       [peers]="peers()"
       (committed)="patch($event)"
     />
+  } @else if (traceModifier(); as trace) {
+    <trace-modifier-fields [modifier]="trace" (committed)="commitTrace($event)" />
   }
 </article>

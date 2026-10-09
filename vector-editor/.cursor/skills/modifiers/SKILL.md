@@ -1,6 +1,6 @@
 ---
 name: modifiers
-description: Adds, changes, or debugs the non-destructive modifier stack in vector-editor - array, mirror, bevel, round, and boolean - including evaluation, apply, the modifiers panel, and SVG metadata. Use when the user mentions modifiers, the modifier stack, array, mirror, bevel, round, boolean, or Apply.
+description: Adds, changes, or debugs the non-destructive modifier stack in vector-editor - array, mirror, bevel, round, boolean, and image to vector - including evaluation, apply, the modifiers panel, and SVG metadata. Use when the user mentions modifiers, the modifier stack, array, mirror, bevel, round, boolean, image to vector, trace, or Apply.
 disable-model-invocation: true
 ---
 
@@ -21,7 +21,7 @@ SVG attribute format belongs to the `svg-io` skill. The command catalog belongs 
 
 ## Core rule
 
-A modifier never changes `source` until Apply. The stack on `VectorObject.modifiers` is evaluated in order by `evaluateDocument`. Disabled steps are skipped. Empty points reject every modifier edit and evaluate to no geometry.
+A modifier never changes `source` until Apply. The stack on `VectorObject.modifiers` is evaluated in order by `evaluateDocument`. Disabled steps are skipped. Empty points reject every modifier edit and evaluate to no geometry. An image accepts one `trace` modifier (Image to vector) and rejects the others. That step stores traced regions; it does not run inside `walkStack`. Apply replaces the image with one filled path per region.
 
 `session.service.ts` imports `modifier-edits.ts` directly. The model barrel does not re-export it.
 
