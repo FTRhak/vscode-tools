@@ -8,7 +8,7 @@
           <button
             type="button"
             class="swatch"
-            [style.background]="swatch.color"
+            [style.background]="swatchBackground(swatch.color)"
             [attr.aria-label]="swatch.name"
             (click)="apply(swatch.id)"
           ></button>

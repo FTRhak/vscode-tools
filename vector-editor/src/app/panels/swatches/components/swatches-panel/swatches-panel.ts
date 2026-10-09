@@ -1,8 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
-import { nextSeriesName, SessionService, VectorObject } from '@vector-editor/core';
 import { CommandBus } from '@vector-editor/commands';
-import { ColorTarget } from '../../../color/services/color-target';
+import { nextSeriesName, SessionService, VectorObject } from '@vector-editor/core';
 import { SharedModule } from '@vector-editor/shared';
+import { ColorTarget } from '../../../color/services/color-target';
+import { gradientBackground } from '../../../../viewport/utils/scene';
 
 @Component({
   imports: [SharedModule],
@@ -18,6 +19,7 @@ export class SwatchesPanel {
   public readonly panelName = 'Color Collections';
 
   protected readonly swatches = computed(() => this.session.document()?.swatches ?? []);
+  private readonly gradients = computed(() => this.session.document()?.gradients ?? []);
 
   private readonly selectedObjects = computed(() => {
     const document = this.session.document();
@@ -29,6 +31,12 @@ export class SwatchesPanel {
   });
 
   protected readonly sharedFill = computed(() => sharedFill(this.selectedObjects()));
+
+  protected swatchBackground(color: string): string {
+    const gradientId = /^url\(#(.+)\)$/.exec(color)?.[1];
+    const gradient = this.gradients().find((item) => item.id === gradientId);
+    return gradient ? gradientBackground(gradient) : color;
+  }
 
   protected apply(swatchId: string): void {
     const ids = this.selectedObjects().map((object) => object.id);

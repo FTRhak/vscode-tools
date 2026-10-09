@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CommandBus } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
 import { EditorPage } from './editor-page';
 
@@ -325,6 +326,42 @@ describe('EditorPage', () => {
     expect(paintedPath(preview())?.getAttribute('stroke')).toBe('#00ff00');
     expect(preview().querySelector('.anchor, .handle, .pen-preview')).toBeNull();
     expect(preview().getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('shows gradients as previews in the swatch list', async () => {
+    const bus = TestBed.inject(CommandBus);
+    bus.dispatch({ type: 'document.new' });
+    await fixture.whenStable();
+
+    const session = TestBed.inject(SessionService);
+    const objectId = session.document()!.objects[0].id;
+    for (const type of ['linear', 'radial'] as const) {
+      bus.dispatch({
+        type: 'gradient.create',
+        gradient: {
+          name: type === 'linear' ? 'Sunset' : 'Spotlight',
+          type,
+          angle: 0,
+          proportions: 1,
+          stops: [
+            { id: `${type}-start`, offset: 0, color: '#ff0000', opacity: 1 },
+            { id: `${type}-end`, offset: 1, color: '#0000ff', opacity: 1 },
+          ],
+        },
+        target: 'fill',
+        objectIds: [objectId],
+      });
+      const gradient = session.document()!.gradients.at(-1)!;
+      bus.dispatch({
+        type: 'swatch.add',
+        name: gradient.name,
+        color: `url(#${gradient.id})`,
+      });
+    }
+    await fixture.whenStable();
+
+    expect(buttonByLabel('Sunset').style.background).toContain('linear-gradient');
+    expect(buttonByLabel('Spotlight').style.background).toContain('radial-gradient');
   });
 
   it('adds, renames, and reorders a layer, then hides the object', async () => {
