@@ -153,6 +153,53 @@ describe('hitTestObject', () => {
     expect(hitTestObject(document, { x: 1, y: 1 }, 1)).toBe('owner');
     expect(hitTestObject(document, { x: 5, y: 5 }, 1)).toBeNull();
   });
+
+  it('keeps a centered hit on an open path and moves a closed stroke inside or outside', () => {
+    const open = {
+      ...square('open'),
+      source: {
+        subpaths: [{ ...square('open').source.subpaths[0], closed: false }],
+      },
+      style: { ...square('open').style, fill: null, strokeAlign: 'inside' as const },
+    };
+    const inside = {
+      ...square('inside'),
+      style: { ...square('inside').style, fill: null, strokeAlign: 'inside' as const },
+    };
+    const outside = {
+      ...square('outside'),
+      style: { ...square('outside').style, fill: null, strokeAlign: 'outside' as const },
+    };
+
+    expect(hitTestObject(doc([open]), { x: 11, y: 5 }, 1)).toBe('open');
+    expect(hitTestObject(doc([open]), { x: 14, y: 5 }, 1)).toBeNull();
+
+    expect(hitTestObject(doc([inside]), { x: 1, y: 5 }, 1)).toBe('inside');
+    expect(hitTestObject(doc([inside]), { x: 11, y: 5 }, 1)).toBeNull();
+    expect(hitTestObject(doc([inside]), { x: 5, y: 5 }, 1)).toBeNull();
+
+    expect(hitTestObject(doc([outside]), { x: 11, y: 5 }, 1)).toBe('outside');
+    expect(hitTestObject(doc([outside]), { x: 14, y: 5 }, 1)).toBe('outside');
+    expect(hitTestObject(doc([outside]), { x: 15, y: 5 }, 1)).toBeNull();
+    expect(hitTestObject(doc([outside]), { x: 1, y: 5 }, 1)).toBeNull();
+  });
+
+  it('pads a marquee by the aligned stroke', () => {
+    const inside = {
+      ...square('inside'),
+      style: { ...square('inside').style, strokeAlign: 'inside' as const },
+    };
+    const outside = {
+      ...square('outside'),
+      style: { ...square('outside').style, strokeAlign: 'outside' as const },
+    };
+
+    expect(objectsInRect(doc([inside]), { x: 11, y: 5, width: 1, height: 1 })).toEqual([]);
+    expect(objectsInRect(doc([outside]), { x: 13, y: 5, width: 1, height: 1 })).toEqual([
+      'outside',
+    ]);
+    expect(objectsInRect(doc([outside]), { x: 15, y: 5, width: 1, height: 1 })).toEqual([]);
+  });
 });
 
 describe('objectsInRect', () => {

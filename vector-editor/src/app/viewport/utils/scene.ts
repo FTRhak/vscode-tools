@@ -8,8 +8,18 @@ import {
   objectsInPaintOrder,
   sourceToPathData,
   Style,
+  Subpath,
   ViewBox,
 } from '@vector-editor/core';
+
+export type SceneSurface = 'viewport' | 'preview';
+
+export interface SceneMaskRect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
 
 export interface SceneObject {
   readonly id: string;
@@ -24,6 +34,10 @@ export interface SceneObject {
   readonly strokeOpacity: number;
   readonly strokeDasharray: string;
   readonly strokeDashoffset: number;
+  readonly strokeAlign: 'default' | 'inside' | 'outside';
+  readonly clipId: string | null;
+  readonly maskId: string | null;
+  readonly maskRect: SceneMaskRect | null;
   readonly fillRule: 'nonzero' | 'evenodd';
 }
 
@@ -49,7 +63,24 @@ export function gradientBackground(gradient: Gradient): string {
     : `radial-gradient(ellipse ${gradient.proportions * 100}% 100% at center, ${stops.join(', ')})`;
 }
 
-export function sceneFromDocument(document: Document, hold: ClipperHold | null = null): Scene {
+export function effectiveStrokeAlign(
+  style: Style,
+  subpaths: readonly Pick<Subpath, 'closed'>[],
+): 'default' | 'inside' | 'outside' {
+  if (style.strokeAlign === 'default' || style.stroke === null || style.strokeWidth <= 0) {
+    return 'default';
+  }
+  if (subpaths.length === 0 || subpaths.some((subpath) => !subpath.closed)) {
+    return 'default';
+  }
+  return style.strokeAlign;
+}
+
+export function sceneFromDocument(
+  document: Document,
+  hold: ClipperHold | null = null,
+  surface: SceneSurface = 'viewport',
+): Scene {
   const geometry = new Map(
     evaluateDocument(document.objects, hold).map((item) => [item.objectId, item]),
   );
@@ -61,10 +92,15 @@ export function sceneFromDocument(document: Document, hold: ClipperHold | null =
         return [];
       }
       const evaluated = geometry.get(object.id);
+      const subpaths = evaluated?.subpaths ?? object.source.subpaths;
+      const strokeAlign = effectiveStrokeAlign(object.style, subpaths);
+      const maskRect =
+        strokeAlign === 'outside' ? outsideMaskRect(subpaths, object.style.strokeWidth) : null;
+      const paintAlign = maskRect === null && strokeAlign === 'outside' ? 'default' : strokeAlign;
       return [
         {
           id: object.id,
-          d: sourceToPathData({ subpaths: evaluated?.subpaths ?? object.source.subpaths }),
+          d: sourceToPathData({ subpaths }),
           transform: formatObjectTransform(object.transform),
           fill: object.style.fill ?? 'none',
           stroke: object.style.stroke ?? 'none',
@@ -75,10 +111,45 @@ export function sceneFromDocument(document: Document, hold: ClipperHold | null =
           strokeOpacity: object.style.strokeOpacity,
           strokeDasharray: formatDasharray(object.style.strokeDasharray),
           strokeDashoffset: object.style.strokeDashoffset,
+          strokeAlign: paintAlign,
+          clipId: paintAlign === 'inside' ? `stroke-clip-${surface}-${object.id}` : null,
+          maskId: paintAlign === 'outside' ? `stroke-mask-${surface}-${object.id}` : null,
+          maskRect: paintAlign === 'outside' ? maskRect : null,
           fillRule: evaluated?.fillRule ?? object.style.fillRule,
         },
       ];
     }),
+  };
+}
+
+function outsideMaskRect(subpaths: readonly Subpath[], strokeWidth: number): SceneMaskRect | null {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let found = false;
+  for (const subpath of subpaths) {
+    for (const anchor of subpath.anchors) {
+      for (const point of [anchor.position, anchor.handleIn, anchor.handleOut]) {
+        if (!point) {
+          continue;
+        }
+        found = true;
+        minX = Math.min(minX, point.x);
+        minY = Math.min(minY, point.y);
+        maxX = Math.max(maxX, point.x);
+        maxY = Math.max(maxY, point.y);
+      }
+    }
+  }
+  if (!found) {
+    return null;
+  }
+  return {
+    x: minX - strokeWidth,
+    y: minY - strokeWidth,
+    width: maxX - minX + strokeWidth * 2,
+    height: maxY - minY + strokeWidth * 2,
   };
 }
 

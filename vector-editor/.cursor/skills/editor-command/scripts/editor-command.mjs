@@ -55,6 +55,7 @@ export const cache = {
         'Set stroke width',
         'Set line cap',
         'Set line join',
+        'Set stroke alignment',
         'Set miter limit',
         'Set stroke opacity',
         'Set dash offset',

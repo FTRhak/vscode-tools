@@ -92,6 +92,14 @@ describe('document edits', () => {
     expect(setObjectStyle(painted, [id], { strokeDasharray: [1, -1] })).toBe(painted);
     expect(setObjectStyle(painted, [id], { strokeDashoffset: Number.NaN })).toBe(painted);
     expect(setObjectStyle(painted, [id], { strokeLinecap: 'arcs' as 'butt' })).toBe(painted);
+    expect(setObjectStyle(painted, [id], { strokeAlign: 'center' as 'default' })).toBe(painted);
+
+    const aligned = setObjectStyle(painted, [id], { strokeAlign: 'inside' });
+    expect(aligned.objects[0].style.strokeAlign).toBe('inside');
+    expect(setObjectStyle(aligned, [id], { strokeAlign: 'inside' })).toBe(aligned);
+    expect(
+      setObjectStyle(aligned, [id], { strokeAlign: 'outside' }).objects[0].style.strokeAlign,
+    ).toBe('outside');
 
     const cleared = setObjectStyle(painted, [id], { strokeDasharray: [] });
     expect(cleared.objects[0].style.strokeDasharray).toBeNull();

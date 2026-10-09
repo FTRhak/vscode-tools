@@ -11,6 +11,7 @@ import {
   Vec2,
   VectorObject,
 } from '@vector-editor/core';
+import { effectiveStrokeAlign } from './scene';
 
 export interface DocumentRect {
   readonly x: number;
@@ -98,21 +99,32 @@ function hitsObject(
   geometry: EvaluatedGeometry | undefined,
 ): boolean {
   const tolerance = localTolerance(zoom, object.transform);
-  const radius =
-    object.style.stroke !== null && object.style.strokeWidth > 0 ? object.style.strokeWidth / 2 : 0;
+  const subpaths = geometry?.subpaths ?? [];
+  const align = effectiveStrokeAlign(object.style, subpaths);
+  const strokeActive = object.style.stroke !== null && object.style.strokeWidth > 0;
+  const radius = !strokeActive
+    ? 0
+    : align === 'default'
+      ? object.style.strokeWidth / 2
+      : object.style.strokeWidth;
   const fillRule = geometry?.fillRule ?? object.style.fillRule;
   let crossings = 0;
   let winding = 0;
+  let nearest = Infinity;
 
-  for (const subpath of geometry?.subpaths ?? []) {
+  for (const subpath of subpaths) {
     const points = flattenSubpath(subpath, tolerance);
     if (points.length === 0) {
       continue;
     }
-    if (radius > 0 && distanceToPolyline(point, points) <= radius) {
-      return true;
+    if (radius > 0) {
+      const distance = distanceToPolyline(point, points);
+      if (align === 'default' && distance <= radius) {
+        return true;
+      }
+      nearest = Math.min(nearest, distance);
     }
-    if (object.style.fill !== null) {
+    if (object.style.fill !== null || align !== 'default') {
       const ring = openRing(points);
       const hit = rayCrossings(point, ring);
       crossings += hit.count;
@@ -120,10 +132,14 @@ function hitsObject(
     }
   }
 
-  if (object.style.fill === null) {
+  const inside = fillRule === 'evenodd' ? crossings % 2 === 1 : winding !== 0;
+  if (object.style.fill !== null && inside) {
+    return true;
+  }
+  if (!strokeActive || align === 'default' || nearest > radius) {
     return false;
   }
-  return fillRule === 'evenodd' ? crossings % 2 === 1 : winding !== 0;
+  return align === 'inside' ? inside : !inside;
 }
 
 function localTolerance(zoom: number, transform: ObjectTransform): number {
@@ -250,9 +266,13 @@ function objectBounds(
     maxX = Math.max(maxX, point.x);
     maxY = Math.max(maxY, point.y);
   }
+  const subpaths = geometry?.subpaths ?? object.source.subpaths;
+  const align = effectiveStrokeAlign(object.style, subpaths);
+  const factor = align === 'outside' ? 1 : align === 'inside' ? 0 : 0.5;
   const pad =
     object.style.stroke !== null && object.style.strokeWidth > 0
-      ? (object.style.strokeWidth / 2) *
+      ? object.style.strokeWidth *
+        factor *
         Math.max(Math.abs(object.transform.scaleX), Math.abs(object.transform.scaleY))
       : 0;
   return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad };

@@ -40,7 +40,7 @@ export const cache = {
     hold: "beginClipperHold() on a document-changing drag",
   },
   hit: {
-    objects: 'front of paint order first; evaluated geometry; empty point radius 8px',
+    objects: 'front of paint order first; evaluated geometry; empty point radius 8px; inside/outside stroke uses the full width on that side of a closed path',
     anchors: 'local space; anchors before handles; ANCHOR_HIT_PX = 6',
     locked: 'isInteractionLocked blocks moves, not selection',
   },
@@ -61,7 +61,7 @@ export const cache = {
     { path: 'src/app/viewport/utils/anchor-hit.spec.ts', role: 'anchor hit tests', symbols: ['hitTestAnchor'] },
     { path: 'src/app/viewport/utils/snap.ts', role: 'grid and object snap', symbols: ['SNAP_MODES', 'SNAP_THRESHOLD_PX', 'gridStep', 'snapToGrid', 'snapToPoints', 'snapTranslation', 'collectSnapTargets'] },
     { path: 'src/app/viewport/utils/snap.spec.ts', role: 'snap tests', symbols: ['snapToGrid'] },
-    { path: 'src/app/viewport/utils/scene.ts', role: 'render model', symbols: ['sceneFromDocument', 'formatObjectTransform'] },
+    { path: 'src/app/viewport/utils/scene.ts', role: 'render model', symbols: ['sceneFromDocument', 'formatObjectTransform', 'effectiveStrokeAlign'] },
     { path: 'src/app/viewport/utils/tools/direct-select.ts', role: 'edit-mode drag', symbols: ['beginDirectDrag', 'updateDirectDrag', 'finishDirectDrag', 'DIRECT_SELECT_THRESHOLD_PX'] },
     { path: 'src/app/viewport/utils/tools/pen.ts', role: 'pen placement', symbols: ['startPen', 'updatePenDrag', 'penPreviewData', 'PEN_DRAG_THRESHOLD_PX'] },
     { path: 'src/app/viewport/utils/tools/pen.spec.ts', role: 'pen tests', symbols: ['startPen'] },
@@ -74,7 +74,7 @@ export const cache = {
     { path: 'src/app/keymap/services/keymap.service.ts', role: 'viewport-only shortcuts', symbols: ['isViewportTarget', 'data-viewport'] },
     { path: 'src/app/commands/models/history.ts', role: 'camera is not history', symbols: ["case 'session.setViewport'"] },
   ],
-  tests: 'npx ng test --watch=false --include=src/app/viewport/utils/camera.spec.ts --include=src/app/viewport/utils/hit-test.spec.ts --include=src/app/viewport/utils/anchor-hit.spec.ts --include=src/app/viewport/utils/snap.spec.ts --include=src/app/viewport/utils/tools/pen.spec.ts --include=src/app/viewport/utils/tools/add-point.spec.ts --include=src/app/viewport/components/viewport/viewport.spec.ts',
+  tests: 'npx ng test --watch=false --include=src/app/viewport/utils/camera.spec.ts --include=src/app/viewport/utils/hit-test.spec.ts --include=src/app/viewport/utils/scene.spec.ts --include=src/app/viewport/utils/anchor-hit.spec.ts --include=src/app/viewport/utils/snap.spec.ts --include=src/app/viewport/utils/tools/pen.spec.ts --include=src/app/viewport/utils/tools/add-point.spec.ts --include=src/app/viewport/components/viewport/viewport.spec.ts',
   gotchas: [
     'The wheel listener must be { passive: false } or preventDefault is ignored.',
     'session.setViewport returns null from historyLabel, so pan and zoom are not undo steps.',

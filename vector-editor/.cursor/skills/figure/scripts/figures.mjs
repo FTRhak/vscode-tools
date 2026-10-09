@@ -31,6 +31,7 @@ export const cache = {
       strokeOpacity: 1,
       strokeDashoffset: 0,
       strokeDasharray: null,
+      strokeAlign: 'default',
       fillRule: 'nonzero',
     },
     transform: 'identity; anchors in document coordinates',

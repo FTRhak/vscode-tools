@@ -176,6 +176,7 @@ function styleLabel(command: Extract<Command, { type: 'style.set' }>): string {
     command.strokeWidth !== undefined ? 'Set stroke width' : null,
     command.strokeLinecap !== undefined ? 'Set line cap' : null,
     command.strokeLinejoin !== undefined ? 'Set line join' : null,
+    command.strokeAlign !== undefined ? 'Set stroke alignment' : null,
     command.strokeMiterlimit !== undefined ? 'Set miter limit' : null,
     command.strokeOpacity !== undefined ? 'Set stroke opacity' : null,
     command.strokeDashoffset !== undefined ? 'Set dash offset' : null,

@@ -60,6 +60,7 @@ export type {
   ShapeObjectResult,
   ShapePlacement,
   SourcePath,
+  StrokeAlign,
   StrokeLinecap,
   StrokeLinejoin,
   Style,

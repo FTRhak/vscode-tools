@@ -29,6 +29,7 @@ export const cache = {
       strokeOpacity: 1,
       strokeDashoffset: 0,
       strokeDasharray: null,
+      strokeAlign: 'default',
       fillRule: 'nonzero',
     },
     naming: 'Path, Path 2, ... on the selected layer',

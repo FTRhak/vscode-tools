@@ -34,19 +34,80 @@
   </defs>
   @for (object of objects(); track object.id) {
     <g [attr.transform]="object.transform">
-      <path
-        [attr.d]="object.d"
-        [attr.fill]="object.fill"
-        [attr.stroke]="object.stroke"
-        [attr.stroke-width]="object.strokeWidth"
-        [attr.stroke-linecap]="object.strokeLinecap"
-        [attr.stroke-linejoin]="object.strokeLinejoin"
-        [attr.stroke-miterlimit]="object.strokeMiterlimit"
-        [attr.stroke-opacity]="object.strokeOpacity"
-        [attr.stroke-dasharray]="object.strokeDasharray"
-        [attr.stroke-dashoffset]="object.strokeDashoffset"
-        [attr.fill-rule]="object.fillRule"
-      />
+      @if (object.strokeAlign === 'default') {
+        <path
+          [attr.d]="object.d"
+          [attr.fill]="object.fill"
+          [attr.stroke]="object.stroke"
+          [attr.stroke-width]="object.strokeWidth"
+          [attr.stroke-linecap]="object.strokeLinecap"
+          [attr.stroke-linejoin]="object.strokeLinejoin"
+          [attr.stroke-miterlimit]="object.strokeMiterlimit"
+          [attr.stroke-opacity]="object.strokeOpacity"
+          [attr.stroke-dasharray]="object.strokeDasharray"
+          [attr.stroke-dashoffset]="object.strokeDashoffset"
+          [attr.fill-rule]="object.fillRule"
+        />
+      } @else {
+        @if (object.fill !== 'none') {
+          <path
+            [attr.d]="object.d"
+            [attr.fill]="object.fill"
+            stroke="none"
+            [attr.fill-rule]="object.fillRule"
+          />
+        }
+        @if (object.strokeAlign === 'inside') {
+          <clipPath [attr.id]="object.clipId" clipPathUnits="userSpaceOnUse">
+            <path [attr.d]="object.d" [attr.fill-rule]="object.fillRule" />
+          </clipPath>
+          <path
+            [attr.d]="object.d"
+            fill="none"
+            [attr.stroke]="object.stroke"
+            [attr.stroke-width]="object.strokeWidth * 2"
+            [attr.stroke-linecap]="object.strokeLinecap"
+            [attr.stroke-linejoin]="object.strokeLinejoin"
+            [attr.stroke-miterlimit]="object.strokeMiterlimit"
+            [attr.stroke-opacity]="object.strokeOpacity"
+            [attr.stroke-dasharray]="object.strokeDasharray"
+            [attr.stroke-dashoffset]="object.strokeDashoffset"
+            [attr.clip-path]="'url(#' + object.clipId + ')'"
+          />
+        } @else if (object.maskRect; as maskRect) {
+          <mask
+            [attr.id]="object.maskId"
+            maskUnits="userSpaceOnUse"
+            maskContentUnits="userSpaceOnUse"
+            [attr.x]="maskRect.x"
+            [attr.y]="maskRect.y"
+            [attr.width]="maskRect.width"
+            [attr.height]="maskRect.height"
+          >
+            <rect
+              [attr.x]="maskRect.x"
+              [attr.y]="maskRect.y"
+              [attr.width]="maskRect.width"
+              [attr.height]="maskRect.height"
+              fill="white"
+            />
+            <path [attr.d]="object.d" fill="black" [attr.fill-rule]="object.fillRule" />
+          </mask>
+          <path
+            [attr.d]="object.d"
+            fill="none"
+            [attr.stroke]="object.stroke"
+            [attr.stroke-width]="object.strokeWidth * 2"
+            [attr.stroke-linecap]="object.strokeLinecap"
+            [attr.stroke-linejoin]="object.strokeLinejoin"
+            [attr.stroke-miterlimit]="object.strokeMiterlimit"
+            [attr.stroke-opacity]="object.strokeOpacity"
+            [attr.stroke-dasharray]="object.strokeDasharray"
+            [attr.stroke-dashoffset]="object.strokeDashoffset"
+            [attr.mask]="'url(#' + object.maskId + ')'"
+          />
+        }
+      }
     </g>
   }
 </svg>

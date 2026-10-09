@@ -183,6 +183,55 @@ describe('importSvg', () => {
 });
 
 describe('exportSvg', () => {
+  it('round-trips stroke alignment in editor payloads and keeps the stroke width', () => {
+    const document = createNewDocument();
+    const id = document.objects[0]?.id ?? '';
+    expect(exportSvg(document, 'all')).not.toContain('strokeAlign');
+    const aligned = setObjectStyle(document, [id], { strokeAlign: 'inside' });
+    const width = aligned.objects[0]?.style.strokeWidth ?? 0;
+
+    for (const mode of ['all', 'optimized'] as const) {
+      const svg = exportSvg(aligned, mode);
+      expect(svg).toContain('&quot;strokeAlign&quot;:&quot;inside&quot;');
+      expect(svg).toContain(`stroke-width="${width}"`);
+      expect(svg).not.toContain(`stroke-width="${width * 2}"`);
+      const result = importSvg(svg);
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.document.objects[0]?.style.strokeAlign).toBe('inside');
+      expect(result.document.objects[0]?.style.strokeWidth).toBe(width);
+    }
+
+    const minimal = exportSvg(aligned, 'minimal');
+    expect(minimal).not.toContain('strokeAlign');
+    const imported = importSvg(minimal);
+    expect(imported.ok).toBe(true);
+    if (!imported.ok) {
+      return;
+    }
+    expect(imported.document.objects[0]?.style.strokeAlign).toBe('default');
+
+    const foreign = importSvg('<svg viewBox="0 0 10 10"><path d="M 0 0 L 10 0 L 10 10 Z"/></svg>');
+    expect(foreign.ok).toBe(true);
+    if (!foreign.ok) {
+      return;
+    }
+    expect(foreign.document.objects[0]?.style.strokeAlign).toBe('default');
+
+    const tampered = exportSvg(aligned, 'all').replace(
+      '&quot;strokeAlign&quot;:&quot;inside&quot;',
+      '&quot;strokeAlign&quot;:&quot;center&quot;',
+    );
+    const rejected = importSvg(tampered);
+    expect(rejected.ok).toBe(true);
+    if (!rejected.ok) {
+      return;
+    }
+    expect(rejected.document.objects[0]?.style.strokeAlign).toBe('default');
+  });
+
   it('round-trips stroke paint in every save mode', () => {
     const document = createNewDocument();
     const id = document.objects[0]?.id ?? '';

@@ -57,6 +57,7 @@ export type {
   ObjectTransform,
   Segment,
   SourcePath,
+  StrokeAlign,
   StrokeLinecap,
   StrokeLinejoin,
   Style,

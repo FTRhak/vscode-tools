@@ -148,6 +148,7 @@ export type Command =
       readonly strokeOpacity?: number;
       readonly strokeDashoffset?: number;
       readonly strokeDasharray?: readonly number[] | null;
+      readonly strokeAlign?: Style['strokeAlign'];
     }
   | {
       readonly type: 'gradient.create';

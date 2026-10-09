@@ -33,6 +33,7 @@ describe('StrokePanel', () => {
 
     expect(fixture.nativeElement.textContent).not.toContain('No stroke yet.');
     expect(input('Stroke width').value).toBe('4');
+    expect(select('Align stroke').value).toBe('default');
     expect(select('Line cap').value).toBe('butt');
     expect(select('Line join').value).toBe('miter');
     expect(input('Miter limit').value).toBe('4');
@@ -135,6 +136,42 @@ describe('StrokePanel', () => {
       'Set stroke opacity',
       'Set dash offset',
     ]);
+  });
+
+  it('writes stroke alignment and shows a mixed selection', async () => {
+    const first = selectFirst();
+    await fixture.whenStable();
+
+    commitSelect('Align stroke', 'inside');
+    await fixture.whenStable();
+    expect(session.document()!.objects[0].style.strokeAlign).toBe('inside');
+    expect(session.history().entries.at(-1)?.label).toBe('Set stroke alignment');
+
+    const recorded = session.history().entries.length;
+    commitSelect('Align stroke', 'inside');
+    await fixture.whenStable();
+    expect(session.history().entries).toHaveLength(recorded);
+
+    bus.dispatch({ type: 'object.duplicate', ids: [first] });
+    const second = session.document()!.objects[1].id;
+    bus.dispatch({ type: 'style.set', objectIds: [second], strokeAlign: 'outside' });
+    bus.dispatch({
+      type: 'session.select',
+      target: 'object',
+      ids: [first, second],
+      op: 'replace',
+    });
+    await fixture.whenStable();
+
+    expect(select('Align stroke').value).toBe('');
+    expect(select('Align stroke').textContent).toContain('Mixed');
+
+    commitSelect('Align stroke', 'outside');
+    await fixture.whenStable();
+    expect(
+      session.document()!.objects.every((object) => object.style.strokeAlign === 'outside'),
+    ).toBe(true);
+    expect(session.history().entries.at(-1)?.label).toBe('Set stroke alignment');
   });
 
   it('writes a dash array and clears it back to none', async () => {

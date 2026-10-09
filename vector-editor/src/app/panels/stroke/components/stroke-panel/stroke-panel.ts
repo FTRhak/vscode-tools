@@ -39,6 +39,9 @@ export class StrokePanel {
   protected readonly lineCap = computed(
     () => shared(this.selectedObjects(), (object) => object.style.strokeLinecap) ?? '',
   );
+  protected readonly strokeAlign = computed(
+    () => shared(this.selectedObjects(), (object) => object.style.strokeAlign) ?? '',
+  );
   protected readonly lineJoin = computed(
     () => shared(this.selectedObjects(), (object) => object.style.strokeLinejoin) ?? '',
   );
@@ -102,6 +105,22 @@ export class StrokePanel {
       type: 'style.set',
       objectIds: objects.map((object) => object.id),
       strokeLinecap: value,
+    });
+  }
+
+  protected commitStrokeAlign(event: Event): void {
+    const value = choice(event, ['default', 'inside', 'outside'] as const);
+    const objects = this.selectedObjects();
+    if (value === undefined || objects.length === 0) {
+      return;
+    }
+    if (value === shared(objects, (object) => object.style.strokeAlign)) {
+      return;
+    }
+    this.bus.dispatch({
+      type: 'style.set',
+      objectIds: objects.map((object) => object.id),
+      strokeAlign: value,
     });
   }
 

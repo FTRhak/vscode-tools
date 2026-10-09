@@ -166,6 +166,7 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
           strokeOpacity: command.strokeOpacity,
           strokeDashoffset: command.strokeDashoffset,
           strokeDasharray: command.strokeDasharray,
+          strokeAlign: command.strokeAlign,
         }),
       );
     case 'gradient.create':

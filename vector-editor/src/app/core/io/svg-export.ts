@@ -162,6 +162,7 @@ function objectPayload(
     transform: VectorObject['transform'];
     modifiers: unknown[];
     locked?: boolean;
+    strokeAlign?: Style['strokeAlign'];
   } = {
     version: formatVersion,
     name: object.name,
@@ -177,6 +178,9 @@ function objectPayload(
   }
   if (mode === 'all') {
     payload.locked = object.locked;
+  }
+  if (object.style.strokeAlign !== 'default') {
+    payload.strokeAlign = object.style.strokeAlign;
   }
   return payload;
 }

@@ -43,6 +43,7 @@ export interface StylePatch {
   readonly strokeOpacity?: number;
   readonly strokeDashoffset?: number;
   readonly strokeDasharray?: readonly number[] | null;
+  readonly strokeAlign?: Style['strokeAlign'];
 }
 
 export function createGradient(
@@ -194,7 +195,8 @@ export function setObjectStyle(
     normalized.strokeMiterlimit === undefined &&
     normalized.strokeOpacity === undefined &&
     normalized.strokeDashoffset === undefined &&
-    normalized.strokeDasharray === undefined
+    normalized.strokeDasharray === undefined &&
+    normalized.strokeAlign === undefined
   ) {
     return document;
   }
@@ -442,6 +444,10 @@ function nextStyle(style: Style, patch: ReturnType<typeof normalizeStylePatch>):
         ? patch.strokeDashoffset
         : style.strokeDashoffset,
     strokeDasharray,
+    strokeAlign:
+      patch.strokeAlign !== undefined && patch.strokeAlign !== style.strokeAlign
+        ? patch.strokeAlign
+        : style.strokeAlign,
     fillRule: style.fillRule,
   };
   if (
@@ -453,7 +459,8 @@ function nextStyle(style: Style, patch: ReturnType<typeof normalizeStylePatch>):
     next.strokeMiterlimit === style.strokeMiterlimit &&
     next.strokeOpacity === style.strokeOpacity &&
     next.strokeDashoffset === style.strokeDashoffset &&
-    sameDasharray(next.strokeDasharray, style.strokeDasharray)
+    sameDasharray(next.strokeDasharray, style.strokeDasharray) &&
+    next.strokeAlign === style.strokeAlign
   ) {
     return style;
   }
@@ -470,6 +477,7 @@ function normalizeStylePatch(patch: StylePatch): {
   readonly strokeOpacity: number | undefined;
   readonly strokeDashoffset: number | undefined;
   readonly strokeDasharray: readonly number[] | null | undefined;
+  readonly strokeAlign: Style['strokeAlign'] | undefined;
 } {
   return {
     fill: normalizeColor(patch.fill),
@@ -481,6 +489,7 @@ function normalizeStylePatch(patch: StylePatch): {
     strokeOpacity: normalizeOpacity(patch.strokeOpacity),
     strokeDashoffset: normalizeDashoffset(patch.strokeDashoffset),
     strokeDasharray: normalizeDasharray(patch.strokeDasharray),
+    strokeAlign: normalizeStrokeAlign(patch.strokeAlign),
   };
 }
 
@@ -512,6 +521,12 @@ function normalizeLinejoin(
   value: Style['strokeLinejoin'] | undefined,
 ): Style['strokeLinejoin'] | undefined {
   return value === 'miter' || value === 'round' || value === 'bevel' ? value : undefined;
+}
+
+function normalizeStrokeAlign(
+  value: Style['strokeAlign'] | undefined,
+): Style['strokeAlign'] | undefined {
+  return value === 'default' || value === 'inside' || value === 'outside' ? value : undefined;
 }
 
 function normalizeMiterlimit(value: number | undefined): number | undefined {

@@ -54,6 +54,8 @@ export type StrokeLinecap = 'butt' | 'round' | 'square';
 
 export type StrokeLinejoin = 'miter' | 'round' | 'bevel';
 
+export type StrokeAlign = 'default' | 'inside' | 'outside';
+
 export interface Style {
   readonly fill: string | null;
   readonly stroke: string | null;
@@ -64,6 +66,7 @@ export interface Style {
   readonly strokeOpacity: number;
   readonly strokeDashoffset: number;
   readonly strokeDasharray: readonly number[] | null;
+  readonly strokeAlign: StrokeAlign;
   readonly fillRule: 'nonzero' | 'evenodd';
 }
 
@@ -75,6 +78,7 @@ export const svgStrokeDefaults: Pick<
   | 'strokeOpacity'
   | 'strokeDashoffset'
   | 'strokeDasharray'
+  | 'strokeAlign'
 > = {
   strokeLinecap: 'butt',
   strokeLinejoin: 'miter',
@@ -82,6 +86,7 @@ export const svgStrokeDefaults: Pick<
   strokeOpacity: 1,
   strokeDashoffset: 0,
   strokeDasharray: null,
+  strokeAlign: 'default',
 };
 
 export type Modifier =

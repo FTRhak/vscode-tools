@@ -306,6 +306,7 @@ function readObject(
         stroke: null,
         strokeWidth: 0,
         fillRule: 'nonzero',
+        strokeAlign: payload.strokeAlign,
       },
       transform: payload.transform,
       modifiers: [],
@@ -323,7 +324,10 @@ function readObject(
     visible: !context.hidden && !elementHidden(element),
     locked: payload?.locked === true,
     source,
-    style: readStyle(element, context.style),
+    style: {
+      ...readStyle(element, context.style),
+      strokeAlign: payload?.strokeAlign ?? 'default',
+    },
     transform: payload?.transform ?? identityTransform,
     modifiers: payload?.modifiers ?? [],
   };
@@ -410,6 +414,7 @@ function readObjectPayload(
   locked: boolean;
   kind: 'path' | 'empty';
   modifiers: readonly Modifier[];
+  strokeAlign: Style['strokeAlign'];
 } | null {
   const json = parseJson(value);
   if (!isRecord(json)) {
@@ -426,6 +431,7 @@ function readObjectPayload(
     locked: booleanField(json, 'locked') === true,
     kind: json['kind'] === 'empty' ? 'empty' : 'path',
     modifiers: readModifiers(json['modifiers'], claim, operandLinks, centerPointLinks),
+    strokeAlign: readStrokeAlign(json['strokeAlign']),
   };
 }
 
@@ -774,6 +780,7 @@ function readStyle(element: Element, inherited: Style): Style {
     strokeOpacity: readStrokeOpacity(opacitySource, inherited.strokeOpacity),
     strokeDasharray: readDasharray(dashSource, inherited.strokeDasharray),
     strokeDashoffset: readDashoffset(offsetSource, inherited.strokeDashoffset),
+    strokeAlign: inherited.strokeAlign,
     fillRule:
       ruleSource === 'evenodd'
         ? 'evenodd'
@@ -801,6 +808,10 @@ function paintValue(value: string | undefined, fallback: string | null): string 
     return '#000000';
   }
   return trimmed;
+}
+
+function readStrokeAlign(value: unknown): Style['strokeAlign'] {
+  return value === 'inside' || value === 'outside' || value === 'default' ? value : 'default';
 }
 
 function strokeWidth(value: string, fallback: number): number {

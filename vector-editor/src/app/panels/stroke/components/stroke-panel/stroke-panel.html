@@ -12,6 +12,17 @@
         />
       </label>
       <label>
+        Align stroke
+        <select [value]="strokeAlign()" (change)="commitStrokeAlign($event)">
+          @if (strokeAlign() === '') {
+            <option value="">Mixed</option>
+          }
+          <option value="default">Default</option>
+          <option value="inside">Inside</option>
+          <option value="outside">Outside</option>
+        </select>
+      </label>
+      <label>
         Line cap
         <select [value]="lineCap()" (change)="commitLinecap($event)">
           @if (lineCap() === '') {
