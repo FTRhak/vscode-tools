@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { AlignEdge, AlignTarget, countAlignable, SessionService } from '@vector-editor/core';
+import { AlignEdge, AlignTarget, canAlignObjects, SessionService } from '@vector-editor/core';
 import { SharedModule } from '@vector-editor/shared';
 
 type IconLine = readonly [number, number, number, number];
@@ -90,17 +90,12 @@ export class AlignPanel {
 
   private readonly selectedIds = computed(() => this.session.selectedObjectIds());
 
-  private readonly alignableCount = computed(() => {
+  protected readonly canAlign = computed(() => {
     const document = this.session.document();
     if (!document) {
-      return 0;
+      return false;
     }
-    return countAlignable(document, this.selectedIds());
-  });
-
-  protected readonly canAlign = computed(() => {
-    const count = this.alignableCount();
-    return this.alignTo() === 'artboard' ? count >= 1 : count >= 2;
+    return canAlignObjects(document, this.selectedIds(), this.alignTo());
   });
 
   protected readonly hint = computed((): string | null => {
@@ -115,7 +110,7 @@ export class AlignPanel {
 
   protected setAlignTo(event: Event): void {
     const value = event.target instanceof HTMLSelectElement ? event.target.value : '';
-    if (value === 'selection' || value === 'artboard') {
+    if (value === 'selection' || value === 'artboard' || value === 'first') {
       this.alignTo.set(value);
     }
   }

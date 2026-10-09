@@ -16,6 +16,7 @@ export {
   deleteObjects,
   deletableObjectIds,
   alignObjects,
+  canAlignObjects,
   countAlignable,
   addEmptyPoint,
   isEmptyPoint,

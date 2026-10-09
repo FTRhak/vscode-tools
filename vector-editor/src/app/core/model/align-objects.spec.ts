@@ -14,6 +14,20 @@ describe('alignObjects', () => {
     expect(result.objects[1].transform).toEqual({ ...right.transform, x: 0 });
   });
 
+  it('aligns the other objects to the first selected object', () => {
+    const left = rect('left', 0, 0, 10, 10);
+    const right = rect('right', 30, 4, 10, 10);
+    const locked = { ...rect('locked', 80, 0, 10, 10), locked: true };
+    const document = doc([left, right, locked]);
+
+    const toRight = alignObjects(document, [right.id, left.id, locked.id], 'left', 'first');
+    expect(toRight.objects[0].transform.x).toBe(30);
+    expect(toRight.objects[1]).toBe(right);
+    expect(toRight.objects[2]).toBe(locked);
+
+    expect(alignObjects(document, [right.id], 'left', 'first')).toBe(document);
+  });
+
   it('aligns centers to the selection bounding box', () => {
     const left = rect('left', 0, 0, 10, 10);
     const right = rect('right', 30, 0, 10, 10);

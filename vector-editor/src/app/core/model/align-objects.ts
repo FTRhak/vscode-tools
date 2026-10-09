@@ -11,7 +11,7 @@ export type AlignEdge =
   | 'verticalCenter'
   | 'bottom';
 
-export type AlignTarget = 'selection' | 'artboard';
+export type AlignTarget = 'selection' | 'artboard' | 'first';
 
 const ALIGN_EPSILON = 1e-6;
 
@@ -24,21 +24,43 @@ export function countAlignable(document: Document, ids: readonly string[]): numb
   return alignCandidates(document, ids).length;
 }
 
+export function canAlignObjects(
+  document: Document,
+  ids: readonly string[],
+  to: AlignTarget,
+): boolean {
+  const measured = measureSelected(document, ids);
+  const referenceId = ids[0];
+  const movers = movable(document, to === 'first' ? referenceId : undefined, measured);
+  return alignTargetReady(
+    to,
+    movers,
+    measured.find((item) => item.object.id === referenceId),
+  );
+}
+
 export function alignObjects(
   document: Document,
   ids: readonly string[],
   edge: AlignEdge,
   to: AlignTarget,
 ): Document {
-  const candidates = alignCandidates(document, ids);
-  const minimum = to === 'selection' ? 2 : 1;
-  if (candidates.length < minimum) {
+  const measured = measureSelected(document, ids);
+  const referenceId = ids[0];
+  const reference = measured.find((item) => item.object.id === referenceId);
+  const movers = movable(document, to === 'first' ? referenceId : undefined, measured);
+  if (!alignTargetReady(to, movers, reference)) {
     return document;
   }
-  const target = to === 'artboard' ? artboardBounds(document.viewBox) : unionBounds(candidates);
+  const target =
+    to === 'artboard'
+      ? artboardBounds(document.viewBox)
+      : to === 'first' && reference
+        ? reference.bounds
+        : unionBounds(movers);
   const shifts = new Map<string, number>();
   const goal = edgeValue(target, edge);
-  for (const candidate of candidates) {
+  for (const candidate of movers) {
     const delta = goal - edgeValue(candidate.bounds, edge);
     if (Number.isFinite(delta) && Math.abs(delta) >= ALIGN_EPSILON) {
       shifts.set(candidate.object.id, delta);
@@ -65,7 +87,35 @@ export function alignObjects(
   return changed ? { ...document, objects } : document;
 }
 
+function alignTargetReady(
+  to: AlignTarget,
+  movers: readonly AlignCandidate[],
+  reference: AlignCandidate | undefined,
+): boolean {
+  if (to === 'artboard') {
+    return movers.length >= 1;
+  }
+  if (to === 'selection') {
+    return movers.length >= 2;
+  }
+  return reference !== undefined && movers.length >= 1;
+}
+
 function alignCandidates(document: Document, ids: readonly string[]): readonly AlignCandidate[] {
+  return movable(document, undefined, measureSelected(document, ids));
+}
+
+function movable(
+  document: Document,
+  referenceId: string | undefined,
+  measured: readonly AlignCandidate[],
+): readonly AlignCandidate[] {
+  return measured.filter(
+    (item) => item.object.id !== referenceId && !isInteractionLocked(document, item.object),
+  );
+}
+
+function measureSelected(document: Document, ids: readonly string[]): readonly AlignCandidate[] {
   if (ids.length === 0) {
     return [];
   }
@@ -73,9 +123,9 @@ function alignCandidates(document: Document, ids: readonly string[]): readonly A
   const geometry = new Map(
     evaluateDocument(document.objects).map((item) => [item.objectId, item]),
   );
-  const candidates: AlignCandidate[] = [];
+  const byId = new Map<string, AlignCandidate>();
   for (const object of document.objects) {
-    if (!wanted.has(object.id) || isInteractionLocked(document, object)) {
+    if (!wanted.has(object.id)) {
       continue;
     }
     const evaluated = geometry.get(object.id);
@@ -84,10 +134,13 @@ function alignCandidates(document: Document, ids: readonly string[]): readonly A
       evaluated ? { subpaths: evaluated.subpaths } : undefined,
     );
     if (bounds) {
-      candidates.push({ object, bounds });
+      byId.set(object.id, { object, bounds });
     }
   }
-  return candidates;
+  return ids.flatMap((id) => {
+    const item = byId.get(id);
+    return item ? [item] : [];
+  });
 }
 
 function artboardBounds(viewBox: ViewBox): Bounds {

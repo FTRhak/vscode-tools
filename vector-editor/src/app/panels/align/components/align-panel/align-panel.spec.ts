@@ -100,6 +100,33 @@ describe('AlignPanel', () => {
     expect(session.history().entries).toHaveLength(recorded);
   });
 
+  it('aligns the other object to the first selected object', async () => {
+    bus.dispatch({ type: 'document.new' });
+    const original = session.document()!.objects[0];
+    bus.dispatch({ type: 'object.duplicate', ids: [original.id] });
+    const copyId = session.document()!.objects[1].id;
+    bus.dispatch({
+      type: 'session.select',
+      target: 'object',
+      ids: [copyId, original.id],
+      op: 'replace',
+    });
+    await fixture.whenStable();
+
+    alignTo().value = 'first';
+    alignTo().dispatchEvent(new Event('change', { bubbles: true }));
+    await fixture.whenStable();
+
+    expect(alignButton('Align left').disabled).toBe(false);
+    const copyX = session.document()!.objects[1].transform.x;
+    alignButton('Align left').click();
+    await fixture.whenStable();
+
+    expect(session.document()!.objects[0].transform.x).toBe(copyX);
+    expect(session.document()!.objects[1].transform.x).toBe(copyX);
+    expect(session.history().entries.at(-1)?.label).toBe('Align left');
+  });
+
   function alignButton(label: string): HTMLButtonElement {
     const button = [...fixture.nativeElement.querySelectorAll('button')].find(
       (item) => item instanceof HTMLButtonElement && item.getAttribute('aria-label') === label,
