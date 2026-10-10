@@ -14,7 +14,7 @@ This guide is a code-oriented map for contributors and future coding sessions. I
 - App bootstrap: [src/main.ts](src/main.ts), [src/app/app.config.ts](src/app/app.config.ts), [src/app/app.routes.ts](src/app/app.routes.ts).
 - Main editor composition: [src/app/shell/components/editor-page/editor-page.ts](src/app/shell/components/editor-page/editor-page.ts) and its template.
 - Central state and command application: [src/app/core/session.service.ts](src/app/core/session.service.ts).
-- Domain types: [src/app/core/model/types.ts](src/app/core/model/types.ts).
+- Domain types: [src/app/modules/types/types.ts](src/app/modules/types/types.ts).
 - Command vocabulary and undo history: [src/app/commands/models/command.ts](src/app/commands/models/command.ts), [src/app/commands/models/history.ts](src/app/commands/models/history.ts).
 - Canvas behavior: [src/app/viewport/components/viewport/viewport.ts](src/app/viewport/components/viewport/viewport.ts).
 - SVG conversion: [src/app/core/io/svg-import.ts](src/app/core/io/svg-import.ts), [src/app/core/io/svg-export.ts](src/app/core/io/svg-export.ts).
@@ -65,7 +65,7 @@ History snapshots include the document, editor mode, and selection. Tool, viewpo
 
 ## Domain Model and Geometry
 
-The public document model is defined in [src/app/core/model/types.ts](src/app/core/model/types.ts):
+The public document model is defined in [src/app/modules/types/types.ts](src/app/modules/types/types.ts):
 
 - A `Document` has a viewBox, ordered layers, vector objects, and swatches.
 - A `VectorObject` has editable `source` paths, style, transform, visibility/lock flags, and an ordered modifier stack.
@@ -78,7 +78,7 @@ The public document model is defined in [src/app/core/model/types.ts](src/app/co
 
 The source path is the editable geometry. Evaluation in [src/app/core/eval/evaluate.ts](src/app/core/eval/evaluate.ts) walks enabled modifiers in order to derive display/export geometry. It memoizes object evaluation, reports diagnostics for unsupported/invalid operations, and detects cyclic boolean dependencies. Boolean modifiers refer to another object's ID. `ClipperHold` captures intermediate modifier results during relevant drag interactions so boolean-derived geometry can remain stable while transforms are updated.
 
-The `core/model/` directory contains document edits, path edits, paint/layer order, transforms, ID creation, and SVG path-data conversion. Keep geometry/model changes pure where practical; keep DOM interaction and Angular state out of these helpers.
+The `src/app/modules/` area contains document edits, path edits, paint/layer order, transforms, ID creation, and SVG path-data conversion. Keep geometry/model changes pure where practical; keep DOM interaction and Angular state out of these helpers.
 
 ## Main Feature Areas
 
@@ -124,7 +124,7 @@ npm run build
 
 ## Change Routing
 
-- Document shape, selection rules, or command application: start in `core/session.service.ts`, then the relevant `core/model/` helper and model spec.
+- Document shape, selection rules, or command application: start in `src/app/core/session.service.ts`, then the relevant `src/app/modules/*` helper and model spec.
 - Undo/redo labels or gesture merging: inspect `commands/models/history.ts` and session history tests.
 - Canvas gesture, hit target, snapping, or coordinate bug: inspect `viewport.ts` and the nearest utility under `viewport/utils/`; dispatch should remain command-based.
 - Modifier result or diagnostics: inspect `core/eval/evaluate.ts` and the specific evaluator in `core/eval/`.

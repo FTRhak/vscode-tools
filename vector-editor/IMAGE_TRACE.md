@@ -11,10 +11,10 @@ stored on the modifier and reused for preview and export.
 ModifiersPanel / ModifierRow
         │ traceImageContent(image, settings)
         ▼
-viewport/utils/trace-image.ts       browser image → bounded RGBA raster
+src/app/viewport/utils/trace-image.ts       browser image → bounded RGBA raster
         │ traceRaster(raster)
         ▼
-core/model/image-trace.ts           RGBA → color regions with SourcePaths
+src/app/modules/image-trace/image-trace.ts   RGBA → color regions with SourcePaths
         │ modifier.add / modifier.update
         ▼
 VectorObject.image + Modifier[type=trace]
@@ -31,17 +31,17 @@ commands; it does not mutate document state directly.
 
 | Responsibility | Source |
 | --- | --- |
-| Trace modifier and region types | [src/app/core/model/types.ts](src/app/core/model/types.ts) |
-| Defaults, presets, raster algorithm, diagnostics, preview conversion | [src/app/core/model/image-trace.ts](src/app/core/model/image-trace.ts) |
+| Trace modifier and region types | [src/app/modules/types/types.ts](src/app/modules/types/types.ts) |
+| Defaults, presets, raster algorithm, diagnostics, preview conversion | [src/app/modules/image-trace/image-trace.ts](src/app/modules/image-trace/image-trace.ts) |
 | Browser image decoding, sizing, canvas readback | [src/app/viewport/utils/trace-image.ts](src/app/viewport/utils/trace-image.ts) |
 | Panel add/reorder/apply-all actions | [src/app/panels/modifiers/components/modifiers-panel/modifiers-panel.ts](src/app/panels/modifiers/components/modifiers-panel/modifiers-panel.ts) |
 | Trace controls and form drafts | [src/app/panels/modifiers/components/trace-modifier-fields/trace-modifier-fields.ts](src/app/panels/modifiers/components/trace-modifier-fields/trace-modifier-fields.ts), [trace-modifier-fields.html](src/app/panels/modifiers/components/trace-modifier-fields/trace-modifier-fields.html) |
 | Retrace requests and modifier commands | [src/app/panels/modifiers/components/modifier-row/modifier-row.ts](src/app/panels/modifiers/components/modifier-row/modifier-row.ts) |
-| Add/update validation and settings normalization | [src/app/core/model/modifier-edits.ts](src/app/core/model/modifier-edits.ts) |
+| Add/update validation and settings normalization | [src/app/modules/modifier-edits/modifier-edits.ts](src/app/modules/modifier-edits/modifier-edits.ts) |
 | Image preview scene and SVG rendering | [src/app/viewport/utils/scene.ts](src/app/viewport/utils/scene.ts), [src/app/viewport/components/viewport/viewport.html](src/app/viewport/components/viewport/viewport.html) |
-| Apply to editable paths | [src/app/core/model/expand-trace.ts](src/app/core/model/expand-trace.ts), [src/app/core/session.service.ts](src/app/core/session.service.ts) |
+| Apply to editable paths | [src/app/modules/expand-trace/expand-trace.ts](src/app/modules/expand-trace/expand-trace.ts), [src/app/core/session.service.ts](src/app/core/session.service.ts) |
 | SVG serialization and restoration | [src/app/core/io/svg-export.ts](src/app/core/io/svg-export.ts), [src/app/core/io/svg-import.ts](src/app/core/io/svg-import.ts) |
-| Algorithm and round-trip tests | [src/app/core/model/image-trace.spec.ts](src/app/core/model/image-trace.spec.ts), [src/app/core/io/svg-io.spec.ts](src/app/core/io/svg-io.spec.ts) |
+| Algorithm and round-trip tests | [src/app/modules/image-trace/image-trace.spec.ts](src/app/modules/image-trace/image-trace.spec.ts), [src/app/core/io/svg-io.spec.ts](src/app/core/io/svg-io.spec.ts) |
 
 ## Data model and invariants
 
@@ -58,7 +58,7 @@ A trace modifier is one variant in the `Modifier` union. It stores:
 - `enabled`, like other modifiers.
 
 Images accept at most one trace modifier and reject other modifier kinds.
-Non-image paths reject trace. These checks are in `modifier-edits.ts`; keep
+Non-image paths reject trace. These checks are in `src/app/modules/modifier-edits/modifier-edits.ts`; keep
 them consistent with the panel's image-specific add menu. Trace is deliberately
 not an evaluator geometry step: image evaluation returns no vector subpaths,
 and the `trace` case in `walkStack` does not retrace or modify geometry.
@@ -67,7 +67,7 @@ and the `trace` case in `walkStack` does not retrace or modify geometry.
 when adding the modifier. The current bounds enforced by `clampTraceSettings`
 are colors 2–30, threshold 0–255, and paths/corners/noise/optimization 0–100,
 with integer values. The UI's presets are defined alongside those defaults in
-`image-trace.ts`; the preset select compares all settings except `view`.
+`src/app/modules/image-trace/image-trace.ts`; the preset select compares all settings except `view`.
 
 ## End-to-end behavior
 
