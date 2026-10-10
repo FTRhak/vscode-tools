@@ -1,4 +1,4 @@
-import { createId } from '../../core/utils/create-id';
+import { createId } from '@vector-editor/core/utils';
 import {
   Anchor,
   Document,
@@ -10,7 +10,7 @@ import {
   svgStrokeDefaults,
   Vec2,
   VectorObject,
-} from '../types/types';
+} from '../types';
 
 const identityTransform: ObjectTransform = {
   x: 0,

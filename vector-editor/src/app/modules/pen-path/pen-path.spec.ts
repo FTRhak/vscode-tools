@@ -1,7 +1,7 @@
-import { createNewDocument } from '../create-document/create-document';
-import { addLayer } from '../document-edits/document-edits';
-import { Anchor, Segment, SourcePath, Vec2 } from '../types/types';
-import { addPenPoint, beginPenObject, finishPen, setPenHandles } from '.';
+import { createNewDocument } from '../create-document';
+import { addLayer } from '../document-edits';
+import { Anchor, Segment, SourcePath, Vec2 } from '../types';
+import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './pen-path';
 
 describe('pen path', () => {
   it('starts an open object on the back layer and numbers the name', () => {

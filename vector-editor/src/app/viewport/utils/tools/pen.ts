@@ -1,4 +1,4 @@
-import { Anchor, Vec2, VectorObject } from '@vector-editor/modules/types/types';
+import { Anchor, Vec2, VectorObject } from '@vector-editor/modules/types';
 import { Command, EditorMode } from '../../../commands/models/command';
 import { anchorHitRadius } from '../anchor-hit';
 

@@ -1,4 +1,4 @@
-import { Document, Layer, VectorObject } from '../types/types';
+import { Document, Layer, VectorObject } from '../types';
 
 export function layersBackToFront(document: Document): readonly Layer[] {
   return [...document.layers].sort((a, b) => a.order - b.order);

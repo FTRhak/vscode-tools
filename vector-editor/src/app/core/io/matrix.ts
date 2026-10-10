@@ -1,4 +1,4 @@
-import { ObjectTransform, SourcePath, Vec2 } from '@vector-editor/modules/types/types';
+import { ObjectTransform, SourcePath, Vec2 } from '@vector-editor/modules/types';
 
 export interface Matrix {
   readonly a: number;

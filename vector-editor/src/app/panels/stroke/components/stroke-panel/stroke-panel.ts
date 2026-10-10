@@ -2,8 +2,8 @@ import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form, max, min } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
+import { VectorObject } from '@vector-editor/modules/types';
 import { StrokeDraft } from '../../models';
-import { VectorObject } from '@vector-editor/modules/types/types';
 
 type NumberField = 'strokeMiterlimit' | 'strokeOpacity' | 'strokeDashoffset';
 

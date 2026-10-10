@@ -1,6 +1,6 @@
 import { difference, FillRule, intersect, union } from 'clipper2-ts';
 import { invertMatrix, matrixFromTransform, multiplyMatrix, transformSource } from '../io/matrix';
-import { Modifier, ObjectTransform, SourcePath } from '@vector-editor/modules/types/types';
+import { Modifier, ObjectTransform, SourcePath } from '@vector-editor/modules/types';
 import { flattenSource, sourceFromPaths } from './flatten';
 
 type BooleanModifier = Extract<Modifier, { type: 'boolean' }>;

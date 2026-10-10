@@ -1,4 +1,4 @@
-import { Anchor, Segment, SourcePath, Subpath, Vec2 } from '../types/types';
+import { Anchor, Segment, SourcePath, Subpath, Vec2 } from '../types';
 
 export function sourceToPathData(source: SourcePath): string {
   return source.subpaths

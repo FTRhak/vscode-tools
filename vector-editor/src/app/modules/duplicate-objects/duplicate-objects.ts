@@ -1,5 +1,5 @@
 import { createId } from '@vector-editor/core/utils';
-import { Anchor, Document, Modifier, SourcePath, Subpath, VectorObject } from '../types/types';
+import { Anchor, Document, Modifier, SourcePath, Subpath, VectorObject } from '../types';
 
 export const DUPLICATE_OFFSET = 24;
 

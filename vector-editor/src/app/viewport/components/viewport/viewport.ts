@@ -5,7 +5,7 @@ import {
   Document,
   Vec2,
   VectorObject,
-} from '@vector-editor/modules/types/types';
+} from '@vector-editor/modules/types';
 import { anchorsInRect } from '../../utils/anchor-hit';
 import { imageFrameAt, imageFrameFromDrag, ImageFrame } from '../../utils/image-frame';
 import { ArmedImage, ImagePlace } from '../../services/image-place.service';

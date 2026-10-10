@@ -1,5 +1,5 @@
-import { isInteractionLocked } from '../paint-order/paint-order';
-import { Document, Modifier, VectorObject } from '../types/types';
+import { isInteractionLocked } from '../paint-order';
+import { Document, Modifier, VectorObject } from '../types';
 
 export function deletableObjectIds(document: Document, ids: readonly string[]): readonly string[] {
   const byId = new Map(document.objects.map((object) => [object.id, object]));

@@ -1,5 +1,5 @@
-import { sourceToPathData } from '.';
-import { SourcePath } from '../types/types';
+import { sourceToPathData } from './path-data';
+import { SourcePath } from '../types';
 
 describe('sourceToPathData', () => {
   const source: SourcePath = {

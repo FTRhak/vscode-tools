@@ -5,12 +5,12 @@ import {
   evaluateDocument,
   SessionService,
 } from '@vector-editor/core';
-import { traceImageContent } from '@vector-editor/viewport';
-import { ModifierKind } from '@vector-editor/modules/modifier-edits/modifier-edits';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point/empty-point';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { defaultTraceSettings } from '@vector-editor/modules/image-trace';
 import { isImage } from '@vector-editor/modules/image/image';
-import { defaultTraceSettings } from '@vector-editor/modules/image-trace/image-trace';
-import { Modifier } from '@vector-editor/modules/types/types';
+import { ModifierKind } from '@vector-editor/modules/modifier-edits';
+import { Modifier } from '@vector-editor/modules/types';
+import { traceImageContent } from '@vector-editor/viewport';
 
 @Component({
   selector: 'app-modifiers-panel',

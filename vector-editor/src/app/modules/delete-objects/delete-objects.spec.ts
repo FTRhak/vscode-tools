@@ -1,4 +1,4 @@
-import { Document, Modifier, svgStrokeDefaults, VectorObject } from '../types/types';
+import { Document, Modifier, svgStrokeDefaults, VectorObject } from '../types';
 import { deleteLayer, deleteObjects } from './delete-objects';
 
 describe('deleteObjects', () => {

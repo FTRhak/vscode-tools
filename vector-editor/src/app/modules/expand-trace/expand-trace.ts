@@ -1,8 +1,8 @@
-import { remintSource } from '../../core/eval/remint';
 import { createId } from '@vector-editor/core/utils';
-import { nextSeriesName } from '../document-edits/document-edits';
-import { isImage } from '../image/image';
-import { Document, svgStrokeDefaults, VectorObject } from '../types/types';
+import { remintSource } from '../../core/eval/remint';
+import { nextSeriesName } from '../document-edits';
+import { isImage } from '../image';
+import { Document, svgStrokeDefaults, VectorObject } from '../types';
 
 export function expandTrace(
   document: Document,

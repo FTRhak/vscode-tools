@@ -1,7 +1,7 @@
 import { documentBounds, type Bounds } from '../../core/eval/bounds';
 import { evaluateDocument } from '../../core/eval/evaluate';
 import { isInteractionLocked } from '../paint-order/paint-order';
-import { Document, VectorObject, ViewBox } from '../types/types';
+import { Document, VectorObject, ViewBox } from '../types';
 
 export type AlignEdge =
   | 'left'

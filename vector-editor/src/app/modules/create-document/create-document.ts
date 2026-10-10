@@ -7,7 +7,7 @@ import {
   Style,
   svgStrokeDefaults,
   Vec2,
-} from '../types/types';
+} from '../types';
 
 const identityTransform: ObjectTransform = {
   x: 0,

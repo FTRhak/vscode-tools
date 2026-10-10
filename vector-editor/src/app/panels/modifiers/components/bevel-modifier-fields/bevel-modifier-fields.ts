@@ -1,6 +1,6 @@
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { form } from '@angular/forms/signals';
-import { Modifier } from '@vector-editor/modules/types/types';
+import { Modifier } from '@vector-editor/modules/types';
 
 type BevelModifier = Extract<Modifier, { type: 'bevel' }>;
 type BevelJoin = BevelModifier['join'];

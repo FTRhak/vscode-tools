@@ -1,5 +1,5 @@
 import { createId } from '@vector-editor/core/utils';
-import { layersFrontToBack } from '../paint-order/paint-order';
+import { layersFrontToBack } from '../paint-order';
 import {
   Anchor,
   Document,
@@ -11,7 +11,7 @@ import {
   svgStrokeDefaults,
   Swatch,
   VectorObject,
-} from '../types/types';
+} from '../types';
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/;
 

@@ -10,7 +10,7 @@ import {
   setObjectStyle,
   updateLayer,
 } from '.';
-import { Document } from '../types/types';
+import { Document } from '../types';
 
 describe('document edits', () => {
   it('creates a gradient and applies it to the requested paint slot', () => {

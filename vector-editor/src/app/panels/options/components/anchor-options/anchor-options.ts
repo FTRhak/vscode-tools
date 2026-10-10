@@ -2,8 +2,8 @@ import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
-import { anchorPointType, AnchorPointType } from '@vector-editor/modules/edit-path/edit-path';
-import { Anchor } from '@vector-editor/modules/types/types';
+import { anchorPointType, AnchorPointType } from '@vector-editor/modules/edit-path';
+import { Anchor } from '@vector-editor/modules/types';
 
 interface AnchorDraft {
   readonly x: number | null;

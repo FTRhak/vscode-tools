@@ -1,5 +1,5 @@
-import { createId } from '../../core/utils/create-id';
-import { nextSeriesName } from '../document-edits/document-edits';
+import { createId } from '@vector-editor/core/utils';
+import { nextSeriesName } from '../document-edits';
 import {
   Anchor,
   Document,
@@ -10,7 +10,7 @@ import {
   svgStrokeDefaults,
   Vec2,
   VectorObject,
-} from '../types/types';
+} from '../types';
 
 /** Four-cubic approximation of a circle or ellipse. */
 export const ELLIPSE_KAPPA = 0.5522847498307936;

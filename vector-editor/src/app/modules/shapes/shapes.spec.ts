@@ -1,4 +1,4 @@
-import { createNewDocument } from '../create-document/create-document';
+import { createNewDocument } from '../create-document';
 import {
   addShape,
   clampShapeCount,
@@ -7,7 +7,7 @@ import {
   shapeSourceFromDrag,
   ShapeDrag,
 } from '.';
-import { SourcePath, Vec2 } from '../types/types';
+import { SourcePath, Vec2 } from '../types';
 
 describe('shape geometry', () => {
   it('constrains a rectangle to a square and an ellipse to a circle', () => {

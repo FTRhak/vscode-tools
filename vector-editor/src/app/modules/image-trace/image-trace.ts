@@ -1,5 +1,5 @@
-import { createId } from '../../core/utils/create-id';
-import { sourceToPathData } from '../path-data/path-data';
+import { createId } from '@vector-editor/core/utils';
+import { sourceToPathData } from '../path-data';
 import {
   Modifier,
   SourcePath,
@@ -9,7 +9,7 @@ import {
   TraceView,
   VectorObject,
   Vec2,
-} from '../types/types';
+} from '../types';
 
 export const TRACE_SAMPLE_LIMIT = 384;
 

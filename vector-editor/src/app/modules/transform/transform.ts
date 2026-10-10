@@ -1,4 +1,4 @@
-import { ObjectTransform, Vec2 } from '../types/types';
+import { ObjectTransform, Vec2 } from '../types';
 
 /** Document position of the point rotation keeps fixed. */
 export function rotationOriginDocument(transform: ObjectTransform): Vec2 {

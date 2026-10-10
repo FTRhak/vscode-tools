@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 import { gradientTransform, SceneObject } from '../../../../viewport/utils/scene';
-import { Gradient } from '@vector-editor/modules/types/types';
+import { Gradient } from '@vector-editor/modules/types';
 
 @Component({
   selector: 'preview-svg',

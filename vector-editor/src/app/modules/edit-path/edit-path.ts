@@ -1,5 +1,5 @@
 import { createId } from '@vector-editor/core/utils';
-import { Anchor, Segment, SourcePath, Subpath, Vec2 } from '../types/types';
+import { Anchor, Segment, SourcePath, Subpath, Vec2 } from '../types';
 
 export type HandleSlot = 'in' | 'out';
 

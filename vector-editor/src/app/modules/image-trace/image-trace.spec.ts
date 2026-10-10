@@ -1,5 +1,5 @@
 
-import { TraceRegion } from '../types/types';
+import { TraceRegion } from '../types';
 import { traceRaster, TraceRasterInput } from './image-trace';
 
 const settings: Omit<TraceRasterInput, 'width' | 'height' | 'rgba' | 'frameWidth' | 'frameHeight'> = {

@@ -1,4 +1,4 @@
-import { Anchor, Segment, SourcePath, Vec2 } from '../types/types';
+import { Anchor, Segment, SourcePath, Vec2 } from '../types';
 import {
   anchorPointType,
   deleteAnchors,

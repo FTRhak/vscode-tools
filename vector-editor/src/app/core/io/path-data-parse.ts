@@ -1,5 +1,5 @@
 import { createId } from '../utils';
-import { Anchor, Segment, SourcePath, Subpath, Vec2 } from '@vector-editor/modules/types/types';
+import { Anchor, Segment, SourcePath, Subpath, Vec2 } from '@vector-editor/modules/types';
 
 const commandPattern = /[MmLlHhVvCcSsQqTtAaZz]/;
 

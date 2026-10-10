@@ -1,5 +1,5 @@
 import { createId } from '@vector-editor/core/utils';
-import { nextSeriesName } from '../document-edits/document-edits';
+import { nextSeriesName } from '../document-edits';
 import {
   Document,
   ObjectTransform,
@@ -8,7 +8,7 @@ import {
   svgStrokeDefaults,
   Vec2,
   VectorObject,
-} from '../types/types';
+} from '../types';
 
 const identityTransform: ObjectTransform = {
   x: 0,

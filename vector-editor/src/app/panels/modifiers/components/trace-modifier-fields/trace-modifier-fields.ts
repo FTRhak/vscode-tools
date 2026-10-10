@@ -1,7 +1,7 @@
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { form } from '@angular/forms/signals';
-import { tracePresets, TraceSettings } from '@vector-editor/modules/image-trace/image-trace';
-import { Modifier, TraceMode, TraceView } from '@vector-editor/modules/types/types';
+import { tracePresets, TraceSettings } from '@vector-editor/modules/image-trace';
+import { Modifier, TraceMode, TraceView } from '@vector-editor/modules/types';
 
 type TraceModifier = Extract<Modifier, { type: 'trace' }>;
 

@@ -2,16 +2,16 @@
 import { createId } from '@vector-editor/core/utils';
 import { evaluateObjectPrefix } from '../../core/eval/evaluate';
 import { remintSource } from '../../core/eval/remint';
-import { isEmptyPoint } from '../empty-point/empty-point';
+import { isEmptyPoint } from '../empty-point';
 import {
   clampTraceSettings,
   defaultTraceSettings,
   sanitizeTraceRegions,
   traceFault,
   traceView,
-} from '../image-trace/image-trace';
-import { isImage } from '../image/image';
-import { Modifier, Style, TraceFault, TraceMode, TraceRegion, TraceView, VectorObject } from '../types/types';
+} from '../image-trace';
+import { isImage } from '../image';
+import { Modifier, Style, TraceFault, TraceMode, TraceRegion, TraceView, VectorObject } from '../types';
 
 export interface ModifierPatch {
   readonly enabled?: boolean;

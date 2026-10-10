@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { Modifier } from '@vector-editor/modules/types/types';
+import { Modifier } from '@vector-editor/modules/types';
 
 type RoundModifier = Extract<Modifier, { type: 'round' }>;
 
