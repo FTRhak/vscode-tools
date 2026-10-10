@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { Modifier, VectorObject } from '@vector-editor/modules/types';
+import { Modifier, VectorObject } from '@vector-editor/modules/types/types';
 
 type BooleanModifier = Extract<Modifier, { type: 'boolean' }>;
 type BooleanOperation = BooleanModifier['operation'];

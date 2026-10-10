@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { Modifier, VectorObject } from '@vector-editor/modules/types';
+import { Modifier, VectorObject } from '@vector-editor/modules/types/types';
 
 type MirrorModifier = Extract<Modifier, { type: 'mirror' }>;
 type MirrorAxis = MirrorModifier['axis'];

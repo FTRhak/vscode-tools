@@ -5,7 +5,7 @@ import {
   Document,
   Vec2,
   VectorObject,
-} from '@vector-editor/modules/types';
+} from '@vector-editor/modules/types/types';
 import { anchorsInRect } from '../../utils/anchor-hit';
 import { imageFrameAt, imageFrameFromDrag, ImageFrame } from '../../utils/image-frame';
 import { ArmedImage, ImagePlace } from '../../services/image-place.service';
@@ -51,12 +51,12 @@ import {
 import { addPointHitRadius, hitTestSegment } from '../../utils/tools/add-point';
 import { PenDrag, penPreviewData, startPen, updatePenDrag } from '../../utils/tools/pen';
 import { SessionService } from '@vector-editor/core';
-import { isInteractionLocked, objectsInPaintOrder } from '@vector-editor/modules/paint-order';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point';
-import { rotationOriginDocument } from '@vector-editor/modules/transform';
-import { isImage } from '@vector-editor/modules/image';
-import { clampShapeCount, isShapeKind, SHAPE_NAMES, ShapeDrag, ShapeKind, shapeSource, shapeSourceFromDrag } from '@vector-editor/modules/shapes';
-import { sourceToPathData } from '@vector-editor/modules/path-data';
+import { isInteractionLocked, objectsInPaintOrder } from '@vector-editor/modules/paint-order/paint-order';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point/empty-point';
+import { rotationOriginDocument } from '@vector-editor/modules/transform/transform';
+import { isImage } from '@vector-editor/modules/image/image';
+import { clampShapeCount, isShapeKind, SHAPE_NAMES, ShapeDrag, ShapeKind, shapeSource, shapeSourceFromDrag } from '@vector-editor/modules/shapes/shapes';
+import { sourceToPathData } from '@vector-editor/modules/path-data/path-data';
 
 interface PanGesture {
   readonly pointerId: number;

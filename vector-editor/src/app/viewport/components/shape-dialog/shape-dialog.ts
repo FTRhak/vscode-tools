@@ -1,8 +1,8 @@
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormField, form, hidden, max, min, required } from '@angular/forms/signals';
-import { SHAPE_NAMES, ShapeKind } from '@vector-editor/modules/shapes';
-import { Vec2 } from '@vector-editor/modules/types';
+import { SHAPE_NAMES, ShapeKind } from '@vector-editor/modules/shapes/shapes';
+import { Vec2 } from '@vector-editor/modules/types/types';
 
 export interface ShapeDialogRequest {
   readonly kind: ShapeKind;

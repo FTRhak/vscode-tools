@@ -1,9 +1,9 @@
 import { ClipperHold, evaluateDocument } from '@vector-editor/core';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point';
-import { isImage } from '@vector-editor/modules/image';
-import { enabledTrace, tracePreview } from '@vector-editor/modules/image-trace';
-import { objectsInPaintOrder } from '@vector-editor/modules/paint-order';
-import { sourceToPathData } from '@vector-editor/modules/path-data';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point/empty-point';
+import { isImage } from '@vector-editor/modules/image/image';
+import { enabledTrace, tracePreview } from '@vector-editor/modules/image-trace/image-trace';
+import { objectsInPaintOrder } from '@vector-editor/modules/paint-order/paint-order';
+import { sourceToPathData } from '@vector-editor/modules/path-data/path-data';
 import {
   Document,
   Gradient,
@@ -11,7 +11,7 @@ import {
   Style,
   Subpath,
   ViewBox,
-} from '@vector-editor/modules/types';
+} from '@vector-editor/modules/types/types';
 
 export type SceneSurface = 'viewport' | 'preview';
 

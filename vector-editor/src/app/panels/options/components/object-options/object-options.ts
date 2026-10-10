@@ -2,9 +2,9 @@ import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { form } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
-import { isInteractionLocked } from '@vector-editor/modules/paint-order';
-import { rotationOriginDocument } from '@vector-editor/modules/transform';
-import { Document, ObjectTransform, VectorObject } from '@vector-editor/modules/types';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order/paint-order';
+import { rotationOriginDocument } from '@vector-editor/modules/transform/transform';
+import { Document, ObjectTransform, VectorObject } from '@vector-editor/modules/types/types';
 
 type TransformKey = 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY';
 type PivotAxis = 'x' | 'y';

@@ -1,4 +1,4 @@
-import { Subpath, Vec2 } from '@vector-editor/modules/types';
+import { Subpath, Vec2 } from '@vector-editor/modules/types/types';
 
 export function replicaId(id: string, modifierId: string, replica: string): string {
   return `${id}/${modifierId}/${replica}`;

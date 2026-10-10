@@ -1,7 +1,7 @@
 import { computed, Service, signal } from '@angular/core';
-import { alignObjects } from '@vector-editor/modules/align-objects';
-import { createNewDocument } from '../modules/create-document';
-import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
+import { alignObjects } from '@vector-editor/modules/align-objects/align-objects';
+import { createNewDocument } from '../modules/create-document/create-document';
+import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects/delete-objects';
 import {
   addLayer,
   addPath,
@@ -13,8 +13,8 @@ import {
   setObjectStyle,
   updateGradient,
   updateLayer,
-} from '@vector-editor/modules/document-edits';
-import { duplicateObjects } from '@vector-editor/modules/duplicate-objects';
+} from '@vector-editor/modules/document-edits/document-edits';
+import { duplicateObjects } from '@vector-editor/modules/duplicate-objects/duplicate-objects';
 import {
   deleteAnchors,
   insertPoint,
@@ -22,10 +22,10 @@ import {
   setAnchorPointType,
   setAnchorPosition,
   translateAnchors,
-} from '@vector-editor/modules/edit-path';
-import { addEmptyPoint, isEmptyPoint } from '@vector-editor/modules/empty-point';
-import { expandTrace } from '@vector-editor/modules/expand-trace';
-import { addImage, isImage } from '@vector-editor/modules/image';
+} from '@vector-editor/modules/edit-path/edit-path';
+import { addEmptyPoint, isEmptyPoint } from '@vector-editor/modules/empty-point/empty-point';
+import { expandTrace } from '@vector-editor/modules/expand-trace/expand-trace';
+import { addImage, isImage } from '@vector-editor/modules/image/image';
 import {
   addModifier,
   applyAllModifiers,
@@ -33,11 +33,11 @@ import {
   removeModifier,
   reorderModifier,
   updateModifier,
-} from '@vector-editor/modules/modifier-edits';
-import { isInteractionLocked, layersFrontToBack } from '@vector-editor/modules/paint-order';
-import { addPenPoint, beginPenObject, finishPen, setPenHandles } from '@vector-editor/modules/pen-path';
-import { addShape } from '@vector-editor/modules/shapes';
-import { rotationOriginDocument, transformWithRotationOrigin } from '@vector-editor/modules/transform';
+} from '@vector-editor/modules/modifier-edits/modifier-edits';
+import { isInteractionLocked, layersFrontToBack } from '@vector-editor/modules/paint-order/paint-order';
+import { addPenPoint, beginPenObject, finishPen, setPenHandles } from '@vector-editor/modules/pen-path/pen-path';
+import { addShape } from '@vector-editor/modules/shapes/shapes';
+import { rotationOriginDocument, transformWithRotationOrigin } from '@vector-editor/modules/transform/transform';
 import {
   Document,
   ImagePlacement,
@@ -45,7 +45,7 @@ import {
   SourcePath,
   VectorObject,
   ViewportCamera,
-} from '@vector-editor/modules/types';
+} from '@vector-editor/modules/types/types';
 import { Command, EditorMode, EditorTool } from '../commands/models/command';
 import {
   emptyHistory,

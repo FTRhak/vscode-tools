@@ -1,6 +1,6 @@
-import type { AlignEdge, AlignTarget } from '@vector-editor/modules/align-objects';
-import type { AnchorPointType } from '@vector-editor/modules/edit-path';
-import type { ModifierKind, ModifierPatch, TraceAdd } from '@vector-editor/modules/modifier-edits';
+import type { AlignEdge, AlignTarget } from '@vector-editor/modules/align-objects/align-objects';
+import type { AnchorPointType } from '@vector-editor/modules/edit-path/edit-path';
+import type { ModifierKind, ModifierPatch, TraceAdd } from '@vector-editor/modules/modifier-edits/modifier-edits';
 import type {
   Document,
   Gradient,
@@ -11,7 +11,7 @@ import type {
   SourcePath,
   Style,
   Vec2,
-} from '@vector-editor/modules/types';
+} from '@vector-editor/modules/types/types';
 
 export type ColorSlot = 'fill' | 'stroke';
 

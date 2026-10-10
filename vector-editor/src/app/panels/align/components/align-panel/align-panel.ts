@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
-import { AlignEdge, AlignTarget, canAlignObjects } from '@vector-editor/modules/align-objects';
+import { AlignEdge, AlignTarget, canAlignObjects } from '@vector-editor/modules/align-objects/align-objects';
 import { AlignAction } from '../../models';
 
 @Component({

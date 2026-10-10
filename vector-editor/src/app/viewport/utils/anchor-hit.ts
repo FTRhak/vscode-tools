@@ -1,4 +1,4 @@
-import { ObjectTransform, SourcePath, Vec2, VectorObject } from '@vector-editor/modules/types';
+import { ObjectTransform, SourcePath, Vec2, VectorObject } from '@vector-editor/modules/types/types';
 import { DocumentRect, localToDocument } from './hit-test';
 
 export const ANCHOR_HIT_PX = 6;

@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { ColorSlot, CommandBus } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
-import { Gradient, VectorObject } from '@vector-editor/modules/types';
+import { Gradient, VectorObject } from '@vector-editor/modules/types/types';
 import { gradientBackground } from '../../../../viewport/utils/scene';
 import { ColorTarget } from '../../services/color-target';
 

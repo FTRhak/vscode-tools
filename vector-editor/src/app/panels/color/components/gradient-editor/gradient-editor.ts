@@ -6,12 +6,12 @@ import {
   Gradient,
   GradientStop,
   GradientType,
-} from '@vector-editor/modules/types';
+} from '@vector-editor/modules/types/types';
 import { ColorTarget } from '../../services/color-target';
 import { gradientBackground } from '../../../../viewport/utils/scene';
 import { SessionService } from '@vector-editor/core';
 import { createId } from '@vector-editor/core/utils';
-import { nextSeriesName } from '@vector-editor/modules/document-edits';
+import { nextSeriesName } from '@vector-editor/modules/document-edits/document-edits';
 
 @Component({
   selector: 'app-gradient-editor',

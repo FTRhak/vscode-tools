@@ -1,6 +1,6 @@
 import { createId } from '@vector-editor/core/utils';
-import { imageContent, isImageDataUrl, isImageMime } from '@vector-editor/modules/image';
-import { clampTraceSettings } from '@vector-editor/modules/image-trace';
+import { imageContent, isImageDataUrl, isImageMime } from '@vector-editor/modules/image/image';
+import { clampTraceSettings } from '@vector-editor/modules/image-trace/image-trace';
 import {
   Anchor,
   Document,
@@ -19,7 +19,7 @@ import {
   TraceRegion,
   Vec2,
   VectorObject,
-} from '@vector-editor/modules/types';
+} from '@vector-editor/modules/types/types';
 import {
   identityTransform,
   Matrix,

@@ -1,7 +1,7 @@
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Component, effect, inject, signal } from '@angular/core';
 import { FormField, form, min, required } from '@angular/forms/signals';
-import { defaultDocumentHeight, defaultDocumentWidth } from '@vector-editor/modules/create-document';
+import { defaultDocumentHeight, defaultDocumentWidth } from '@vector-editor/modules/create-document/create-document';
 import { FileActions } from '../../services/file-actions.service';
 
 interface SizeDraft {

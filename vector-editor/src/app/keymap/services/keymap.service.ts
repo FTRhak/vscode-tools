@@ -6,7 +6,7 @@ import { SessionService } from '@vector-editor/core';
 import { fromEvent } from 'rxjs';
 import { FileActions } from '../../shell/services/file-actions.service';
 import { ImagePlace } from '@vector-editor/viewport';
-import { deletableObjectIds } from '@vector-editor/modules/delete-objects';
+import { deletableObjectIds } from '@vector-editor/modules/delete-objects/delete-objects';
 
 const toolKeys: Readonly<Record<string, EditorTool>> = {
   v: 'select',

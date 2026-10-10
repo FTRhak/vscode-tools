@@ -1,4 +1,4 @@
-import { AlignEdge } from "@vector-editor/modules/align-objects";
+import { AlignEdge } from "@vector-editor/modules/align-objects/align-objects";
 
 
 export interface AlignAction {
