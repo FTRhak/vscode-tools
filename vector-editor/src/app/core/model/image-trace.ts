@@ -501,13 +501,14 @@ function regionSource(
 ): SourcePath {
   const loops = boundaryLoops(labels, label, width, height);
   const epsilon = ((100 - settings.paths) / 100) * 1.5;
+  const radius = 0.5 + (settings.corners / 100) * 2;
   const subpaths = loops.flatMap((loop) => {
     const simplified = rdpClosed(dropCollinear(loop), epsilon);
-    const frame = simplified.map((point) => ({
-      x: (point.x / width) * frameWidth,
-      y: (point.y / height) * frameHeight,
-    }));
-    return frame.length >= 3 ? [fitLoop(frame, settings.corners)] : [];
+    return simplified.length >= 3
+      ? [
+          toFrameSubpath(roundLoop(simplified, radius), width, height, frameWidth, frameHeight),
+        ]
+      : [];
   });
   return { subpaths };
 }
@@ -576,82 +577,108 @@ function boundaryLoops(labels: Int16Array, label: number, width: number, height:
   return loops;
 }
 
-function fitLoop(points: readonly Point[], corners: number): SourcePath['subpaths'][number] {
-  const indexes = cornerIndexes(points, corners);
-  const anchors = indexes.map((index) => ({
-    id: createId(),
-    position: { ...points[index] },
-    handleIn: null as Vec2 | null,
-    handleOut: null as Vec2 | null,
-  }));
-  const segments = indexes.map((start, index) => {
-    const end = indexes[(index + 1) % indexes.length];
-    const span = spanPoints(points, start, end);
-    const from = anchors[index];
-    const to = anchors[(index + 1) % anchors.length];
-    if (nearlyStraight(span)) {
-      return { id: createId(), kind: 'line' as const, fromId: from.id, toId: to.id };
+interface RoundedCorner {
+  readonly entry: Point;
+  readonly exit: Point;
+  readonly control1?: Point;
+  readonly control2?: Point;
+}
+
+function roundLoop(points: readonly Point[], radius: number): SourcePath['subpaths'][number] {
+  const corners = points.map((point, index): RoundedCorner => {
+    const previous = points[(index + points.length - 1) % points.length];
+    const next = points[(index + 1) % points.length];
+    if (!previous || !next) {
+      return { entry: point, exit: point };
     }
-    const cubic = fitCubic(span);
-    from.handleOut = cubic.out;
-    to.handleIn = cubic.in;
-    return { id: createId(), kind: 'cubic' as const, fromId: from.id, toId: to.id };
+    const incoming = unit(point.x - previous.x, point.y - previous.y);
+    const outgoing = unit(next.x - point.x, next.y - point.y);
+    const dot = Math.min(1, Math.max(-1, incoming.x * outgoing.x + incoming.y * outgoing.y));
+    const deflection = Math.acos(dot);
+    if (deflection < 0.01 || deflection > Math.PI - 0.01) {
+      return { entry: point, exit: point };
+    }
+    const tangent = Math.tan(deflection / 2);
+    const adjacentLength = Math.min(
+      Math.hypot(point.x - previous.x, point.y - previous.y),
+      Math.hypot(next.x - point.x, next.y - point.y),
+    );
+    const trim = Math.min(radius * tangent, adjacentLength * 0.45);
+    if (trim <= 0) {
+      return { entry: point, exit: point };
+    }
+    const actualRadius = trim / tangent;
+    const handleLength = (4 / 3) * actualRadius * Math.tan(deflection / 4);
+    const entry = { x: point.x - incoming.x * trim, y: point.y - incoming.y * trim };
+    const exit = { x: point.x + outgoing.x * trim, y: point.y + outgoing.y * trim };
+    return {
+      entry,
+      exit,
+      control1: { x: entry.x + incoming.x * handleLength, y: entry.y + incoming.y * handleLength },
+      control2: { x: exit.x - outgoing.x * handleLength, y: exit.y - outgoing.y * handleLength },
+    };
   });
-  return { closed: true, anchors, segments };
-}
-
-function cornerIndexes(points: readonly Point[], corners: number): number[] {
-  const threshold = ((100 - clampInteger(corners, 0, 100, 75)) / 100) * 150;
-  const sharp = points.flatMap((_, index) => (turnAngle(points, index) >= threshold ? [index] : []));
-  return sharp.length >= 3 ? sharp : points.map((_, index) => index);
-}
-
-function spanPoints(points: readonly Point[], start: number, end: number): Point[] {
-  const span: Point[] = [];
-  let index = start;
-  while (span.length <= points.length) {
-    const point = points[index];
-    if (point) {
-      span.push(point);
+  const groups = corners.map((corner) => {
+    const entry = {
+      id: createId(),
+      position: corner.entry,
+      handleIn: null as Vec2 | null,
+      handleOut: corner.control1 ?? null,
+    };
+    const exit = corner.control1
+      ? {
+          id: createId(),
+          position: corner.exit,
+          handleIn: corner.control2 ?? null,
+          handleOut: null as Vec2 | null,
+        }
+      : entry;
+    return { corner, entry, exit };
+  });
+  const segments = groups.flatMap((group, index) => {
+    const next = groups[(index + 1) % groups.length];
+    if (!next) {
+      return [];
     }
-    if (index === end) {
-      break;
+    const found: SourcePath['subpaths'][number]['segments'][number][] = [];
+    if (group.corner.control1 && group.corner.control2 && group.entry !== group.exit) {
+      found.push({
+        id: createId(),
+        kind: 'cubic' as const,
+        fromId: group.entry.id,
+        toId: group.exit.id,
+      });
     }
-    index = (index + 1) % points.length;
-  }
-  return span;
-}
-
-function nearlyStraight(points: readonly Point[]): boolean {
-  const start = points[0];
-  const end = points[points.length - 1];
-  if (!start || !end || points.length <= 2) {
-    return true;
-  }
-  return points.every((point) => pointLineDistance(point, start, end) <= 0.35);
-}
-
-function fitCubic(points: readonly Point[]): { readonly out: Vec2; readonly in: Vec2 } {
-  const start = points[0] ?? { x: 0, y: 0 };
-  const end = points[points.length - 1] ?? start;
-  const outTangent = tangent(points, true);
-  const inTangent = tangent(points, false);
-  const distance = Math.hypot(end.x - start.x, end.y - start.y) || 1;
+    found.push({ id: createId(), kind: 'line' as const, fromId: group.exit.id, toId: next.entry.id });
+    return found;
+  });
   return {
-    out: { x: start.x + outTangent.x * (distance / 3), y: start.y + outTangent.y * (distance / 3) },
-    in: { x: end.x - inTangent.x * (distance / 3), y: end.y - inTangent.y * (distance / 3) },
+    closed: true,
+    anchors: groups.flatMap(({ entry, exit }) => (entry === exit ? [entry] : [entry, exit])),
+    segments,
   };
 }
 
-function tangent(points: readonly Point[], atStart: boolean): Point {
-  const head = atStart ? points[0] : points[points.length - 1];
-  const tail = atStart ? points[Math.min(1, points.length - 1)] : points[Math.max(0, points.length - 2)];
-  if (!head || !tail) {
-    return { x: 1, y: 0 };
-  }
-  const length = Math.hypot(tail.x - head.x, tail.y - head.y) || 1;
-  const sign = atStart ? 1 : -1;
-  return { x: ((tail.x - head.x) / length) * sign, y: ((tail.y - head.y) / length) * sign };
+function toFrameSubpath(
+  subpath: SourcePath['subpaths'][number],
+  width: number,
+  height: number,
+  frameWidth: number,
+  frameHeight: number,
+): SourcePath['subpaths'][number] {
+  const map = (point: Vec2 | null): Vec2 | null =>
+    point
+      ? { x: (point.x / width) * frameWidth, y: (point.y / height) * frameHeight }
+      : null;
+  return {
+    ...subpath,
+    anchors: subpath.anchors.map((anchor) => ({
+      ...anchor,
+      position: map(anchor.position) ?? anchor.position,
+      handleIn: map(anchor.handleIn),
+      handleOut: map(anchor.handleOut),
+    })),
+  };
 }
 
 function dropCollinear(points: readonly Point[]): Point[] {

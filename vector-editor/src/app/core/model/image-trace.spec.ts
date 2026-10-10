@@ -18,7 +18,8 @@ describe('traceRaster', () => {
     for (const region of regions) {
       expect(region.source.subpaths).toHaveLength(1);
       expect(region.source.subpaths[0]?.closed).toBe(true);
-      expect(region.source.subpaths[0]?.segments.every((segment) => segment.kind === 'line')).toBe(true);
+      expect(region.source.subpaths[0]?.segments.some((segment) => segment.kind === 'cubic')).toBe(true);
+      expect(region.source.subpaths[0]?.segments.some((segment) => segment.kind === 'line')).toBe(true);
     }
     const red = regions.find((region) => region.fill === '#ff0000');
     const blue = regions.find((region) => region.fill === '#0000ff');
@@ -26,6 +27,31 @@ describe('traceRaster', () => {
     expect(bounds(red).minX).toBeCloseTo(0);
     expect(bounds(blue).minX).toBeCloseTo(4);
     expect(bounds(blue).maxX).toBeCloseTo(8);
+  });
+
+  it('rounds rectangle corners with cubic segments', () => {
+    const regions = traceRaster(raster(8, 4, (x) => (x < 4 ? [255, 0, 0] : [0, 0, 255])));
+    const red = regions.find((region) => region.fill === '#ff0000');
+    const subpath = red?.source.subpaths[0];
+
+    expect(subpath?.segments.filter((segment) => segment.kind === 'cubic')).toHaveLength(4);
+    expect(subpath?.anchors.some((anchor) => anchor.position.x === 0 && anchor.position.y === 0)).toBe(
+      false,
+    );
+  });
+
+  it('uses the corners setting to control the rounding radius', () => {
+    const image = raster(20, 20, (x) => (x < 10 ? [255, 0, 0] : [0, 0, 255]));
+    const low = traceRaster({ ...image, corners: 0 }).find((region) => region.fill === '#ff0000');
+    const high = traceRaster({ ...image, corners: 100 }).find((region) => region.fill === '#ff0000');
+    const leftEdgeY = (region: TraceRegion | undefined) =>
+      Math.min(
+        ...(region?.source.subpaths[0]?.anchors
+          .filter((anchor) => anchor.position.x === 0)
+          .map((anchor) => anchor.position.y) ?? []),
+      );
+
+    expect(leftEdgeY(high)).toBeGreaterThan(leftEdgeY(low));
   });
 
   it('keeps a hole as a second subpath so evenodd fill can open it', () => {

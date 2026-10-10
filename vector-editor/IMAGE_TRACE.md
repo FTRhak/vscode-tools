@@ -127,9 +127,10 @@ same edge limit.
 6. Drop collinear points and apply closed-loop Ramer–Douglas–Peucker
    simplification in sampled-raster coordinates. Its tolerance is
    `1.5 * (100 - paths) / 100`, so higher `paths` preserves more contour points.
-7. Scale contour points into the image frame, select corners from turn angles,
-   and fit line or cubic segments. Higher `corners` lowers the angle cutoff and
-   can retain more anchors; spans not considered straight become cubics.
+7. Round contour corners with cubic Bézier arcs, then scale the result into the
+   image frame. The requested corner radius is 0.5–2.5 sampled pixels and is
+   capped to avoid consuming too much of a short edge. Higher `corners`
+   increases the rounding radius.
 
 Regions can contain multiple closed subpaths, including nested boundaries
 needed to represent holes. Preview and baked paths use the even-odd fill rule
