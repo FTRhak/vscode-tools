@@ -1,4 +1,4 @@
-import { applyMatrix, matrixFromTransform } from '../io/matrix';
+import { applyMatrix, matrixFromTransform } from '@vector-editor/modules/io';
 import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { isImage } from '@vector-editor/modules/object-image';
 import { SourcePath, Vec2, VectorObject } from '@vector-editor/modules/types';

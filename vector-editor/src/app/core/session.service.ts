@@ -1,6 +1,4 @@
 import { computed, Service, signal } from '@angular/core';
-import { alignObjects } from '@vector-editor/modules/feature-align-objects';
-import { createNewDocument } from '../modules/create-document/create-document';
 import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
 import {
   addLayer,
@@ -23,9 +21,9 @@ import {
   setAnchorPosition,
   translateAnchors,
 } from '@vector-editor/modules/edit-path';
-import { addEmptyPoint, isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { expandTrace } from '@vector-editor/modules/expand-trace';
-import { addImage, isImage } from '@vector-editor/modules/object-image';
+import { alignObjects } from '@vector-editor/modules/feature-align-objects';
+import { identityTransform, matrixFromTransform, transformSource } from '@vector-editor/modules/io';
 import {
   addModifier,
   applyAllModifiers,
@@ -34,6 +32,8 @@ import {
   reorderModifier,
   updateModifier,
 } from '@vector-editor/modules/modifier-edits/modifier-edits';
+import { addEmptyPoint, isEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { addImage, isImage } from '@vector-editor/modules/object-image';
 import { isInteractionLocked, layersFrontToBack } from '@vector-editor/modules/paint-order';
 import { addPenPoint, beginPenObject, finishPen, setPenHandles } from '@vector-editor/modules/pen-path';
 import { addShape } from '@vector-editor/modules/shapes/shapes';
@@ -56,8 +56,8 @@ import {
   SelectionState,
   SessionSnapshot,
 } from '../commands/models/history';
+import { createNewDocument } from '../modules/create-document/create-document';
 import { captureClipperHold, ClipperHold } from './eval/evaluate';
-import { identityTransform, matrixFromTransform, transformSource } from './io/matrix';
 
 export interface SessionSlice {
   readonly mode: EditorMode;

@@ -1,4 +1,4 @@
-import { createId } from '../utils';
+import { createId } from '../../core/utils';
 import { Anchor, Segment, SourcePath, Vec2 } from '@vector-editor/modules/types';
 
 const KAPPA = 0.5522847498307936;

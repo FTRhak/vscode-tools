@@ -1,6 +1,6 @@
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Component, effect, inject, signal } from '@angular/core';
-import { ImageLocation, SaveMode } from '@vector-editor/core';
+import { ImageLocation, SaveMode } from '@vector-editor/modules/io';
 import { FileActions } from '../../services/file-actions.service';
 
 @Component({

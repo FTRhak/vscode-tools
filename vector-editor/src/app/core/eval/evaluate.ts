@@ -1,6 +1,7 @@
+import { imageTraceDiagnostics } from '@vector-editor/modules/image-trace';
+import { applyMatrix, identityTransform, invertMatrix, matrixFromTransform } from '@vector-editor/modules/io';
 import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { isImage } from '@vector-editor/modules/object-image';
-import { imageTraceDiagnostics } from '@vector-editor/modules/image-trace';
 import {
   Modifier,
   SourcePath,
@@ -9,7 +10,6 @@ import {
   svgStrokeDefaults,
   VectorObject,
 } from '@vector-editor/modules/types';
-import { applyMatrix, identityTransform, invertMatrix, matrixFromTransform } from '../io/matrix';
 import { applyArray } from './array';
 import { applyBevel } from './bevel';
 import { clipBoolean, hasOpenSubpath, placeOperand } from './boolean';

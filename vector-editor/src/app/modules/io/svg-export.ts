@@ -15,8 +15,8 @@ import {
   TraceRegion,
   VectorObject,
 } from '@vector-editor/modules/types';
-import { sourceBounds } from '../eval/bounds';
-import { EvaluatedGeometry, evaluateDocument } from '../eval/evaluate';
+import { sourceBounds } from '../../core/eval/bounds';
+import { EvaluatedGeometry, evaluateDocument } from '../../core/eval/evaluate';
 import { identityTransform, matrixFromTransform, transformSource } from './matrix';
 
 export type SaveMode = 'all' | 'optimized' | 'minimal';
