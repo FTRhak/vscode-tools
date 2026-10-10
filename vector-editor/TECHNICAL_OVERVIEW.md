@@ -70,7 +70,11 @@ The public document model is defined in [src/app/core/model/types.ts](src/app/co
 - A `Document` has a viewBox, ordered layers, vector objects, and swatches.
 - A `VectorObject` has editable `source` paths, style, transform, visibility/lock flags, and an ordered modifier stack.
 - A `SourcePath` consists of subpaths, anchors, and segments. Anchors have positions and optional in/out handles; segments reference anchor IDs and are lines or cubics.
-- Modifiers are a tagged union: array, mirror, bevel, round, and boolean.
+- Modifiers are a tagged union: array, mirror, bevel, round, boolean, and image
+  trace. Trace is an image-only modifier whose regions are previewed from stored
+  vector paths and expanded into paths when applied; it is not run as a geometry
+  step in the regular evaluator. See [IMAGE_TRACE.md](IMAGE_TRACE.md) for its
+  data flow, algorithm, persistence contract, and change map.
 
 The source path is the editable geometry. Evaluation in [src/app/core/eval/evaluate.ts](src/app/core/eval/evaluate.ts) walks enabled modifiers in order to derive display/export geometry. It memoizes object evaluation, reports diagnostics for unsupported/invalid operations, and detects cyclic boolean dependencies. Boolean modifiers refer to another object's ID. `ClipperHold` captures intermediate modifier results during relevant drag interactions so boolean-derived geometry can remain stable while transforms are updated.
 
@@ -124,6 +128,7 @@ npm run build
 - Undo/redo labels or gesture merging: inspect `commands/models/history.ts` and session history tests.
 - Canvas gesture, hit target, snapping, or coordinate bug: inspect `viewport.ts` and the nearest utility under `viewport/utils/`; dispatch should remain command-based.
 - Modifier result or diagnostics: inspect `core/eval/evaluate.ts` and the specific evaluator in `core/eval/`.
+- Image trace behavior: start with [IMAGE_TRACE.md](IMAGE_TRACE.md), then follow its UI, rasterization, preview, Apply, or SVG links for the affected path.
 - SVG round-trip or export fidelity: inspect `core/io/` and `svg-io.spec.ts`.
 - A panel/control change: inspect that panel's component, template, and spec, and use `CommandBus` for document mutations.
 - Keyboard behavior: inspect `keymap/services/keymap.service.ts` and its spec.
