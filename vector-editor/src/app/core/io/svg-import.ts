@@ -859,6 +859,7 @@ function readModifier(
       paths: finiteField(value, 'paths', 50),
       corners: finiteField(value, 'corners', 75),
       noise: finiteField(value, 'noise', 10),
+      optimization: finiteField(value, 'optimization', 0),
       ignoreWhite: booleanField(value, 'ignoreWhite') === true,
     });
     const view = value['view'];

@@ -987,6 +987,7 @@ describe('CommandBus', () => {
       paths: 100,
       corners: 100,
       noise: 0,
+      optimization: 0,
       ignoreWhite: false,
     });
     bus.dispatch({

@@ -130,6 +130,18 @@
       (keydown.enter)="commitNumber('noise', $event)"
     />
   </label>
+  <label>
+    <span>Optimization <output>{{ modifier().optimization }}%</output></span>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      step="1"
+      [value]="modifier().optimization"
+      [attr.aria-valuetext]="modifier().optimization + '%'"
+      (change)="commitOptimization($event)"
+    />
+  </label>
   <label class="check">
     <input type="checkbox" [checked]="modifier().ignoreWhite" (change)="commitIgnore($event)" />
     Ignore white

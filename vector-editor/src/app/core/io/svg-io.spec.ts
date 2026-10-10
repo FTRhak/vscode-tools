@@ -830,6 +830,7 @@ describe('image svg', () => {
       paths: 100,
       corners: 100,
       noise: 0,
+      optimization: 0,
       ignoreWhite: false,
     });
     const document = createNewDocument();
@@ -862,7 +863,9 @@ describe('image svg', () => {
         return {
           ...tracedObject,
           modifiers: tracedObject.modifiers.map((modifier) =>
-            modifier.type === 'trace' ? { ...modifier, mode: 'colorDistance' as const } : modifier,
+            modifier.type === 'trace'
+              ? { ...modifier, mode: 'colorDistance' as const, optimization: 64 }
+              : modifier,
           ),
         };
       }),
@@ -879,7 +882,12 @@ describe('image svg', () => {
     const allImage = all.document.objects.find((object) => object.kind === 'image');
     expect(allImage?.image?.dataUrl).toBe(pixel);
     expect(allImage?.transform).toMatchObject({ x: 4, y: 6 });
-    expect(allImage?.modifiers[0]).toMatchObject({ type: 'trace', mode: 'colorDistance', colors: 16 });
+    expect(allImage?.modifiers[0]).toMatchObject({
+      type: 'trace',
+      mode: 'colorDistance',
+      colors: 16,
+      optimization: 64,
+    });
     expect(allImage?.modifiers[0]?.type === 'trace' ? allImage.modifiers[0].regions : []).toHaveLength(2);
 
     const optimized = importSvg(exportSvg(traced, 'optimized'));
@@ -892,6 +900,7 @@ describe('image svg', () => {
     expect(optimizedImage?.modifiers[0]).toMatchObject({
       type: 'trace',
       mode: 'colorDistance',
+      optimization: 64,
       view: 'result',
     });
     expect(optimizedImage?.modifiers[0]?.type === 'trace' ? optimizedImage.modifiers[0].regions : []).toHaveLength(2);

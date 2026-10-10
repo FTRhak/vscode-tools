@@ -8,6 +8,7 @@ const settings: Omit<TraceRasterInput, 'width' | 'height' | 'rgba' | 'frameWidth
   paths: 100,
   corners: 100,
   noise: 0,
+  optimization: 0,
   ignoreWhite: false,
 };
 
@@ -52,6 +53,15 @@ describe('traceRaster', () => {
       );
 
     expect(leftEdgeY(high)).toBeGreaterThan(leftEdgeY(low));
+  });
+
+  it('removes more contour anchors as optimization increases', () => {
+    const image = raster(24, 24, (x, y) => (x < 12 + (y % 2) * 2 ? [255, 0, 0] : [0, 0, 255]));
+    const countAnchors = (optimization: number) =>
+      traceRaster({ ...image, optimization }).find((region) => region.fill === '#ff0000')?.source
+        .subpaths[0]?.anchors.length ?? 0;
+
+    expect(countAnchors(100)).toBeLessThan(countAnchors(0));
   });
 
   it('keeps a hole as a second subpath so evenodd fill can open it', () => {

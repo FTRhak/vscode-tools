@@ -20,6 +20,7 @@ export interface TraceSettings {
   readonly paths: number;
   readonly corners: number;
   readonly noise: number;
+  readonly optimization: number;
   readonly ignoreWhite: boolean;
 }
 
@@ -43,6 +44,7 @@ export const defaultTraceSettings: TraceSettings = {
   paths: 50,
   corners: 75,
   noise: 10,
+  optimization: 0,
   ignoreWhite: false,
 };
 
@@ -57,6 +59,7 @@ export const tracePresets: readonly TracePreset[] = [
     paths: 80,
     corners: 75,
     noise: 5,
+    optimization: 0,
     ignoreWhite: false,
   },
   {
@@ -68,6 +71,7 @@ export const tracePresets: readonly TracePreset[] = [
     paths: 30,
     corners: 50,
     noise: 20,
+    optimization: 0,
     ignoreWhite: false,
   },
   { id: 'colors-3', label: '3 Colors', ...defaultTraceSettings, colors: 3 },
@@ -89,6 +93,7 @@ export const tracePresets: readonly TracePreset[] = [
     paths: 60,
     corners: 80,
     noise: 2,
+    optimization: 0,
     ignoreWhite: false,
   },
   {
@@ -100,6 +105,7 @@ export const tracePresets: readonly TracePreset[] = [
     paths: 50,
     corners: 75,
     noise: 20,
+    optimization: 0,
     ignoreWhite: true,
   },
 ];
@@ -126,6 +132,7 @@ export function clampTraceSettings(settings: TraceSettings): TraceSettings {
     paths: clampInteger(settings.paths, 0, 100, defaultTraceSettings.paths),
     corners: clampInteger(settings.corners, 0, 100, defaultTraceSettings.corners),
     noise: clampInteger(settings.noise, 0, 100, defaultTraceSettings.noise),
+    optimization: clampInteger(settings.optimization, 0, 100, defaultTraceSettings.optimization),
     ignoreWhite: settings.ignoreWhite === true,
   };
 }
@@ -500,7 +507,7 @@ function regionSource(
   settings: TraceSettings,
 ): SourcePath {
   const loops = boundaryLoops(labels, label, width, height);
-  const epsilon = ((100 - settings.paths) / 100) * 1.5;
+  const epsilon = ((100 - settings.paths) / 100) * 1.5 + (settings.optimization / 100) * 4;
   const radius = 0.5 + (settings.corners / 100) * 2;
   const subpaths = loops.flatMap((loop) => {
     const simplified = rdpClosed(dropCollinear(loop), epsilon);

@@ -33,6 +33,7 @@ export interface ModifierPatch {
   readonly paths?: number;
   readonly corners?: number;
   readonly noise?: number;
+  readonly optimization?: number;
   readonly ignoreWhite?: boolean;
   readonly view?: TraceView;
   readonly regions?: readonly TraceRegion[];
@@ -367,6 +368,7 @@ function patchTrace(
     paths: patch.paths ?? modifier.paths,
     corners: patch.corners ?? modifier.corners,
     noise: patch.noise ?? modifier.noise,
+    optimization: patch.optimization ?? modifier.optimization,
     ignoreWhite: patch.ignoreWhite ?? modifier.ignoreWhite,
   });
   const view = traceView(patch.view, modifier.view);
@@ -381,6 +383,7 @@ function patchTrace(
     settings.paths === modifier.paths &&
     settings.corners === modifier.corners &&
     settings.noise === modifier.noise &&
+    settings.optimization === modifier.optimization &&
     settings.ignoreWhite === modifier.ignoreWhite &&
     view === modifier.view &&
     fault === modifier.fault &&

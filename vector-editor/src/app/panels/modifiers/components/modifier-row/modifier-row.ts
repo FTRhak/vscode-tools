@@ -107,6 +107,7 @@ export class ModifierRow {
       patch.paths !== undefined ||
       patch.corners !== undefined ||
       patch.noise !== undefined ||
+      patch.optimization !== undefined ||
       patch.ignoreWhite !== undefined;
     if (!retrace) {
       this.patch(patch);
@@ -120,6 +121,7 @@ export class ModifierRow {
       paths: patch.paths ?? modifier.paths,
       corners: patch.corners ?? modifier.corners,
       noise: patch.noise ?? modifier.noise,
+      optimization: patch.optimization ?? modifier.optimization,
       ignoreWhite: patch.ignoreWhite ?? modifier.ignoreWhite,
     };
     const traced = await traceImageContent(object.image, settings);

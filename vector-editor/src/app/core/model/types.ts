@@ -148,6 +148,7 @@ export type Modifier =
       readonly paths: number;
       readonly corners: number;
       readonly noise: number;
+      readonly optimization: number;
       readonly ignoreWhite: boolean;
       readonly view: TraceView;
       readonly regions: readonly TraceRegion[];

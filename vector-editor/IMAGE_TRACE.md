@@ -47,7 +47,8 @@ commands; it does not mutate document state directly.
 
 A trace modifier is one variant in the `Modifier` union. It stores:
 
-- `mode`, `colors`, `threshold`, `paths`, `corners`, `noise`, and `ignoreWhite`:
+- `mode`, `colors`, `threshold`, `paths`, `corners`, `noise`, `optimization`,
+  and `ignoreWhite`:
   the settings used for the most recent trace.
 - `regions`: ordered `{ fill, source }` results. Each source is a vector
   `SourcePath`, not a raster mask.
@@ -64,8 +65,8 @@ and the `trace` case in `walkStack` does not retrace or modify geometry.
 
 `defaultTraceSettings` is the source of truth for first-run values and is used
 when adding the modifier. The current bounds enforced by `clampTraceSettings`
-are colors 2–30, threshold 0–255, paths/corners/noise 0–100, with integer
-values. The UI's presets are defined alongside those defaults in
+are colors 2–30, threshold 0–255, and paths/corners/noise/optimization 0–100,
+with integer values. The UI's presets are defined alongside those defaults in
 `image-trace.ts`; the preset select compares all settings except `view`.
 
 ## End-to-end behavior
@@ -85,7 +86,8 @@ values. The UI's presets are defined alongside those defaults in
    overwriting a newer one.
 4. Changing only `view` dispatches a small patch and does not retrace.
    Preset and number-field edits emit patches through `TraceModifierFields`;
-   number drafts are committed on blur or Enter.
+   number drafts are committed on blur or Enter. Optimization slider edits are
+   committed when the slider value changes.
 
 The adapter maps decode/readback failures to `fault: 'unread'`. A valid decode
 with no regions has no fault and is diagnosed as “Image to vector has no
@@ -126,7 +128,9 @@ same edge limit.
    descending pixel count, then by label.
 6. Drop collinear points and apply closed-loop Ramer–Douglas–Peucker
    simplification in sampled-raster coordinates. Its tolerance is
-   `1.5 * (100 - paths) / 100`, so higher `paths` preserves more contour points.
+   `1.5 * (100 - paths) / 100 + 4 * optimization / 100`, so higher `paths`
+   preserves more detail and higher `optimization` removes more redundant
+   contour anchors.
 7. Round contour corners with cubic Bézier arcs, then scale the result into the
    image frame. The requested corner radius is 0.5–2.5 sampled pixels and is
    capped to avoid consuming too much of a short edge. Higher `corners`

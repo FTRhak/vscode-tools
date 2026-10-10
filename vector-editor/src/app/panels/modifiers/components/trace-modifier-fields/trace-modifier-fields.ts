@@ -19,6 +19,7 @@ export interface TraceModifierPatch {
   readonly paths?: number;
   readonly corners?: number;
   readonly noise?: number;
+  readonly optimization?: number;
   readonly ignoreWhite?: boolean;
   readonly view?: TraceView;
 }
@@ -69,6 +70,7 @@ export class TraceModifierFields {
       paths: preset.paths,
       corners: preset.corners,
       noise: preset.noise,
+      optimization: preset.optimization,
       ignoreWhite: preset.ignoreWhite,
     });
   }
@@ -91,6 +93,16 @@ export class TraceModifierFields {
     }
     if (event.target.checked !== this.modifier().ignoreWhite) {
       this.committed.emit({ ignoreWhite: event.target.checked });
+    }
+  }
+
+  protected commitOptimization(event: Event): void {
+    if (!(event.target instanceof HTMLInputElement)) {
+      return;
+    }
+    const value = Number(event.target.value);
+    if (Number.isInteger(value) && value !== this.modifier().optimization) {
+      this.committed.emit({ optimization: value });
     }
   }
 
@@ -124,6 +136,7 @@ function sameSettings(preset: TraceSettings, modifier: TraceModifier): boolean {
     preset.paths === modifier.paths &&
     preset.corners === modifier.corners &&
     preset.noise === modifier.noise &&
+    preset.optimization === modifier.optimization &&
     preset.ignoreWhite === modifier.ignoreWhite
   );
 }

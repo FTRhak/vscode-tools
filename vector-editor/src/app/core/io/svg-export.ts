@@ -649,6 +649,7 @@ function modifierPayload(
         paths: modifier.paths,
         corners: modifier.corners,
         noise: modifier.noise,
+        optimization: modifier.optimization,
         ignoreWhite: modifier.ignoreWhite,
         view: modifier.view,
         enabled: modifier.enabled,
