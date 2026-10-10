@@ -1,5 +1,5 @@
-import { documentBounds, type Bounds } from '../../core/eval/bounds';
-import { evaluateDocument } from '../../core/eval/evaluate';
+import { documentBounds, type Bounds } from '../eval/bounds';
+import { evaluateDocument } from '../eval/evaluate';
 import { isInteractionLocked } from '../paint-order/paint-order';
 import { Document, VectorObject, ViewBox } from '../types';
 

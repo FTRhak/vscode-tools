@@ -1,4 +1,5 @@
 import { computed, Service, signal } from '@angular/core';
+import { createNewDocument } from '@vector-editor/modules/create-document';
 import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
 import {
   addLayer,
@@ -21,6 +22,7 @@ import {
   setAnchorPosition,
   translateAnchors,
 } from '@vector-editor/modules/edit-path';
+import { captureClipperHold, ClipperHold } from '@vector-editor/modules/eval';
 import { expandTrace } from '@vector-editor/modules/expand-trace';
 import { alignObjects } from '@vector-editor/modules/feature-align-objects';
 import { identityTransform, matrixFromTransform, transformSource } from '@vector-editor/modules/io';
@@ -56,8 +58,6 @@ import {
   SelectionState,
   SessionSnapshot,
 } from '../commands/models/history';
-import { createNewDocument } from '../modules/create-document/create-document';
-import { captureClipperHold, ClipperHold } from './eval/evaluate';
 
 export interface SessionSlice {
   readonly mode: EditorMode;

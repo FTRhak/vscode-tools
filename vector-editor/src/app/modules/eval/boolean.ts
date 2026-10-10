@@ -1,5 +1,5 @@
 import { difference, FillRule, intersect, union } from 'clipper2-ts';
-import { invertMatrix, matrixFromTransform, multiplyMatrix, transformSource } from '../../modules/io/matrix';
+import { invertMatrix, matrixFromTransform, multiplyMatrix, transformSource } from '../io/matrix';
 import { Modifier, ObjectTransform, SourcePath } from '@vector-editor/modules/types';
 import { flattenSource, sourceFromPaths } from './flatten';
 

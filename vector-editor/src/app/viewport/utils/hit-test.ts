@@ -1,4 +1,4 @@
-import { ClipperHold, EvaluatedGeometry, evaluateDocument } from '@vector-editor/core';
+import { ClipperHold, EvaluatedGeometry, evaluateDocument } from '@vector-editor/modules/eval';
 import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { isImage } from '@vector-editor/modules/object-image';
 import { objectsInPaintOrder } from '@vector-editor/modules/paint-order';

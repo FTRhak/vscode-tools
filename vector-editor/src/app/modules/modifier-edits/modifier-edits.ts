@@ -1,8 +1,6 @@
 
 import { createId } from '@vector-editor/core/utils';
-import { evaluateObjectPrefix } from '../../core/eval/evaluate';
-import { remintSource } from '../../core/eval/remint';
-import { isEmptyPoint } from '../object-empty-point';
+import { evaluateObjectPrefix, remintSource } from '../eval';
 import {
   clampTraceSettings,
   defaultTraceSettings,
@@ -10,6 +8,7 @@ import {
   traceFault,
   traceView,
 } from '../image-trace';
+import { isEmptyPoint } from '../object-empty-point';
 import { isImage } from '../object-image';
 import { Modifier, Style, TraceFault, TraceMode, TraceRegion, TraceView, VectorObject } from '../types';
 

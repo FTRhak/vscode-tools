@@ -1,4 +1,4 @@
-import { ClipperHold, evaluateDocument } from '@vector-editor/core';
+import { ClipperHold, evaluateDocument } from '@vector-editor/modules/eval';
 import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { isImage } from '@vector-editor/modules/object-image';
 import { enabledTrace, tracePreview } from '@vector-editor/modules/image-trace';

@@ -1,8 +1,9 @@
-import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
-import { imageExtension, isImage, safeImageFileName } from '@vector-editor/modules/object-image';
-import { enabledTrace } from '@vector-editor/modules/image-trace';
-import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '@vector-editor/modules/paint-order';
-import { sourceToPathData } from '@vector-editor/modules/path-data';
+import { EvaluatedGeometry, evaluateDocument, sourceBounds } from '../eval';
+import { enabledTrace } from '../image-trace';
+import { isEmptyPoint } from '../object-empty-point';
+import { imageExtension, isImage, safeImageFileName } from '../object-image';
+import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '../paint-order';
+import { sourceToPathData } from '../path-data';
 import {
   Document,
   ImageAspect,
@@ -14,9 +15,7 @@ import {
   Style,
   TraceRegion,
   VectorObject,
-} from '@vector-editor/modules/types';
-import { sourceBounds } from '../../core/eval/bounds';
-import { EvaluatedGeometry, evaluateDocument } from '../../core/eval/evaluate';
+} from '../types';
 import { identityTransform, matrixFromTransform, transformSource } from './matrix';
 
 export type SaveMode = 'all' | 'optimized' | 'minimal';
