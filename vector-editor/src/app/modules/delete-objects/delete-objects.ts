@@ -27,17 +27,13 @@ export function deleteLayer(
   if (!layer || layer.locked) {
     return null;
   }
-  const removedIds = document.objects
-    .filter((object) => object.layerId === layerId)
-    .map((object) => object.id);
+  const removedIds = document.objects.filter((object) => object.layerId === layerId).map((object) => object.id);
   const removed = new Set(removedIds);
   return {
     document: {
       ...document,
       layers: document.layers.filter((item) => item.id !== layerId),
-      objects: document.objects
-        .filter((object) => !removed.has(object.id))
-        .map((object) => withoutDeletedOperands(object, removed)),
+      objects: document.objects.filter((object) => !removed.has(object.id)).map((object) => withoutDeletedOperands(object, removed)),
     },
     removedIds,
   };
@@ -55,9 +51,7 @@ export function deleteObjects(
   return {
     document: {
       ...document,
-      objects: document.objects
-        .filter((object) => !removed.has(object.id))
-        .map((object) => withoutDeletedOperands(object, removed)),
+      objects: document.objects.filter((object) => !removed.has(object.id)).map((object) => withoutDeletedOperands(object, removed)),
     },
     removedIds,
   };

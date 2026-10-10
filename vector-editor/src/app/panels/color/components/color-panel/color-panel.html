@@ -1,12 +1,7 @@
 <panel [panelName]="panelName" [icon]="'&#xe104;'">
   @if (hasSelection()) {
     <div class="slots">
-      <button
-        type="button"
-        class="slot"
-        [attr.aria-pressed]="slot() === 'fill'"
-        (click)="chooseSlot('fill')"
-      >
+      <button type="button" class="slot" [attr.aria-pressed]="slot() === 'fill'" (click)="chooseSlot('fill')">
         <span
           class="chip"
           [class.none]="fillColor().kind === 'none'"
@@ -15,12 +10,7 @@
         ></span>
         Fill
       </button>
-      <button
-        type="button"
-        class="slot"
-        [attr.aria-pressed]="slot() === 'stroke'"
-        (click)="chooseSlot('stroke')"
-      >
+      <button type="button" class="slot" [attr.aria-pressed]="slot() === 'stroke'" (click)="chooseSlot('stroke')">
         <span
           class="chip"
           [class.none]="strokeColor().kind === 'none'"

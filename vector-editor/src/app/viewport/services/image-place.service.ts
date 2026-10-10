@@ -125,11 +125,7 @@ function decodeSize(dataUrl: string): Promise<{ width: number; height: number } 
   return new Promise((resolve) => {
     const image = new Image();
     image.addEventListener('load', () => {
-      resolve(
-        image.naturalWidth > 0 && image.naturalHeight > 0
-          ? { width: image.naturalWidth, height: image.naturalHeight }
-          : null,
-      );
+      resolve(image.naturalWidth > 0 && image.naturalHeight > 0 ? { width: image.naturalWidth, height: image.naturalHeight } : null);
     });
     image.addEventListener('error', () => resolve(null));
     image.src = dataUrl;

@@ -1,14 +1,6 @@
 import { createId } from '@vector-editor/core/utils';
 import { nextSeriesName } from '../document-edits';
-import {
-  Document,
-  ObjectTransform,
-  SourcePath,
-  Style,
-  svgStrokeDefaults,
-  Vec2,
-  VectorObject,
-} from '../types';
+import { Document, ObjectTransform, SourcePath, Style, svgStrokeDefaults, Vec2, VectorObject } from '../types';
 
 const identityTransform: ObjectTransform = {
   x: 0,
@@ -39,11 +31,7 @@ export function isEmptyPoint(object: VectorObject): boolean {
   return object.kind === 'empty';
 }
 
-export function addEmptyPoint(
-  document: Document,
-  position: Vec2,
-  layerId?: string,
-): EmptyPointResult | null {
+export function addEmptyPoint(document: Document, position: Vec2, layerId?: string): EmptyPointResult | null {
   if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) {
     return null;
   }

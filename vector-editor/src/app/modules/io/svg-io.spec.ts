@@ -107,9 +107,7 @@ describe('importSvg', () => {
     });
     expect(circle?.source.subpaths[0]?.anchors).toHaveLength(4);
     expect(circle?.source.subpaths[0]?.closed).toBe(true);
-    expect(circle?.source.subpaths[0]?.segments.every((segment) => segment.kind === 'cubic')).toBe(
-      true,
-    );
+    expect(circle?.source.subpaths[0]?.segments.every((segment) => segment.kind === 'cubic')).toBe(true);
     expect(circle?.source.subpaths[0]?.anchors[0]?.position).toEqual({ x: 25, y: 30 });
   });
 
@@ -130,14 +128,8 @@ describe('importSvg', () => {
     if (!result.ok) {
       return;
     }
-    expect(result.document.layers.map((layer) => layer.name)).toEqual([
-      'Layer',
-      'Artwork',
-      'Layer',
-    ]);
-    expect(
-      result.document.objects.map((object) => object.source.subpaths[0]?.anchors[0]?.position),
-    ).toEqual([
+    expect(result.document.layers.map((layer) => layer.name)).toEqual(['Layer', 'Artwork', 'Layer']);
+    expect(result.document.objects.map((object) => object.source.subpaths[0]?.anchors[0]?.position)).toEqual([
       { x: 0, y: 0 },
       { x: 10, y: 0 },
       { x: 3, y: 0 },
@@ -383,9 +375,7 @@ describe('exportSvg', () => {
       ...base,
       gradients: [gradient],
       objects: base.objects.map((object) =>
-        object === firstObject
-          ? { ...object, style: { ...object.style, fill: `url(#${gradient.id})` } }
-          : object,
+        object === firstObject ? { ...object, style: { ...object.style, fill: `url(#${gradient.id})` } } : object,
       ),
     };
 
@@ -419,9 +409,7 @@ describe('exportSvg', () => {
     expect(imported.id).toBe(document.id);
     expect(imported.name).toBe('Poster');
     expect(imported.swatches).toEqual(document.swatches);
-    expect(imported.layers.map((layer) => ({ ...layer }))).toEqual(
-      document.layers.map((layer) => ({ ...layer })),
-    );
+    expect(imported.layers.map((layer) => ({ ...layer }))).toEqual(document.layers.map((layer) => ({ ...layer })));
     expect(imported.objects.map(geometry)).toEqual(document.objects.map(geometry));
     expect(imported.objects.map((object) => object.modifiers)).toEqual([[], []]);
   });
@@ -442,9 +430,7 @@ describe('exportSvg', () => {
     expect(imported.id).not.toBe(document.id);
     expect(imported.swatches).toEqual([]);
     expect(imported.objects.map((object) => object.locked)).toEqual([false, false]);
-    expect(imported.objects.map((object) => object.id)).not.toEqual(
-      document.objects.map((object) => object.id),
-    );
+    expect(imported.objects.map((object) => object.id)).not.toEqual(document.objects.map((object) => object.id));
     expect(imported.layers.map((layer) => layer.name)).toEqual(['Back', 'Front']);
     expect(imported.layers.every((layer) => layer.locked === false)).toBe(true);
     expect(imported.objects.map((object) => object.visible)).toEqual([true, false]);
@@ -526,9 +512,7 @@ describe('exportSvg', () => {
       return;
     }
     expect(optimized.document.objects.some((object) => object.kind === 'empty')).toBe(true);
-    expect(
-      optimized.document.objects.find((object) => object.kind === 'empty')?.transform,
-    ).toMatchObject({ x: 40, y: 70 });
+    expect(optimized.document.objects.find((object) => object.kind === 'empty')?.transform).toMatchObject({ x: 40, y: 70 });
 
     expect(exportSvg(document, 'minimal')).not.toContain('"kind":"empty"');
   });
@@ -648,15 +632,15 @@ describe('exportSvg', () => {
       originX: 0,
       originY: 0,
     });
-    const operand = object(
-      'operand',
-      'Operand',
-      'layer-front',
-      true,
-      false,
-      squareSource('operand'),
-      { x: 2, y: 2, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 },
-    );
+    const operand = object('operand', 'Operand', 'layer-front', true, false, squareSource('operand'), {
+      x: 2,
+      y: 2,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      originX: 0,
+      originY: 0,
+    });
     const document: Document = {
       ...sampleDocument(),
       swatches: [],
@@ -724,8 +708,7 @@ describe('exportSvg', () => {
   });
 });
 
-const pixel =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
 describe('image svg', () => {
   it('round-trips embed, link, and preserve without fetching external urls', () => {
@@ -802,7 +785,11 @@ describe('image svg', () => {
       expect(images.map((object) => object.image?.placement)).toEqual(['embed', 'link']);
       expect(images.every((object) => object.image?.dataUrl === pixel)).toBe(true);
       expect(images[0]?.transform).toMatchObject({ x: 4, y: 6 });
-      expect(images[0]?.image).toMatchObject({ width: 20, height: 10, preserveAspectRatio: 'none' });
+      expect(images[0]?.image).toMatchObject({
+        width: 20,
+        height: 10,
+        preserveAspectRatio: 'none',
+      });
     }
   });
 
@@ -863,9 +850,7 @@ describe('image svg', () => {
         return {
           ...tracedObject,
           modifiers: tracedObject.modifiers.map((modifier) =>
-            modifier.type === 'trace'
-              ? { ...modifier, mode: 'colorDistance' as const, optimization: 64 }
-              : modifier,
+            modifier.type === 'trace' ? { ...modifier, mode: 'colorDistance' as const, optimization: 64 } : modifier,
           ),
         };
       }),
@@ -943,7 +928,12 @@ describe('image svg', () => {
       height: 5,
       preserveAspectRatio: 'none',
     });
-    expect(foreign.document.objects[0]?.transform).toMatchObject({ x: 2, y: 3, scaleX: 1, scaleY: 1 });
+    expect(foreign.document.objects[0]?.transform).toMatchObject({
+      x: 2,
+      y: 3,
+      scaleX: 1,
+      scaleY: 1,
+    });
   });
 });
 

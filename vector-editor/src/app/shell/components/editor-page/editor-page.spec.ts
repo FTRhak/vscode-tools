@@ -38,9 +38,7 @@ describe('EditorPage', () => {
   }
 
   function buttonByText(label: string): HTMLButtonElement {
-    const button = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (candidate) => candidate.textContent?.trim() === label,
-    );
+    const button = [...fixture.nativeElement.querySelectorAll('button')].find((candidate) => candidate.textContent?.trim() === label);
     if (!(button instanceof HTMLButtonElement)) {
       throw new Error(`${label} button is missing`);
     }
@@ -48,9 +46,7 @@ describe('EditorPage', () => {
   }
 
   function objectName(name: string): HTMLElement {
-    const label = [...fixture.nativeElement.querySelectorAll('.object-name')].find(
-      (item) => item.textContent?.trim() === name,
-    );
+    const label = [...fixture.nativeElement.querySelectorAll('.object-name')].find((item) => item.textContent?.trim() === name);
     if (!(label instanceof HTMLElement)) {
       throw new Error(`${name} is missing`);
     }
@@ -74,10 +70,7 @@ describe('EditorPage', () => {
   }
 
   function paintedPath(root: ParentNode): Element | null {
-    const surface =
-      root instanceof Element && root.matches('[data-viewport]')
-        ? root.querySelector(':scope > svg')
-        : root;
+    const surface = root instanceof Element && root.matches('[data-viewport]') ? root.querySelector(':scope > svg') : root;
     if (!surface) {
       return null;
     }
@@ -95,15 +88,11 @@ describe('EditorPage', () => {
   }
 
   function layerNameText(): string[] {
-    return layerNameLabels().map((element) =>
-      element instanceof HTMLInputElement ? element.value : (element.textContent?.trim() ?? ''),
-    );
+    return layerNameLabels().map((element) => (element instanceof HTMLInputElement ? element.value : (element.textContent?.trim() ?? '')));
   }
 
   function openPanel(name: string): void {
-    const header = fixture.nativeElement.querySelector(
-      `.${name}-accordion-item .panel-accordion-header`,
-    );
+    const header = fixture.nativeElement.querySelector(`.${name}-accordion-item .panel-accordion-header`);
     if (!(header instanceof HTMLButtonElement)) {
       throw new Error(`${name} header is missing`);
     }
@@ -133,8 +122,7 @@ describe('EditorPage', () => {
       (button): button is HTMLButtonElement =>
         button instanceof HTMLButtonElement &&
         button.getAttribute('aria-pressed') === 'true' &&
-        (button.getAttribute('aria-label') === label ||
-          button.textContent?.includes(label) === true),
+        (button.getAttribute('aria-label') === label || button.textContent?.includes(label) === true),
     );
   }
 
@@ -184,9 +172,7 @@ describe('EditorPage', () => {
   });
 
   it('leaves the mode unchanged when Tab is pressed in the panels', async () => {
-    const pen = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (button) => button.textContent?.includes('Pen') === true,
-    );
+    const pen = [...fixture.nativeElement.querySelectorAll('button')].find((button) => button.textContent?.includes('Pen') === true);
     if (!(pen instanceof HTMLButtonElement)) {
       throw new Error('Pen button is missing');
     }
@@ -200,9 +186,7 @@ describe('EditorPage', () => {
   });
 
   it('changes the tool from the keyboard and from the tools panel', async () => {
-    document.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'p', bubbles: true, cancelable: true }),
-    );
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', bubbles: true, cancelable: true }));
     await fixture.whenStable();
     expect(pressedTools('Pen')).toHaveLength(2);
 
@@ -290,9 +274,7 @@ describe('EditorPage', () => {
     expect(dialog?.textContent).toContain('All data');
     expect(dialog?.textContent).toContain('Optimized');
     expect(dialog?.textContent).toContain('Minimal');
-    expect(
-      dialog?.querySelector('input[type="radio"]:checked')?.parentElement?.textContent,
-    ).toContain('All data');
+    expect(dialog?.querySelector('input[type="radio"]:checked')?.parentElement?.textContent).toContain('All data');
 
     dialog?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await fixture.whenStable();
@@ -408,9 +390,7 @@ describe('EditorPage', () => {
   it('ignores tool shortcuts while typing in a field', async () => {
     const input = document.createElement('input');
     document.body.append(input);
-    input.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'a', bubbles: true, cancelable: true }),
-    );
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true, cancelable: true }));
     input.remove();
     await fixture.whenStable();
 

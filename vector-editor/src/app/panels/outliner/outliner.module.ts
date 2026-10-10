@@ -6,6 +6,6 @@ import { OutlinerLayerRow, OutlinerObjectRow, OutlinerPanel } from './components
 @NgModule({
   declarations: [OutlinerPanel, OutlinerObjectRow, OutlinerLayerRow],
   exports: [OutlinerPanel],
-  imports: [CommonModule, SharedModule ],
+  imports: [CommonModule, SharedModule],
 })
 export class OutlinerModule {}

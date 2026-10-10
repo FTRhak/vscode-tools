@@ -1,41 +1,40 @@
-<panel [panelName]="panelName" [icon]="'&#xe0f6;'" >
+<panel [panelName]="panelName" [icon]="'&#xe0f6;'">
   @if (active(); as object) {
     @if (emptyPoint()) {
       <p>Modifiers do not apply to empty points.</p>
     } @else {
-    <div class="modifier-actions">
-      <button class="chrome-button modifier-action-button" [cdkMenuTriggerFor]="menu">
-        <i class="icon">&#xe0e6;</i>
-        Add modifier
-      </button>
-      <ng-template #menu>
-        <div class="modifier-list-menu menu-panel-content" cdkMenu>
-          @for (item of addKinds(); track item.kind) {
-            <button cdkMenuItem (click)="add(item.kind)">{{ item.label }}</button>
-          }
-        </div>
-      </ng-template>
-      
-    </div>
-    @if (modifiers().length === 0) {
-      <p>No modifiers yet.</p>
-    } @else {
-      <ul class="modifier-list" cdkDropList (cdkDropListDropped)="reorder($event)">
-        @for (modifier of modifiers(); track modifier.id) {
-          <li cdkDrag>
-            <app-modifier-row [objectId]="object.id" [modifier]="modifier" [objects]="objects()" />
-          </li>
-        }
-      </ul>
-      <button type="button" class="chrome-button" (click)="applyAll()">Apply all</button>
-      @if (diagnostics().length > 0) {
-        <ul class="diagnostics">
-          @for (line of diagnostics(); track $index) {
-            <li>{{ line }}</li>
+      <div class="modifier-actions">
+        <button class="chrome-button modifier-action-button" [cdkMenuTriggerFor]="menu">
+          <i class="icon">&#xe0e6;</i>
+          Add modifier
+        </button>
+        <ng-template #menu>
+          <div class="modifier-list-menu menu-panel-content" cdkMenu>
+            @for (item of addKinds(); track item.kind) {
+              <button cdkMenuItem (click)="add(item.kind)">{{ item.label }}</button>
+            }
+          </div>
+        </ng-template>
+      </div>
+      @if (modifiers().length === 0) {
+        <p>No modifiers yet.</p>
+      } @else {
+        <ul class="modifier-list" cdkDropList (cdkDropListDropped)="reorder($event)">
+          @for (modifier of modifiers(); track modifier.id) {
+            <li cdkDrag>
+              <app-modifier-row [objectId]="object.id" [modifier]="modifier" [objects]="objects()" />
+            </li>
           }
         </ul>
+        <button type="button" class="chrome-button" (click)="applyAll()">Apply all</button>
+        @if (diagnostics().length > 0) {
+          <ul class="diagnostics">
+            @for (line of diagnostics(); track $index) {
+              <li>{{ line }}</li>
+            }
+          </ul>
+        }
       }
-    }
     }
   } @else {
     <p>Select an object.</p>

@@ -14,9 +14,7 @@ export class TopBar {
   private readonly session = inject(SessionService);
   private readonly files = inject(FileActions);
 
-  protected readonly modeLabel = computed(() =>
-    this.session.mode() === 'object' ? 'Object' : 'Edit',
-  );
+  protected readonly modeLabel = computed(() => (this.session.mode() === 'object' ? 'Object' : 'Edit'));
 
   protected readonly selectionKindLabel = computed(() => {
     if (this.session.mode() !== 'edit') {

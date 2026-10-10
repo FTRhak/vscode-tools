@@ -1,17 +1,6 @@
 import { createId } from '@vector-editor/core/utils';
 import { layersFrontToBack } from '../paint-order';
-import {
-  Anchor,
-  Document,
-  Gradient,
-  Layer,
-  ObjectTransform,
-  Segment,
-  Style,
-  svgStrokeDefaults,
-  Swatch,
-  VectorObject,
-} from '../types';
+import { Anchor, Document, Gradient, Layer, ObjectTransform, Segment, Style, svgStrokeDefaults, Swatch, VectorObject } from '../types';
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/;
 
@@ -90,11 +79,7 @@ export function createGradient(
   });
 }
 
-export function updateGradient(
-  document: Document,
-  id: string,
-  patch: Partial<Omit<Gradient, 'id'>>,
-): Document {
+export function updateGradient(document: Document, id: string, patch: Partial<Omit<Gradient, 'id'>>): Document {
   const index = document.gradients.findIndex((gradient) => gradient.id === id);
   if (index < 0) {
     return document;
@@ -157,9 +142,7 @@ export function deleteGradient(document: Document, id: string): Document {
   const objects = document.objects.map((object) => {
     const fill = object.style.fill === reference ? null : object.style.fill;
     const stroke = object.style.stroke === reference ? null : object.style.stroke;
-    return fill === object.style.fill && stroke === object.style.stroke
-      ? object
-      : { ...object, style: { ...object.style, fill, stroke } };
+    return fill === object.style.fill && stroke === object.style.stroke ? object : { ...object, style: { ...object.style, fill, stroke } };
   });
   return {
     ...document,
@@ -180,11 +163,7 @@ export function nextSeriesName(names: readonly string[], base: string): string {
   return `${base} ${index}`;
 }
 
-export function setObjectStyle(
-  document: Document,
-  objectIds: readonly string[],
-  patch: StylePatch,
-): Document {
+export function setObjectStyle(document: Document, objectIds: readonly string[], patch: StylePatch): Document {
   const normalized = normalizeStylePatch(patch);
   if (
     normalized.fill === undefined &&
@@ -232,21 +211,12 @@ export function addSwatch(document: Document, name: string, color: string): Docu
   return { ...document, swatches: [...document.swatches, swatch] };
 }
 
-export function applySwatch(
-  document: Document,
-  swatchId: string,
-  target: 'fill' | 'stroke',
-  objectIds: readonly string[],
-): Document {
+export function applySwatch(document: Document, swatchId: string, target: 'fill' | 'stroke', objectIds: readonly string[]): Document {
   const swatch = document.swatches.find((item) => item.id === swatchId);
   if (!swatch) {
     return document;
   }
-  return setObjectStyle(
-    document,
-    objectIds,
-    target === 'fill' ? { fill: swatch.color } : { stroke: swatch.color },
-  );
+  return setObjectStyle(document, objectIds, target === 'fill' ? { fill: swatch.color } : { stroke: swatch.color });
 }
 
 export function addLayer(document: Document): Document {
@@ -326,10 +296,7 @@ export function reorderLayer(document: Document, id: string, index: number): Doc
   return changed ? { ...document, layers } : document;
 }
 
-export function addPath(
-  document: Document,
-  layerId: string,
-): { readonly document: Document; readonly objectId: string } | null {
+export function addPath(document: Document, layerId: string): { readonly document: Document; readonly objectId: string } | null {
   const layer = document.layers.find((item) => item.id === layerId);
   if (!layer || layer.locked || !layer.visible) {
     return null;
@@ -376,9 +343,7 @@ export function addPath(
   return { document: { ...document, objects: [...document.objects, object] }, objectId };
 }
 
-function pathBounds(
-  document: Document,
-): { x: number; y: number; width: number; height: number } | null {
+function pathBounds(document: Document): { x: number; y: number; width: number; height: number } | null {
   const box = document.viewBox;
   const width = Math.min(200, box.width / 2);
   const height = Math.min(140, box.height / 2);
@@ -414,43 +379,29 @@ function line(from: Anchor, to: Anchor): Segment {
 
 function nextStyle(style: Style, patch: ReturnType<typeof normalizeStylePatch>): Style {
   const strokeDasharray =
-    patch.strokeDasharray !== undefined &&
-    !sameDasharray(patch.strokeDasharray, style.strokeDasharray)
+    patch.strokeDasharray !== undefined && !sameDasharray(patch.strokeDasharray, style.strokeDasharray)
       ? copyDasharray(patch.strokeDasharray)
       : style.strokeDasharray;
   const next: Style = {
     fill: patch.fill !== undefined && patch.fill !== style.fill ? patch.fill : style.fill,
-    stroke:
-      patch.stroke !== undefined && patch.stroke !== style.stroke ? patch.stroke : style.stroke,
-    strokeWidth:
-      patch.strokeWidth !== undefined && patch.strokeWidth !== style.strokeWidth
-        ? patch.strokeWidth
-        : style.strokeWidth,
+    stroke: patch.stroke !== undefined && patch.stroke !== style.stroke ? patch.stroke : style.stroke,
+    strokeWidth: patch.strokeWidth !== undefined && patch.strokeWidth !== style.strokeWidth ? patch.strokeWidth : style.strokeWidth,
     strokeLinecap:
-      patch.strokeLinecap !== undefined && patch.strokeLinecap !== style.strokeLinecap
-        ? patch.strokeLinecap
-        : style.strokeLinecap,
+      patch.strokeLinecap !== undefined && patch.strokeLinecap !== style.strokeLinecap ? patch.strokeLinecap : style.strokeLinecap,
     strokeLinejoin:
-      patch.strokeLinejoin !== undefined && patch.strokeLinejoin !== style.strokeLinejoin
-        ? patch.strokeLinejoin
-        : style.strokeLinejoin,
+      patch.strokeLinejoin !== undefined && patch.strokeLinejoin !== style.strokeLinejoin ? patch.strokeLinejoin : style.strokeLinejoin,
     strokeMiterlimit:
       patch.strokeMiterlimit !== undefined && patch.strokeMiterlimit !== style.strokeMiterlimit
         ? patch.strokeMiterlimit
         : style.strokeMiterlimit,
     strokeOpacity:
-      patch.strokeOpacity !== undefined && patch.strokeOpacity !== style.strokeOpacity
-        ? patch.strokeOpacity
-        : style.strokeOpacity,
+      patch.strokeOpacity !== undefined && patch.strokeOpacity !== style.strokeOpacity ? patch.strokeOpacity : style.strokeOpacity,
     strokeDashoffset:
       patch.strokeDashoffset !== undefined && patch.strokeDashoffset !== style.strokeDashoffset
         ? patch.strokeDashoffset
         : style.strokeDashoffset,
     strokeDasharray,
-    strokeAlign:
-      patch.strokeAlign !== undefined && patch.strokeAlign !== style.strokeAlign
-        ? patch.strokeAlign
-        : style.strokeAlign,
+    strokeAlign: patch.strokeAlign !== undefined && patch.strokeAlign !== style.strokeAlign ? patch.strokeAlign : style.strokeAlign,
     fillRule: style.fillRule,
   };
   if (
@@ -514,21 +465,15 @@ function normalizeWidth(value: number | undefined): number | undefined {
   return value;
 }
 
-function normalizeLinecap(
-  value: Style['strokeLinecap'] | undefined,
-): Style['strokeLinecap'] | undefined {
+function normalizeLinecap(value: Style['strokeLinecap'] | undefined): Style['strokeLinecap'] | undefined {
   return value === 'butt' || value === 'round' || value === 'square' ? value : undefined;
 }
 
-function normalizeLinejoin(
-  value: Style['strokeLinejoin'] | undefined,
-): Style['strokeLinejoin'] | undefined {
+function normalizeLinejoin(value: Style['strokeLinejoin'] | undefined): Style['strokeLinejoin'] | undefined {
   return value === 'miter' || value === 'round' || value === 'bevel' ? value : undefined;
 }
 
-function normalizeStrokeAlign(
-  value: Style['strokeAlign'] | undefined,
-): Style['strokeAlign'] | undefined {
+function normalizeStrokeAlign(value: Style['strokeAlign'] | undefined): Style['strokeAlign'] | undefined {
   return value === 'default' || value === 'inside' || value === 'outside' ? value : undefined;
 }
 
@@ -553,9 +498,7 @@ function normalizeDashoffset(value: number | undefined): number | undefined {
   return value;
 }
 
-function normalizeDasharray(
-  value: readonly number[] | null | undefined,
-): readonly number[] | null | undefined {
+function normalizeDasharray(value: readonly number[] | null | undefined): readonly number[] | null | undefined {
   if (value === undefined) {
     return undefined;
   }

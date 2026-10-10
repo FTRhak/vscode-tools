@@ -66,11 +66,7 @@ export class ModifiersPanel {
     if (!document || !object) {
       return [];
     }
-    return (
-      evaluateDocument(document.objects, this.session.clipperHold()).find(
-        (item) => item.objectId === object.id,
-      )?.diagnostics ?? []
-    );
+    return evaluateDocument(document.objects, this.session.clipperHold()).find((item) => item.objectId === object.id)?.diagnostics ?? [];
   });
 
   protected async add(kind: ModifierKind): Promise<void> {

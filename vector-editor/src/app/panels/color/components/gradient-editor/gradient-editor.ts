@@ -5,11 +5,7 @@ import { ColorSlot, CommandBus } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
 import { createId } from '@vector-editor/core/utils';
 import { nextSeriesName } from '@vector-editor/modules/document-edits';
-import {
-  Gradient,
-  GradientStop,
-  GradientType,
-} from '@vector-editor/modules/types';
+import { Gradient, GradientStop, GradientType } from '@vector-editor/modules/types';
 import { gradientBackground } from '../../../../viewport/utils/scene';
 import { ColorTarget } from '../../services/color-target';
 
@@ -140,9 +136,7 @@ export class GradientEditor {
   protected updateStopColor(event: Event, id: string): void {
     const input = event.target;
     if (input instanceof HTMLInputElement) {
-      this.stops.update((stops) =>
-        stops.map((stop) => (stop.id === id ? { ...stop, color: input.value } : stop)),
-      );
+      this.stops.update((stops) => stops.map((stop) => (stop.id === id ? { ...stop, color: input.value } : stop)));
     }
   }
 
@@ -150,9 +144,7 @@ export class GradientEditor {
     const input = event.target;
     if (input instanceof HTMLInputElement) {
       const opacity = Number(input.value) / 100;
-      this.stops.update((stops) =>
-        stops.map((stop) => (stop.id === id ? { ...stop, opacity } : stop)),
-      );
+      this.stops.update((stops) => stops.map((stop) => (stop.id === id ? { ...stop, opacity } : stop)));
     }
   }
 
@@ -213,22 +205,15 @@ export class GradientEditor {
 
   private setStopOffset(id: string, offset: number): void {
     const boundedOffset = Math.min(1, Math.max(0, offset));
-    this.stops.update((stops) =>
-      stops.map((stop) => (stop.id === id ? { ...stop, offset: boundedOffset } : stop)),
-    );
+    this.stops.update((stops) => stops.map((stop) => (stop.id === id ? { ...stop, offset: boundedOffset } : stop)));
   }
 
   protected addStop(): void {
-    this.stops.update((stops) => [
-      ...stops,
-      { id: createId(), offset: 1, color: '#ffffff', opacity: 1 },
-    ]);
+    this.stops.update((stops) => [...stops, { id: createId(), offset: 1, color: '#ffffff', opacity: 1 }]);
   }
 
   protected removeStop(id: string): void {
-    this.stops.update((stops) =>
-      stops.length > 2 ? stops.filter((stop) => stop.id !== id) : stops,
-    );
+    this.stops.update((stops) => (stops.length > 2 ? stops.filter((stop) => stop.id !== id) : stops));
   }
 
   protected gradientBackground = gradientBackground;

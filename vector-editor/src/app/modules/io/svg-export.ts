@@ -4,18 +4,7 @@ import { isEmptyPoint } from '../object-empty-point';
 import { imageExtension, isImage, safeImageFileName } from '../object-image';
 import { layersBackToFront, objectsInPaintOrder, objectsOnLayer } from '../paint-order';
 import { sourceToPathData } from '../path-data';
-import {
-  Document,
-  ImageAspect,
-  ImageMime,
-  ImagePlacement,
-  Layer,
-  Modifier,
-  SourcePath,
-  Style,
-  TraceRegion,
-  VectorObject,
-} from '../types';
+import { Document, ImageAspect, ImageMime, ImagePlacement, Layer, Modifier, SourcePath, Style, TraceRegion, VectorObject } from '../types';
 import { identityTransform, matrixFromTransform, transformSource } from './matrix';
 
 export type SaveMode = 'all' | 'optimized' | 'minimal';
@@ -35,11 +24,7 @@ export interface SvgExport {
 
 const formatVersion = 1;
 
-export function exportSvg(
-  document: Document,
-  mode: SaveMode,
-  images: ImageLocation = 'preserve',
-): SvgExport {
+export function exportSvg(document: Document, mode: SaveMode, images: ImageLocation = 'preserve'): SvgExport {
   const exported = renderSvg(document, mode, images);
   return exported;
 }
@@ -54,18 +39,7 @@ function renderSvg(document: Document, mode: SaveMode, images: ImageLocation): S
   const imageState = { present: false };
   const body: string[] = [];
   const write = (object: VectorObject, pad: string) => {
-    const markup = objectTag(
-      object,
-      mode,
-      images,
-      geometry.get(object.id),
-      order,
-      defs,
-      ids,
-      files,
-      usedNames,
-      imageState,
-    );
+    const markup = objectTag(object, mode, images, geometry.get(object.id), order, defs, ids, files, usedNames, imageState);
     if (markup) {
       body.push(block(markup, pad));
     }
@@ -139,8 +113,7 @@ function imageTag(
   if (trace && trace.regions.length > 0) {
     return tracedImageTag(object, trace.regions, mode, images, order, files, usedNames);
   }
-  const linked =
-    images === 'link' || (images === 'preserve' && image.placement === 'link');
+  const linked = images === 'link' || (images === 'preserve' && image.placement === 'link');
   let href = image.dataUrl;
   let dataUrl: string | undefined;
   if (linked) {
@@ -316,10 +289,7 @@ function exportedObjects(document: Document): readonly VectorObject[] {
 
 function svgOpen(document: Document, mode: SaveMode, xlink: boolean): string {
   const viewBox = `${formatNumber(document.viewBox.x)} ${formatNumber(document.viewBox.y)} ${formatNumber(document.viewBox.width)} ${formatNumber(document.viewBox.height)}`;
-  const metadata =
-    mode === 'minimal'
-      ? ''
-      : ` data-vector-editor-document="${escapeXml(JSON.stringify(documentPayload(document, mode)))}"`;
+  const metadata = mode === 'minimal' ? '' : ` data-vector-editor-document="${escapeXml(JSON.stringify(documentPayload(document, mode)))}"`;
   const link = xlink ? ' xmlns:xlink="http://www.w3.org/1999/xlink"' : '';
   return `<svg xmlns="http://www.w3.org/2000/svg"${link} viewBox="${viewBox}"${metadata}>`;
 }
@@ -502,10 +472,7 @@ function editorPayload(
   return `data-vector-editor="${escapeXml(JSON.stringify(objectPayload(object, mode, order, paint)))}"`;
 }
 
-function exportStrokeAlign(
-  style: Style,
-  subpaths: readonly { closed: boolean }[],
-): 'default' | 'inside' | 'outside' {
+function exportStrokeAlign(style: Style, subpaths: readonly { closed: boolean }[]): 'default' | 'inside' | 'outside' {
   if (style.strokeAlign === 'default' || style.stroke === null || style.strokeWidth <= 0) {
     return 'default';
   }
@@ -519,7 +486,11 @@ function objectPayload(
   object: VectorObject,
   mode: SaveMode,
   order: readonly VectorObject[],
-  paint?: { readonly strokeWidth?: number; readonly stroke?: string | null; readonly dataUrl?: string },
+  paint?: {
+    readonly strokeWidth?: number;
+    readonly stroke?: string | null;
+    readonly dataUrl?: string;
+  },
 ): unknown {
   const payload: {
     version: number;
@@ -583,11 +554,7 @@ function objectPayload(
   return payload;
 }
 
-function modifierPayload(
-  modifier: Modifier,
-  mode: SaveMode,
-  order: readonly VectorObject[],
-): unknown | null {
+function modifierPayload(modifier: Modifier, mode: SaveMode, order: readonly VectorObject[]): unknown | null {
   if (mode === 'all') {
     return modifier;
   }
@@ -601,9 +568,7 @@ function modifierPayload(
         enabled: modifier.enabled,
       };
     case 'mirror': {
-      const centerPointIndex = order.findIndex(
-        (item) => item.id === modifier.centerPointId && isEmptyPoint(item),
-      );
+      const centerPointIndex = order.findIndex((item) => item.id === modifier.centerPointId && isEmptyPoint(item));
       return {
         type: modifier.type,
         axis: modifier.axis,
@@ -690,10 +655,7 @@ function indexedSource(source: SourcePath): {
 }
 
 function strokePaintAttributes(style: Style): readonly string[] {
-  const dashes =
-    style.strokeDasharray === null
-      ? 'none'
-      : style.strokeDasharray.map((length) => formatNumber(length)).join(' ');
+  const dashes = style.strokeDasharray === null ? 'none' : style.strokeDasharray.map((length) => formatNumber(length)).join(' ');
   return [
     `stroke-linecap="${style.strokeLinecap}"`,
     `stroke-linejoin="${style.strokeLinejoin}"`,
@@ -709,9 +671,5 @@ function formatNumber(value: number): string {
 }
 
 function escapeXml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }

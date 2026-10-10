@@ -14,30 +14,15 @@
         <legend id="save-dialog-title">Save SVG</legend>
         <div class="choices">
           <label>
-            <input
-              type="radio"
-              name="save-mode"
-              [checked]="mode() === 'all'"
-              (change)="choose('all')"
-            />
+            <input type="radio" name="save-mode" [checked]="mode() === 'all'" (change)="choose('all')" />
             All data
           </label>
           <label>
-            <input
-              type="radio"
-              name="save-mode"
-              [checked]="mode() === 'optimized'"
-              (change)="choose('optimized')"
-            />
+            <input type="radio" name="save-mode" [checked]="mode() === 'optimized'" (change)="choose('optimized')" />
             Optimized
           </label>
           <label>
-            <input
-              type="radio"
-              name="save-mode"
-              [checked]="mode() === 'minimal'"
-              (change)="choose('minimal')"
-            />
+            <input type="radio" name="save-mode" [checked]="mode() === 'minimal'" (change)="choose('minimal')" />
             Minimal
           </label>
         </div>
@@ -46,30 +31,15 @@
         <legend>Images</legend>
         <div class="choices">
           <label>
-            <input
-              type="radio"
-              name="image-location"
-              [checked]="images() === 'preserve'"
-              (change)="chooseImages('preserve')"
-            />
+            <input type="radio" name="image-location" [checked]="images() === 'preserve'" (change)="chooseImages('preserve')" />
             Preserve
           </label>
           <label>
-            <input
-              type="radio"
-              name="image-location"
-              [checked]="images() === 'embed'"
-              (change)="chooseImages('embed')"
-            />
+            <input type="radio" name="image-location" [checked]="images() === 'embed'" (change)="chooseImages('embed')" />
             Embed
           </label>
           <label>
-            <input
-              type="radio"
-              name="image-location"
-              [checked]="images() === 'link'"
-              (change)="chooseImages('link')"
-            />
+            <input type="radio" name="image-location" [checked]="images() === 'link'" (change)="chooseImages('link')" />
             Link
           </label>
         </div>

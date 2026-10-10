@@ -31,11 +31,7 @@ describe('HistoryPanel', () => {
     await fixture.whenStable();
 
     const buttons = [...fixture.nativeElement.querySelectorAll('[role="option"]')] as HTMLElement[];
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
-      'New document',
-      'Select',
-      'Set transform',
-    ]);
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['New document', 'Select', 'Set transform']);
     expect(buttons[1].getAttribute('aria-selected')).toBe('true');
     expect(buttons[0].classList.contains('is-future')).toBe(false);
     expect(buttons[2].classList.contains('is-future')).toBe(true);

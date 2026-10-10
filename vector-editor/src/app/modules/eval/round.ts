@@ -47,9 +47,7 @@ export function applyRound(source: SourcePath, modifier: RoundModifier): SourceP
     if (points.length < minimum) {
       return subpath;
     }
-    const requestedCount = Number.isFinite(modifier.anchorCount)
-      ? Math.floor(modifier.anchorCount)
-      : subpath.anchors.length;
+    const requestedCount = Number.isFinite(modifier.anchorCount) ? Math.floor(modifier.anchorCount) : subpath.anchors.length;
     const count = Math.max(minimum, Math.min(1000, requestedCount));
     if (roundness === 0 && count === subpath.anchors.length) {
       return subpath;
@@ -60,9 +58,7 @@ export function applyRound(source: SourcePath, modifier: RoundModifier): SourceP
     const startPoints = starts.map((start) => start.position);
     const endPoints = circular ? blendTowardCircle(startPoints, 1) : startPoints;
     const ends = placementsAt(endPoints, subpath.closed, handleMode, circular);
-    const blended = starts.map((start, index) =>
-      blendPlacement(start, ends[index] ?? start, roundness),
-    );
+    const blended = starts.map((start, index) => blendPlacement(start, ends[index] ?? start, roundness));
     return makeSubpath(blended, subpath.closed, modifier.id, subpathIndex);
   });
   return { subpaths };
@@ -113,11 +109,7 @@ function startPlacements(subpath: Subpath, count: number): Placement[] {
  * are always retained. Ties keep the earlier index. The winning indices are
  * then filtered back out in their original order, which preserves path order.
  */
-function keepSignificant(
-  base: readonly Placement[],
-  count: number,
-  closed: boolean,
-): Placement[] {
+function keepSignificant(base: readonly Placement[], count: number, closed: boolean): Placement[] {
   const weights = base.map((placement, index) => {
     const isEnd = index === 0 || index === base.length - 1;
     if (!closed && isEnd) {
@@ -153,19 +145,12 @@ function keepSignificant(
  * Edge length is the cheap cubic estimate from `curveLength`, not an exact
  * arc length. Equal parameter steps match arc length only on a straight edge.
  */
-function insertPlacements(
-  subpath: Subpath,
-  ordered: readonly Anchor[],
-  base: readonly Placement[],
-  count: number,
-): Placement[] {
+function insertPlacements(subpath: Subpath, ordered: readonly Anchor[], base: readonly Placement[], count: number): Placement[] {
   const edgeCount = subpath.closed ? ordered.length : ordered.length - 1;
   if (edgeCount <= 0) {
     return [...base];
   }
-  const edges = Array.from({ length: edgeCount }, (_, index) =>
-    edgeCurve(subpath, ordered[index], ordered[(index + 1) % ordered.length]),
-  );
+  const edges = Array.from({ length: edgeCount }, (_, index) => edgeCurve(subpath, ordered[index], ordered[(index + 1) % ordered.length]));
   const lengths = edges.map(curveLength);
   const parts = edges.map(() => 1);
   for (let extra = count - base.length; extra > 0; extra -= 1) {
@@ -219,9 +204,7 @@ function edgeCurve(subpath: Subpath, from: Anchor | undefined, to: Anchor | unde
   if (!from || !to) {
     return null;
   }
-  const segment = subpath.segments.find(
-    (item) => item.fromId === from.id && item.toId === to.id,
-  );
+  const segment = subpath.segments.find((item) => item.fromId === from.id && item.toId === to.id);
   const straight = segment?.kind !== 'cubic';
   return {
     p0: from.position,
@@ -331,12 +314,7 @@ function anchorsInPathOrder(subpath: Subpath): Anchor[] {
  * is ignored. Otherwise `mode` selects the Catmull–Rom tangent (`direct`) or
  * the angle-bisector tangent (`smooth`).
  */
-function placementsAt(
-  points: readonly Vec2[],
-  closed: boolean,
-  mode: 'direct' | 'smooth',
-  circular: boolean,
-): Placement[] {
+function placementsAt(points: readonly Vec2[], closed: boolean, mode: 'direct' | 'smooth', circular: boolean): Placement[] {
   const circleTangents = circular ? createCircleTangents(points, 1) : null;
   return points.map((position, index) => {
     const tangent = tangentAt(points, index, closed, mode, circleTangents);
@@ -410,12 +388,7 @@ function blendPlacement(start: Placement, end: Placement, amount: number): Place
  * including the segment from the last anchor back to the first. An open
  * subpath gets one fewer segment and does not wrap.
  */
-function makeSubpath(
-  anchors: readonly Placement[],
-  closed: boolean,
-  modifierId: string,
-  subpathIndex: number,
-): Subpath {
+function makeSubpath(anchors: readonly Placement[], closed: boolean, modifierId: string, subpathIndex: number): Subpath {
   const built: Anchor[] = anchors.map((anchor, index) => ({
     id: `${modifierId}/${subpathIndex}/anchor/${index}`,
     position: anchor.position,
@@ -564,12 +537,11 @@ function blendTowardCircle(points: readonly Vec2[], amount: number): Vec2[] {
   if (points.length < 3) {
     return [...points];
   }
-  const center = points.reduce(
-    (sum, point) => ({ x: sum.x + point.x / points.length, y: sum.y + point.y / points.length }),
-    { x: 0, y: 0 },
-  );
-  const radius =
-    points.reduce((sum, point) => sum + distance(center, point), 0) / points.length;
+  const center = points.reduce((sum, point) => ({ x: sum.x + point.x / points.length, y: sum.y + point.y / points.length }), {
+    x: 0,
+    y: 0,
+  });
+  const radius = points.reduce((sum, point) => sum + distance(center, point), 0) / points.length;
   if (radius === 0) {
     return [...points];
   }
@@ -578,13 +550,13 @@ function blendTowardCircle(points: readonly Vec2[], amount: number): Vec2[] {
     return next ? sum + point.x * next.y - next.x * point.y : sum;
   }, 0);
   const direction = area < 0 ? -1 : 1;
-  const startAngle = Math.atan2(
-    (points[0]?.y ?? center.y) - center.y,
-    (points[0]?.x ?? center.x) - center.x,
-  );
+  const startAngle = Math.atan2((points[0]?.y ?? center.y) - center.y, (points[0]?.x ?? center.x) - center.x);
   return points.map((point, index) => {
     const angle = startAngle + (direction * 2 * Math.PI * index) / points.length;
-    const circlePoint = { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius };
+    const circlePoint = {
+      x: center.x + Math.cos(angle) * radius,
+      y: center.y + Math.sin(angle) * radius,
+    };
     return interpolate(point, circlePoint, amount);
   });
 }

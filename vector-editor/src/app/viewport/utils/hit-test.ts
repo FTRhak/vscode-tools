@@ -2,14 +2,7 @@ import { ClipperHold, EvaluatedGeometry, evaluateDocument } from '@vector-editor
 import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { isImage } from '@vector-editor/modules/object-image';
 import { objectsInPaintOrder } from '@vector-editor/modules/paint-order';
-import {
-  Document,
-  ObjectTransform,
-  SourcePath,
-  Subpath,
-  Vec2,
-  VectorObject,
-} from '@vector-editor/modules/types';
+import { Document, ObjectTransform, SourcePath, Subpath, Vec2, VectorObject } from '@vector-editor/modules/types';
 import { effectiveStrokeAlign } from './scene';
 
 export interface DocumentRect {
@@ -30,12 +23,7 @@ const MAX_FLATTEN_DEPTH = 12;
 const SCREEN_TOLERANCE = 0.75;
 const EMPTY_POINT_HIT_PX = 8;
 
-export function hitTestObject(
-  document: Document,
-  point: Vec2,
-  zoom: number,
-  hold: ClipperHold | null = null,
-): string | null {
+export function hitTestObject(document: Document, point: Vec2, zoom: number, hold: ClipperHold | null = null): string | null {
   const geometry = geometryById(document, hold);
   const objects = objectsInPaintOrder(document);
   for (let index = objects.length - 1; index >= 0; index -= 1) {
@@ -67,11 +55,7 @@ export function hitTestObject(
   return null;
 }
 
-export function objectsInRect(
-  document: Document,
-  rect: DocumentRect,
-  hold: ClipperHold | null = null,
-): readonly string[] {
+export function objectsInRect(document: Document, rect: DocumentRect, hold: ClipperHold | null = null): readonly string[] {
   const geometry = geometryById(document, hold);
   const box = normalizeRect(rect);
   const hits: string[] = [];
@@ -133,28 +117,16 @@ function imageBounds(object: VectorObject): Bounds | null {
   return { minX, minY, maxX, maxY };
 }
 
-function geometryById(
-  document: Document,
-  hold: ClipperHold | null,
-): Map<string, EvaluatedGeometry> {
+function geometryById(document: Document, hold: ClipperHold | null): Map<string, EvaluatedGeometry> {
   return new Map(evaluateDocument(document.objects, hold).map((item) => [item.objectId, item]));
 }
 
-function hitsObject(
-  object: VectorObject,
-  point: Vec2,
-  zoom: number,
-  geometry: EvaluatedGeometry | undefined,
-): boolean {
+function hitsObject(object: VectorObject, point: Vec2, zoom: number, geometry: EvaluatedGeometry | undefined): boolean {
   const tolerance = localTolerance(zoom, object.transform);
   const subpaths = geometry?.subpaths ?? [];
   const align = effectiveStrokeAlign(object.style, subpaths);
   const strokeActive = object.style.stroke !== null && object.style.strokeWidth > 0;
-  const radius = !strokeActive
-    ? 0
-    : align === 'default'
-      ? object.style.strokeWidth / 2
-      : object.style.strokeWidth;
+  const radius = !strokeActive ? 0 : align === 'default' ? object.style.strokeWidth / 2 : object.style.strokeWidth;
   const fillRule = geometry?.fillRule ?? object.style.fillRule;
   let crossings = 0;
   let winding = 0;
@@ -216,29 +188,13 @@ function flattenSubpath(subpath: Subpath, tolerance: number): Vec2[] {
       points.push(to.position);
       continue;
     }
-    flattenCubic(
-      from.position,
-      from.handleOut ?? from.position,
-      to.handleIn ?? to.position,
-      to.position,
-      tolerance,
-      0,
-      points,
-    );
+    flattenCubic(from.position, from.handleOut ?? from.position, to.handleIn ?? to.position, to.position, tolerance, 0, points);
   }
 
   return points;
 }
 
-function flattenCubic(
-  p0: Vec2,
-  p1: Vec2,
-  p2: Vec2,
-  p3: Vec2,
-  tolerance: number,
-  depth: number,
-  out: Vec2[],
-): void {
+function flattenCubic(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, tolerance: number, depth: number, out: Vec2[]): void {
   if (depth >= MAX_FLATTEN_DEPTH || isFlat(p0, p1, p2, p3, tolerance)) {
     out.push(p3);
     return;
@@ -264,17 +220,10 @@ function openRing(points: readonly Vec2[]): Vec2[] {
   return [...points];
 }
 
-function rayCrossings(
-  point: Vec2,
-  ring: readonly Vec2[],
-): { readonly count: number; readonly winding: number } {
+function rayCrossings(point: Vec2, ring: readonly Vec2[]): { readonly count: number; readonly winding: number } {
   let count = 0;
   let winding = 0;
-  for (
-    let index = 0, previous = ring.length - 1;
-    index < ring.length;
-    previous = index, index += 1
-  ) {
+  for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index, index += 1) {
     const start = ring[previous];
     const end = ring[index];
     if (start.y === end.y) {
@@ -294,13 +243,8 @@ function rayCrossings(
   return { count, winding };
 }
 
-function objectBounds(
-  object: VectorObject,
-  geometry: EvaluatedGeometry | undefined,
-): Bounds | null {
-  const points = controlPoints({ subpaths: geometry?.subpaths ?? [] }).map((point) =>
-    localToDocument(object.transform, point),
-  );
+function objectBounds(object: VectorObject, geometry: EvaluatedGeometry | undefined): Bounds | null {
+  const points = controlPoints({ subpaths: geometry?.subpaths ?? [] }).map((point) => localToDocument(object.transform, point));
   if (points.length === 0) {
     return null;
   }
@@ -319,9 +263,7 @@ function objectBounds(
   const factor = align === 'outside' ? 1 : align === 'inside' ? 0 : 0.5;
   const pad =
     object.style.stroke !== null && object.style.strokeWidth > 0
-      ? object.style.strokeWidth *
-        factor *
-        Math.max(Math.abs(object.transform.scaleX), Math.abs(object.transform.scaleY))
+      ? object.style.strokeWidth * factor * Math.max(Math.abs(object.transform.scaleX), Math.abs(object.transform.scaleY))
       : 0;
   return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad };
 }
@@ -354,12 +296,7 @@ function normalizeRect(rect: DocumentRect): Bounds {
 }
 
 function intersects(left: Bounds, right: Bounds): boolean {
-  return (
-    left.minX <= right.maxX &&
-    left.maxX >= right.minX &&
-    left.minY <= right.maxY &&
-    left.maxY >= right.minY
-  );
+  return left.minX <= right.maxX && left.maxX >= right.minX && left.minY <= right.maxY && left.maxY >= right.minY;
 }
 
 export function documentToLocal(transform: ObjectTransform, point: Vec2): Vec2 | null {
@@ -377,11 +314,7 @@ export function documentToLocal(transform: ObjectTransform, point: Vec2): Vec2 |
   };
 }
 
-export function documentDeltaToLocal(
-  transform: ObjectTransform,
-  dx: number,
-  dy: number,
-): Vec2 | null {
+export function documentDeltaToLocal(transform: ObjectTransform, dx: number, dy: number): Vec2 | null {
   const origin = documentToLocal(transform, { x: transform.x, y: transform.y });
   const next = documentToLocal(transform, { x: transform.x + dx, y: transform.y + dy });
   if (!origin || !next) {
@@ -417,10 +350,7 @@ function distanceToSegment(point: Vec2, start: Vec2, end: Vec2): number {
   if (lengthSquared === 0) {
     return Math.hypot(point.x - start.x, point.y - start.y);
   }
-  const t = Math.max(
-    0,
-    Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared),
-  );
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared));
   return Math.hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy));
 }
 

@@ -5,10 +5,7 @@ import { Gradient, VectorObject } from '@vector-editor/modules/types';
 import { gradientBackground } from '../../../../viewport/utils/scene';
 import { ColorTarget } from '../../services/color-target';
 
-type SharedColor =
-  | { readonly kind: 'color'; readonly value: string }
-  | { readonly kind: 'none' }
-  | { readonly kind: 'mixed' };
+type SharedColor = { readonly kind: 'color'; readonly value: string } | { readonly kind: 'none' } | { readonly kind: 'mixed' };
 
 @Component({
   selector: 'color-panel',
@@ -37,14 +34,10 @@ export class ColorPanel {
   protected readonly slot = this.colorTarget.slot;
   protected readonly fillColor = computed(() => sharedColor(this.selectedObjects(), 'fill'));
   protected readonly strokeColor = computed(() => sharedColor(this.selectedObjects(), 'stroke'));
-  protected readonly activeColor = computed(() =>
-    this.slot() === 'fill' ? this.fillColor() : this.strokeColor(),
-  );
+  protected readonly activeColor = computed(() => (this.slot() === 'fill' ? this.fillColor() : this.strokeColor()));
   protected readonly pickerValue = computed(() => {
     const active = this.activeColor();
-    return active.kind === 'color' && /^#[0-9a-f]{6}$/i.test(active.value)
-      ? active.value
-      : '#000000';
+    return active.kind === 'color' && /^#[0-9a-f]{6}$/i.test(active.value) ? active.value : '#000000';
   });
 
   protected chipBackground(color: SharedColor): string | null {

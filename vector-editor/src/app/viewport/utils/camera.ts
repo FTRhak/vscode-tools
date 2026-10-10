@@ -16,11 +16,7 @@ export interface ViewSize {
 export function fitArtboard(viewSize: ViewSize, viewBox: ViewBox, padding: number): ViewportCamera {
   const availableWidth = Math.max(viewSize.width - padding * 2, 1);
   const availableHeight = Math.max(viewSize.height - padding * 2, 1);
-  const zoom = clamp(
-    Math.min(availableWidth / viewBox.width, availableHeight / viewBox.height),
-    MIN_ZOOM,
-    MAX_ZOOM,
-  );
+  const zoom = clamp(Math.min(availableWidth / viewBox.width, availableHeight / viewBox.height), MIN_ZOOM, MAX_ZOOM);
   return {
     zoom,
     panX: (viewSize.width - viewBox.width * zoom) / 2 - viewBox.x * zoom,
@@ -28,11 +24,7 @@ export function fitArtboard(viewSize: ViewSize, viewBox: ViewBox, padding: numbe
   };
 }
 
-export function zoomAtPoint(
-  viewport: ViewportCamera,
-  cursor: Vec2,
-  factor: number,
-): ViewportCamera {
+export function zoomAtPoint(viewport: ViewportCamera, cursor: Vec2, factor: number): ViewportCamera {
   const zoom = clamp(viewport.zoom * factor, MIN_ZOOM, MAX_ZOOM);
   const documentX = (cursor.x - viewport.panX) / viewport.zoom;
   const documentY = (cursor.y - viewport.panY) / viewport.zoom;

@@ -70,14 +70,7 @@ export function collectPoints(subpath: Subpath): Vec2[] {
       points.push(to.position);
       continue;
     }
-    flattenCubic(
-      from.position,
-      from.handleOut ?? from.position,
-      to.handleIn ?? to.position,
-      to.position,
-      points,
-      0,
-    );
+    flattenCubic(from.position, from.handleOut ?? from.position, to.handleIn ?? to.position, to.position, points, 0);
   }
   if (subpath.closed && points.length > 1 && samePoint(points[0], points[points.length - 1])) {
     points.pop();
@@ -101,10 +94,7 @@ function flattenCubic(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, points: Vec2[], de
 }
 
 function isFlat(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2): boolean {
-  return (
-    distanceToSegment(p1, p0, p3) <= FLATTEN_TOLERANCE &&
-    distanceToSegment(p2, p0, p3) <= FLATTEN_TOLERANCE
-  );
+  return distanceToSegment(p1, p0, p3) <= FLATTEN_TOLERANCE && distanceToSegment(p2, p0, p3) <= FLATTEN_TOLERANCE;
 }
 
 function scalePoints(points: readonly Vec2[]): Path64 {
@@ -158,9 +148,6 @@ function distanceToSegment(point: Vec2, start: Vec2, end: Vec2): number {
   if (lengthSq === 0) {
     return Math.hypot(point.x - start.x, point.y - start.y);
   }
-  const t = Math.max(
-    0,
-    Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq),
-  );
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq));
   return Math.hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy));
 }

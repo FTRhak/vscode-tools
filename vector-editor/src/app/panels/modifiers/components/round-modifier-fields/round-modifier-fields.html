@@ -9,14 +9,7 @@
   </label>
   <label>
     Anchor points
-    <input
-      type="number"
-      min="2"
-      max="1000"
-      step="1"
-      [value]="modifier().anchorCount"
-      (change)="commitAnchorCount($event)"
-    />
+    <input type="number" min="2" max="1000" step="1" [value]="modifier().anchorCount" (change)="commitAnchorCount($event)" />
   </label>
   <label class="roundness-field">
     <span>Roundness</span>

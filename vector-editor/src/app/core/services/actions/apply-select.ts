@@ -1,13 +1,10 @@
-import { Command } from "@vector-editor/commands";
-import { isEmptyPoint } from "@vector-editor/modules/object-empty-point";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { uniqueKnown } from "./document-helpers";
-import { withObjectSelection } from "./with-object-selection";
+import { Command } from '@vector-editor/commands';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { uniqueKnown } from './document-helpers';
+import { withObjectSelection } from './with-object-selection';
 
-export function applySelect(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'session.select' }>,
-): SessionSlice {
+export function applySelect(state: SessionSlice, command: Extract<Command, { type: 'session.select' }>): SessionSlice {
   if (command.op === 'clear') {
     return withObjectSelection(state, [], null, true);
   }
@@ -50,9 +47,6 @@ export function applySelect(
   }
   const selected = [...current.filter((id) => !remove.has(id)), ...added];
   const active =
-    added.at(-1) ??
-    (selected.includes(state.selection.activeObjectId ?? '')
-      ? state.selection.activeObjectId
-      : (selected.at(-1) ?? null));
+    added.at(-1) ?? (selected.includes(state.selection.activeObjectId ?? '') ? state.selection.activeObjectId : (selected.at(-1) ?? null));
   return withObjectSelection(state, selected, active, false);
 }

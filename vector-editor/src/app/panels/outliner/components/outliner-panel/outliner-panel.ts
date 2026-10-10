@@ -160,11 +160,7 @@ export class OutlinerPanel {
     });
   }
 
-  protected toggleObjectFlag(
-    object: OutlinerObject,
-    flag: 'visible' | 'locked',
-    event: Event,
-  ): void {
+  protected toggleObjectFlag(object: OutlinerObject, flag: 'visible' | 'locked', event: Event): void {
     event.stopPropagation();
     this.focusedKey.set(`object:${object.id}`);
     this.bus.dispatch({
@@ -231,8 +227,7 @@ export class OutlinerPanel {
     );
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      const nextIndex =
-        event.key === 'ArrowDown' ? Math.min(rows.length - 1, index + 1) : Math.max(0, index - 1);
+      const nextIndex = event.key === 'ArrowDown' ? Math.min(rows.length - 1, index + 1) : Math.max(0, index - 1);
       this.focusRow(rows[nextIndex]?.key);
       return;
     }
@@ -268,9 +263,7 @@ export class OutlinerPanel {
     }
     if (row.kind === 'object') {
       if (key === 'ArrowLeft') {
-        const parent = this.layers().find((layer) =>
-          layer.objects.some((object) => object.id === row.id),
-        );
+        const parent = this.layers().find((layer) => layer.objects.some((object) => object.id === row.id));
         this.focusRow(parent ? `layer:${parent.id}` : undefined);
       }
       return;

@@ -1,11 +1,7 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } from '@angular/core';
 import { fromEvent } from 'rxjs';
 import { CommandBus, TranslateGesture } from '@vector-editor/commands';
-import {
-  Document,
-  Vec2,
-  VectorObject,
-} from '@vector-editor/modules/types';
+import { Document, Vec2, VectorObject } from '@vector-editor/modules/types';
 import { anchorsInRect } from '../../utils/anchor-hit';
 import { imageFrameAt, imageFrameFromDrag, ImageFrame } from '../../utils/image-frame';
 import { ArmedImage, ImagePlace } from '../../services/image-place.service';
@@ -18,14 +14,7 @@ import {
   wheelZoomFactor,
   zoomAtPoint,
 } from '../../utils/camera';
-import {
-  DocumentRect,
-  documentDeltaToLocal,
-  documentToLocal,
-  hitTestObject,
-  localToDocument,
-  objectsInRect,
-} from '../../utils/hit-test';
+import { DocumentRect, documentDeltaToLocal, documentToLocal, hitTestObject, localToDocument, objectsInRect } from '../../utils/hit-test';
 import { formatObjectTransform, gradientTransform, sceneFromDocument } from '../../utils/scene';
 import { ShapeDialog, ShapeDialogRequest, ShapeDialogValues } from '../shape-dialog/shape-dialog';
 import { SnapBar } from '../snap-bar/snap-bar';
@@ -42,12 +31,7 @@ import {
   snapToPoints,
   snapTranslation,
 } from '../../utils/snap';
-import {
-  beginDirectDrag,
-  DirectDrag,
-  finishDirectDrag,
-  updateDirectDrag,
-} from '../../utils/tools/direct-select';
+import { beginDirectDrag, DirectDrag, finishDirectDrag, updateDirectDrag } from '../../utils/tools/direct-select';
 import { addPointHitRadius, hitTestSegment } from '../../utils/tools/add-point';
 import { PenDrag, penPreviewData, startPen, updatePenDrag } from '../../utils/tools/pen';
 import { SessionService } from '@vector-editor/core';
@@ -55,7 +39,15 @@ import { isInteractionLocked, objectsInPaintOrder } from '@vector-editor/modules
 import { isEmptyPoint } from '@vector-editor/modules/object-empty-point/empty-point';
 import { rotationOriginDocument } from '@vector-editor/modules/transform/transform';
 import { isImage } from '@vector-editor/modules/object-image';
-import { clampShapeCount, isShapeKind, SHAPE_NAMES, ShapeDrag, ShapeKind, shapeSource, shapeSourceFromDrag } from '@vector-editor/modules/shapes/shapes';
+import {
+  clampShapeCount,
+  isShapeKind,
+  SHAPE_NAMES,
+  ShapeDrag,
+  ShapeKind,
+  shapeSource,
+  shapeSourceFromDrag,
+} from '@vector-editor/modules/shapes/shapes';
 import { sourceToPathData } from '@vector-editor/modules/path-data/path-data';
 
 interface PanGesture {
@@ -154,9 +146,7 @@ export class Viewport {
   protected readonly shapePreview = signal<string | null>(null);
   protected readonly imagePreview = signal<(ImageFrame & { readonly href: string }) | null>(null);
   protected readonly editing = computed(() => this.session.mode() === 'edit');
-  protected readonly directCursor = computed(
-    () => this.editing() && this.session.tool() === 'direct-select',
-  );
+  protected readonly directCursor = computed(() => this.editing() && this.session.tool() === 'direct-select');
   protected readonly penTool = computed(() => this.session.tool() === 'pen');
   protected readonly addPointTool = computed(() => this.session.tool() === 'add-point');
   protected readonly emptyPointTool = computed(() => this.session.tool() === 'empty-point');
@@ -257,9 +247,7 @@ export class Viewport {
     };
   });
 
-  protected readonly cameraTransform = computed(() =>
-    cameraTransformAttribute(this.session.viewport()),
-  );
+  protected readonly cameraTransform = computed(() => cameraTransformAttribute(this.session.viewport()));
 
   constructor() {
     this.watchHostSize();
@@ -450,11 +438,7 @@ export class Viewport {
       this.stopPan();
       return;
     }
-    const next = panBy(
-      { panX: pan.panX, panY: pan.panY, zoom: pan.zoom },
-      event.clientX - pan.originX,
-      event.clientY - pan.originY,
-    );
+    const next = panBy({ panX: pan.panX, panY: pan.panY, zoom: pan.zoom }, event.clientX - pan.originX, event.clientY - pan.originY);
     this.bus.dispatch({
       type: 'session.setViewport',
       panX: next.panX,
@@ -521,12 +505,7 @@ export class Viewport {
       this.host.nativeElement.setPointerCapture?.(event.pointerId);
       return;
     }
-    const hitId = hitTestObject(
-      document,
-      point,
-      this.session.viewport().zoom,
-      this.session.clipperHold(),
-    );
+    const hitId = hitTestObject(document, point, this.session.viewport().zoom, this.session.clipperHold());
     const hit = hitId ? (document.objects.find((object) => object.id === hitId) ?? null) : null;
     if (hit && !this.session.selectedObjectIds().includes(hit.id)) {
       this.bus.dispatch({
@@ -657,11 +636,7 @@ export class Viewport {
       return null;
     }
     if (!this.editSnapSources) {
-      this.editSnapSources = anchorSnapSources(
-        object,
-        this.session.selectedAnchorIds(),
-        drag.hit.anchorId,
-      );
+      this.editSnapSources = anchorSnapSources(object, this.session.selectedAnchorIds(), drag.hit.anchorId);
     }
     const sources = this.editSnapSources;
     if (sources.length === 0) {
@@ -679,40 +654,24 @@ export class Viewport {
     }
     const current = localToDocument(object.transform, position);
     const primary = sources[0];
-    return documentDeltaToLocal(
-      object.transform,
-      primary.start.x + applied.x - current.x,
-      primary.start.y + applied.y - current.y,
-    );
+    return documentDeltaToLocal(object.transform, primary.start.x + applied.x - current.x, primary.start.y + applied.y - current.y);
   }
 
   private snappedHandlePoint(drag: DirectDrag, object: VectorObject, localPoint: Vec2): Vec2 {
     if (this.snapMode() === 'off' || drag.hit?.kind !== 'handle') {
       return localPoint;
     }
-    const snapped = this.snapAbsolute(
-      localToDocument(object.transform, localPoint),
-      new Set([object.id]),
-      object.layerId,
-    );
+    const snapped = this.snapAbsolute(localToDocument(object.transform, localPoint), new Set([object.id]), object.layerId);
     return documentToLocal(object.transform, snapped) ?? localPoint;
   }
 
-  private snappedDelta(
-    rawDelta: Vec2,
-    sources: readonly SnapSource[],
-    excludeIds: ReadonlySet<string>,
-    layerId: string,
-  ): Vec2 {
+  private snappedDelta(rawDelta: Vec2, sources: readonly SnapSource[], excludeIds: ReadonlySet<string>, layerId: string): Vec2 {
     const mode = this.snapMode();
     const document = this.session.document();
     if (!document || mode === 'off') {
       return rawDelta;
     }
-    const targets =
-      mode === 'object' || mode === 'layer'
-        ? collectSnapTargets(document, mode, excludeIds, layerId)
-        : [];
+    const targets = mode === 'object' || mode === 'layer' ? collectSnapTargets(document, mode, excludeIds, layerId) : [];
     const zoom = this.session.viewport().zoom || 1;
     return snapTranslation(rawDelta, sources, mode, targets, SNAP_THRESHOLD_PX / zoom);
   }
@@ -728,11 +687,7 @@ export class Viewport {
       return point;
     }
     const zoom = this.session.viewport().zoom || 1;
-    return snapToPoints(
-      point,
-      collectSnapTargets(document, mode, excludeIds, layerId),
-      SNAP_THRESHOLD_PX / zoom,
-    );
+    return snapToPoints(point, collectSnapTargets(document, mode, excludeIds, layerId), SNAP_THRESHOLD_PX / zoom);
   }
 
   private hitRotationOrigin(document: Document, point: Vec2): VectorObject | null {
@@ -742,12 +697,7 @@ export class Viewport {
     const ordered = objectsInPaintOrder(document);
     for (let index = ordered.length - 1; index >= 0; index -= 1) {
       const object = ordered[index];
-      if (
-        !object ||
-        !selected.has(object.id) ||
-        isEmptyPoint(object) ||
-        isInteractionLocked(document, object)
-      ) {
+      if (!object || !selected.has(object.id) || isEmptyPoint(object) || isInteractionLocked(document, object)) {
         continue;
       }
       const origin = rotationOriginDocument(object.transform);
@@ -763,10 +713,7 @@ export class Viewport {
     if (!drag) {
       return;
     }
-    const distance = Math.hypot(
-      event.clientX - drag.originClientX,
-      event.clientY - drag.originClientY,
-    );
+    const distance = Math.hypot(event.clientX - drag.originClientX, event.clientY - drag.originClientY);
     if (!drag.moved) {
       if (distance < GESTURE_THRESHOLD_PX) {
         return;
@@ -778,11 +725,7 @@ export class Viewport {
     if (!document || !object || isInteractionLocked(document, object)) {
       return;
     }
-    const point = this.snapAbsolute(
-      this.pointerToDocument(event),
-      new Set([object.id]),
-      object.layerId,
-    );
+    const point = this.snapAbsolute(this.pointerToDocument(event), new Set([object.id]), object.layerId);
     const current = rotationOriginDocument(object.transform);
     if (current.x === point.x && current.y === point.y) {
       return;
@@ -820,11 +763,7 @@ export class Viewport {
       this.bus.dispatch({
         type: 'session.select',
         target: 'object',
-        ids: objectsInRect(
-          document,
-          this.marqueeRect(gesture.originX, gesture.originY, event),
-          this.session.clipperHold(),
-        ),
+        ids: objectsInRect(document, this.marqueeRect(gesture.originX, gesture.originY, event), this.session.clipperHold()),
         op: event.shiftKey ? 'add' : 'replace',
       });
       return;
@@ -912,8 +851,7 @@ export class Viewport {
     this.direct = null;
     this.editSnapSources = null;
     this.moving.set(false);
-    const rect =
-      drag?.mode === 'marquee' ? this.marqueeRect(drag.originX, drag.originY, event) : null;
+    const rect = drag?.mode === 'marquee' ? this.marqueeRect(drag.originX, drag.originY, event) : null;
     this.marquee.set(null);
     this.release(drag?.pointerId);
     this.session.endClipperHold();
@@ -948,12 +886,7 @@ export class Viewport {
     const hit = hitTestSegment(
       object.source,
       localPoint,
-      addPointHitRadius(
-        this.session.viewport().zoom,
-        object.transform,
-        object.style.strokeWidth,
-        object.style.stroke !== null,
-      ),
+      addPointHitRadius(this.session.viewport().zoom, object.transform, object.style.strokeWidth, object.style.stroke !== null),
     );
     if (!hit) {
       return;
@@ -1123,8 +1056,7 @@ export class Viewport {
 
   private listenToWheel(): void {
     const element = this.host.nativeElement;
-    const subscription = fromEvent<WheelEvent>(element, 'wheel', { passive: false }).subscribe(
-      (event) => {
+    const subscription = fromEvent<WheelEvent>(element, 'wheel', { passive: false }).subscribe((event) => {
       event.preventDefault();
       const rect = element.getBoundingClientRect();
       const next = zoomAtPoint(
@@ -1138,8 +1070,7 @@ export class Viewport {
         panY: next.panY,
         zoom: next.zoom,
       });
-      },
-    );
+    });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 
@@ -1187,10 +1118,7 @@ export class Viewport {
     this.shapeRadius = values.radius;
     if (request.kind === 'star') {
       this.starPoints = clampShapeCount('star', values.count);
-      this.starRatio =
-        values.radius > 0
-          ? Math.min(1, Math.max(0, values.innerRadius / values.radius))
-          : this.starRatio;
+      this.starRatio = values.radius > 0 ? Math.min(1, Math.max(0, values.innerRadius / values.radius)) : this.starRatio;
     }
     if (request.kind === 'polygon') {
       this.polygonSides = clampShapeCount('polygon', values.count);
@@ -1273,20 +1201,11 @@ export class Viewport {
       this.imagePreview.set(null);
       return;
     }
-    const travel = Math.hypot(
-      gesture.current.x - gesture.origin.x,
-      gesture.current.y - gesture.origin.y,
-    );
+    const travel = Math.hypot(gesture.current.x - gesture.origin.x, gesture.current.y - gesture.origin.y);
     const frame =
       travel < 1e-6
         ? imageFrameAt(gesture.origin, gesture.armed.pixelWidth, gesture.armed.pixelHeight)
-        : imageFrameFromDrag(
-            gesture.origin,
-            gesture.current,
-            gesture.armed.pixelWidth,
-            gesture.armed.pixelHeight,
-            gesture.shift,
-          );
+        : imageFrameFromDrag(gesture.origin, gesture.current, gesture.armed.pixelWidth, gesture.armed.pixelHeight, gesture.shift);
     this.imagePreview.set(frame ? { ...frame, href: gesture.armed.dataUrl } : null);
   }
 
@@ -1327,10 +1246,7 @@ export class Viewport {
       return;
     }
     const point = this.snapAbsolute(this.pointerToDocument(event), new Set(), this.shapeLayerId());
-    const previousDistance = Math.hypot(
-      gesture.current.x - gesture.origin.x,
-      gesture.current.y - gesture.origin.y,
-    );
+    const previousDistance = Math.hypot(gesture.current.x - gesture.origin.x, gesture.current.y - gesture.origin.y);
     if (this.spaceHeld) {
       const last = gesture.spaceLast ?? gesture.current;
       gesture.origin = {
@@ -1427,9 +1343,7 @@ export class Viewport {
       count: gesture.count,
       innerRatio: this.starRatio,
       outerRadius: adjustInner ? gesture.frozenOuter : null,
-      innerRadius: adjustInner
-        ? Math.hypot(gesture.current.x - gesture.origin.x, gesture.current.y - gesture.origin.y)
-        : null,
+      innerRadius: adjustInner ? Math.hypot(gesture.current.x - gesture.origin.x, gesture.current.y - gesture.origin.y) : null,
     };
   }
 
@@ -1534,12 +1448,7 @@ interface OverlayHandle {
   readonly y2: number;
 }
 
-function handleMark(
-  anchorId: string,
-  slot: 'in' | 'out',
-  position: Vec2,
-  handle: Vec2,
-): OverlayHandle {
+function handleMark(anchorId: string, slot: 'in' | 'out', position: Vec2, handle: Vec2): OverlayHandle {
   return {
     id: `${anchorId}-${slot}`,
     x1: position.x,

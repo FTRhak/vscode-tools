@@ -1,4 +1,4 @@
-import { VectorObject } from "@vector-editor/modules/types";
+import { VectorObject } from '@vector-editor/modules/types';
 
 export function anchorIds(object: VectorObject): Set<string> {
   const ids = new Set<string>();

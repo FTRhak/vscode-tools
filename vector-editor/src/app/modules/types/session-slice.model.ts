@@ -1,8 +1,7 @@
-import { EditorMode, EditorTool, HistoryState, SelectionState } from "@vector-editor/commands";
-import { ImagePlacement } from "./image-placement.model";
-import { ViewportCamera } from "./viewport-camera.model";
-import { Document } from "./document.model";
-
+import { EditorMode, EditorTool, HistoryState, SelectionState } from '@vector-editor/commands';
+import { ImagePlacement } from './image-placement.model';
+import { ViewportCamera } from './viewport-camera.model';
+import { Document } from './document.model';
 
 export class SessionSlice {
   readonly mode: EditorMode;

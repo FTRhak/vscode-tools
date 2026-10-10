@@ -1,2 +1,2 @@
-export {SnapBar} from './snap-bar/snap-bar';
-export {Viewport} from './viewport/viewport';
+export { SnapBar } from './snap-bar/snap-bar';
+export { Viewport } from './viewport/viewport';

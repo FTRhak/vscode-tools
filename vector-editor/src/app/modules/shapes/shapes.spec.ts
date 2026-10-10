@@ -1,12 +1,5 @@
 import { createNewDocument } from '../create-document';
-import {
-  addShape,
-  clampShapeCount,
-  ELLIPSE_KAPPA,
-  shapeSource,
-  shapeSourceFromDrag,
-  ShapeDrag,
-} from '.';
+import { addShape, clampShapeCount, ELLIPSE_KAPPA, shapeSource, shapeSourceFromDrag, ShapeDrag } from '.';
 import { SourcePath, Vec2 } from '../types';
 
 describe('shape geometry', () => {
@@ -55,9 +48,7 @@ describe('shape geometry', () => {
       { x: 20, y: 20 },
       { x: 0, y: 10 },
     ]);
-    expect(sideLengths(corners).every((length) => Math.abs(length - sideLengths(corners)[0]) < 1e-9)).toBe(
-      true,
-    );
+    expect(sideLengths(corners).every((length) => Math.abs(length - sideLengths(corners)[0]) < 1e-9)).toBe(true);
 
     const diamond = positions(shapeSourceFromDrag(drag('rhombus', { x: 0, y: 0 }, { x: 40, y: 10 }, true)));
     expect(Math.hypot(diamond[2].x - diamond[0].x, diamond[2].y - diamond[0].y)).toBeCloseTo(40);
@@ -73,9 +64,7 @@ describe('shape geometry', () => {
       });
       expect(star?.subpaths[0]?.anchors).toHaveLength(points * 2);
       expect(star?.subpaths[0]?.closed).toBe(true);
-      const distances = (star?.subpaths[0]?.anchors ?? []).map((anchor) =>
-        Math.hypot(anchor.position.x, anchor.position.y),
-      );
+      const distances = (star?.subpaths[0]?.anchors ?? []).map((anchor) => Math.hypot(anchor.position.x, anchor.position.y));
       distances.forEach((distance, index) => {
         expect(distance).toBeCloseTo(index % 2 === 0 ? 20 : 10);
       });
@@ -120,9 +109,7 @@ describe('shape geometry', () => {
       outerRadius: 40,
       innerRadius: 10,
     });
-    const distances = (star?.subpaths[0]?.anchors ?? []).map((anchor) =>
-      Math.hypot(anchor.position.x, anchor.position.y),
-    );
+    const distances = (star?.subpaths[0]?.anchors ?? []).map((anchor) => Math.hypot(anchor.position.x, anchor.position.y));
     expect(distances[0]).toBeCloseTo(40);
     expect(distances[1]).toBeCloseTo(10);
     expect(clampShapeCount('star', 2)).toBe(3);

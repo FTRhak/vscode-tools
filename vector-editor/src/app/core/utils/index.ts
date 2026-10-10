@@ -1,1 +1,1 @@
-export {createId} from './create-id';
+export { createId } from './create-id';

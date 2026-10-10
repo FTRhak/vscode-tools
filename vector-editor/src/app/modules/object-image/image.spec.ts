@@ -3,8 +3,7 @@ import { duplicateObjects } from '../duplicate-objects/duplicate-objects';
 import { addModifier } from '../modifier-edits/modifier-edits';
 import { addImage, isImage, type ImageDraft } from '../image';
 
-const pixel =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
 function draft(patch: Partial<ImageDraft> = {}): ImageDraft {
   return {

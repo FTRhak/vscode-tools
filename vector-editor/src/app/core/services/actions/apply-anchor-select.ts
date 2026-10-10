@@ -1,14 +1,11 @@
-import { Command } from "@vector-editor/commands";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { activeObject } from "./active-object";
-import { anchorIds } from "./anchor-ids";
-import { uniqueKnown } from "./document-helpers";
-import { withAnchorSelection } from "./with-anchor-selection";
+import { Command } from '@vector-editor/commands';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { activeObject } from './active-object';
+import { anchorIds } from './anchor-ids';
+import { uniqueKnown } from './document-helpers';
+import { withAnchorSelection } from './with-anchor-selection';
 
-export function applyAnchorSelect(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'session.select' }>,
-): SessionSlice {
+export function applyAnchorSelect(state: SessionSlice, command: Extract<Command, { type: 'session.select' }>): SessionSlice {
   if (state.mode !== 'edit') {
     return state;
   }

@@ -3,23 +3,14 @@ import { Anchor, Segment, SourcePath, Subpath, Vec2 } from '../types';
 
 export type HandleSlot = 'in' | 'out';
 
-export function translateAnchors(
-  source: SourcePath,
-  ids: readonly string[],
-  dx: number,
-  dy: number,
-): SourcePath {
+export function translateAnchors(source: SourcePath, ids: readonly string[], dx: number, dy: number): SourcePath {
   if (!Number.isFinite(dx) || !Number.isFinite(dy) || (dx === 0 && dy === 0)) {
     return source;
   }
   return mapAnchors(source, ids, (anchor) => shiftAnchor(anchor, dx, dy));
 }
 
-export function setAnchorPosition(
-  source: SourcePath,
-  ids: readonly string[],
-  position: Partial<Vec2>,
-): SourcePath {
+export function setAnchorPosition(source: SourcePath, ids: readonly string[], position: Partial<Vec2>): SourcePath {
   if (!validPartial(position)) {
     return source;
   }
@@ -58,11 +49,7 @@ export function anchorPointType(anchor: Anchor): AnchorPointType {
   return nearlyEqualLength(inLength, outLength) ? 'symmetric' : 'smooth';
 }
 
-export function setAnchorPointType(
-  source: SourcePath,
-  ids: readonly string[],
-  pointType: AnchorPointType,
-): SourcePath {
+export function setAnchorPointType(source: SourcePath, ids: readonly string[], pointType: AnchorPointType): SourcePath {
   if (ids.length === 0) {
     return source;
   }
@@ -74,12 +61,7 @@ export function setAnchorPointType(
       if (!wanted.has(anchor.id)) {
         return anchor;
       }
-      const next = convertAnchor(
-        anchor,
-        neighborAnchor(subpath, index, -1),
-        neighborAnchor(subpath, index, 1),
-        pointType,
-      );
+      const next = convertAnchor(anchor, neighborAnchor(subpath, index, -1), neighborAnchor(subpath, index, 1), pointType);
       if (next !== anchor) {
         changedIds.add(anchor.id);
       }
@@ -104,10 +86,7 @@ export function setAnchorHandle(
   if (position.x === undefined && position.y === undefined) {
     return source;
   }
-  if (
-    (position.x !== undefined && !Number.isFinite(position.x)) ||
-    (position.y !== undefined && !Number.isFinite(position.y))
-  ) {
+  if ((position.x !== undefined && !Number.isFinite(position.x)) || (position.y !== undefined && !Number.isFinite(position.y))) {
     return source;
   }
   return mapAnchors(source, ids, (anchor) => withHandle(anchor, slot, position, breakLink));
@@ -120,11 +99,7 @@ export interface InsertedPoint {
   readonly anchorId: string;
 }
 
-export function insertPoint(
-  source: SourcePath,
-  segmentId: string,
-  t: number,
-): InsertedPoint | null {
+export function insertPoint(source: SourcePath, segmentId: string, t: number): InsertedPoint | null {
   if (!Number.isFinite(t) || t <= INSERT_POINT_MARGIN || t >= 1 - INSERT_POINT_MARGIN) {
     return null;
   }
@@ -166,11 +141,7 @@ export function deleteAnchors(source: SourcePath, ids: readonly string[]): Sourc
   return changed ? { ...source, subpaths } : source;
 }
 
-function mapAnchors(
-  source: SourcePath,
-  ids: readonly string[],
-  update: (anchor: Anchor) => Anchor,
-): SourcePath {
+function mapAnchors(source: SourcePath, ids: readonly string[], update: (anchor: Anchor) => Anchor): SourcePath {
   if (ids.length === 0) {
     return source;
   }
@@ -209,12 +180,7 @@ function shiftAnchor(anchor: Anchor, dx: number, dy: number): Anchor {
   };
 }
 
-function withHandle(
-  anchor: Anchor,
-  slot: HandleSlot,
-  position: Partial<Vec2>,
-  breakLink: boolean,
-): Anchor {
+function withHandle(anchor: Anchor, slot: HandleSlot, position: Partial<Vec2>, breakLink: boolean): Anchor {
   const current = handleOf(anchor, slot);
   const next = resolveHandle(current, position);
   if (!next) {
@@ -232,9 +198,7 @@ function withHandle(
   if (samePoint(current, next) && samePoint(opposite, mirrored)) {
     return anchor;
   }
-  return slot === 'in'
-    ? { ...anchor, handleIn: next, handleOut: mirrored }
-    : { ...anchor, handleIn: mirrored, handleOut: next };
+  return slot === 'in' ? { ...anchor, handleIn: next, handleOut: mirrored } : { ...anchor, handleIn: mirrored, handleOut: next };
 }
 
 function resolveHandle(current: Vec2 | null, position: Partial<Vec2>): Vec2 | null {
@@ -263,9 +227,7 @@ function withoutAnchors(subpath: Subpath, remove: ReadonlySet<string>): Subpath 
   for (let index = 0; index < pairCount; index += 1) {
     const from = anchors[index];
     const to = anchors[(index + 1) % anchors.length];
-    const existing = subpath.segments.find(
-      (segment) => segment.fromId === from.id && segment.toId === to.id,
-    );
+    const existing = subpath.segments.find((segment) => segment.fromId === from.id && segment.toId === to.id);
     if (existing) {
       segments.push(existing);
       continue;
@@ -294,9 +256,7 @@ function bridgeKind(subpath: Subpath, fromId: string, toId: string): Segment['ki
       break;
     }
     const nextIndex = next % ids.length;
-    const segment = subpath.segments.find(
-      (item) => item.fromId === ids[index] && item.toId === ids[nextIndex],
-    );
+    const segment = subpath.segments.find((item) => item.fromId === ids[index] && item.toId === ids[nextIndex]);
     if (segment?.kind === 'cubic') {
       cubic = true;
     }
@@ -423,12 +383,7 @@ function lerp(start: Vec2, end: Vec2, t: number): Vec2 {
   };
 }
 
-function convertAnchor(
-  anchor: Anchor,
-  previous: Anchor | undefined,
-  next: Anchor | undefined,
-  pointType: AnchorPointType,
-): Anchor {
+function convertAnchor(anchor: Anchor, previous: Anchor | undefined, next: Anchor | undefined, pointType: AnchorPointType): Anchor {
   if (pointType === 'line') {
     return withHandles(anchor, null, null);
   }
@@ -459,10 +414,8 @@ function toCorner(anchor: Anchor, frame: HandleFrame): Anchor {
 }
 
 function toSmooth(anchor: Anchor, frame: HandleFrame): Anchor {
-  let lengthIn =
-    frame.lengthIn > HANDLE_EPSILON ? frame.lengthIn : frame.lengthOut * SMOOTH_LENGTH_RATIO;
-  let lengthOut =
-    frame.lengthOut > HANDLE_EPSILON ? frame.lengthOut : lengthIn * SMOOTH_LENGTH_RATIO;
+  let lengthIn = frame.lengthIn > HANDLE_EPSILON ? frame.lengthIn : frame.lengthOut * SMOOTH_LENGTH_RATIO;
+  let lengthOut = frame.lengthOut > HANDLE_EPSILON ? frame.lengthOut : lengthIn * SMOOTH_LENGTH_RATIO;
   if (nearlyEqualLength(lengthIn, lengthOut)) {
     lengthOut = lengthIn * SMOOTH_LENGTH_RATIO;
   }
@@ -480,11 +433,7 @@ interface HandleFrame {
   readonly lengthOut: number;
 }
 
-function handleFrame(
-  anchor: Anchor,
-  previous: Anchor | undefined,
-  next: Anchor | undefined,
-): HandleFrame {
+function handleFrame(anchor: Anchor, previous: Anchor | undefined, next: Anchor | undefined): HandleFrame {
   const inward = handleOffset(anchor.position, anchor.handleIn);
   const outward = handleOffset(anchor.position, anchor.handleOut);
   const inLength = inward ? Math.hypot(inward.x, inward.y) : 0;
@@ -504,11 +453,7 @@ function handleFrame(
   return inventedFrame(anchor, previous, next);
 }
 
-function inventedFrame(
-  anchor: Anchor,
-  previous: Anchor | undefined,
-  next: Anchor | undefined,
-): HandleFrame {
+function inventedFrame(anchor: Anchor, previous: Anchor | undefined, next: Anchor | undefined): HandleFrame {
   const nextOffset = next ? delta(anchor.position, next.position) : null;
   const prevOffset = previous ? delta(previous.position, anchor.position) : null;
   const nextUnit = nextOffset ? unit(nextOffset) : null;
@@ -526,21 +471,13 @@ function inventedFrame(
   }
   return {
     axis,
-    lengthIn: prevOffset
-      ? Math.hypot(prevOffset.x, prevOffset.y) * HANDLE_LENGTH_FRACTION
-      : FALLBACK_HANDLE_LENGTH,
-    lengthOut: nextOffset
-      ? Math.hypot(nextOffset.x, nextOffset.y) * HANDLE_LENGTH_FRACTION
-      : FALLBACK_HANDLE_LENGTH,
+    lengthIn: prevOffset ? Math.hypot(prevOffset.x, prevOffset.y) * HANDLE_LENGTH_FRACTION : FALLBACK_HANDLE_LENGTH,
+    lengthOut: nextOffset ? Math.hypot(nextOffset.x, nextOffset.y) * HANDLE_LENGTH_FRACTION : FALLBACK_HANDLE_LENGTH,
   };
 }
 
 function placeHandles(anchor: Anchor, axis: Vec2, lengthIn: number, lengthOut: number): Anchor {
-  return withHandles(
-    anchor,
-    pointOnAxis(anchor.position, axis, -lengthIn),
-    pointOnAxis(anchor.position, axis, lengthOut),
-  );
+  return withHandles(anchor, pointOnAxis(anchor.position, axis, -lengthIn), pointOnAxis(anchor.position, axis, lengthOut));
 }
 
 function withHandles(anchor: Anchor, handleIn: Vec2 | null, handleOut: Vec2 | null): Anchor {

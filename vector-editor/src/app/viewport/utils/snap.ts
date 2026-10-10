@@ -77,10 +77,7 @@ export function snapTranslation(
   const step = gridStep(mode);
   if (step !== null) {
     const source = sources[0];
-    const snapped = snapToGrid(
-      { x: source.start.x + rawDelta.x, y: source.start.y + rawDelta.y },
-      step,
-    );
+    const snapped = snapToGrid({ x: source.start.x + rawDelta.x, y: source.start.y + rawDelta.y }, step);
     return { x: snapped.x - source.start.x, y: snapped.y - source.start.y };
   }
   if (mode !== 'object' && mode !== 'layer') {
@@ -131,10 +128,7 @@ export function collectSnapTargets(
   return points;
 }
 
-export function objectSnapSources(
-  objects: readonly VectorObject[],
-  primaryId: string | null,
-): readonly SnapSource[] {
+export function objectSnapSources(objects: readonly VectorObject[], primaryId: string | null): readonly SnapSource[] {
   const primary = objects.find((object) => object.id === primaryId) ?? objects[0];
   const ordered = primary ? [primary, ...objects.filter((object) => object !== primary)] : [];
   const sources: SnapSource[] = [];
@@ -149,11 +143,7 @@ export function objectSnapSources(
   return sources;
 }
 
-export function anchorSnapSources(
-  object: VectorObject,
-  anchorIds: readonly string[],
-  primaryId: string,
-): readonly SnapSource[] {
+export function anchorSnapSources(object: VectorObject, anchorIds: readonly string[], primaryId: string): readonly SnapSource[] {
   const wanted = new Set(anchorIds);
   wanted.add(primaryId);
   const byId = new Map<string, Vec2>();

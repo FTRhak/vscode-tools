@@ -1,15 +1,5 @@
 import { createNewDocument } from '../create-document';
-import {
-  addLayer,
-  addPath,
-  addSwatch,
-  applySwatch,
-  createGradient,
-  nextSeriesName,
-  reorderLayer,
-  setObjectStyle,
-  updateLayer,
-} from '.';
+import { addLayer, addPath, addSwatch, applySwatch, createGradient, nextSeriesName, reorderLayer, setObjectStyle, updateLayer } from '.';
 import { Document } from '../types';
 
 describe('document edits', () => {
@@ -43,9 +33,7 @@ describe('document edits', () => {
     });
     expect(updated.objects[0].style.fill).toBe(`url(#${gradient?.id})`);
     expect(updated.objects[0].style.stroke).toBe(document.objects[0].style.stroke);
-    expect(createGradient(document, { ...definition, name: ' ' }, 'fill', [objectId])).toBe(
-      document,
-    );
+    expect(createGradient(document, { ...definition, name: ' ' }, 'fill', [objectId])).toBe(document);
   });
 
   it('normalizes a fill and ignores an invalid color or width', () => {
@@ -97,9 +85,7 @@ describe('document edits', () => {
     const aligned = setObjectStyle(painted, [id], { strokeAlign: 'inside' });
     expect(aligned.objects[0].style.strokeAlign).toBe('inside');
     expect(setObjectStyle(aligned, [id], { strokeAlign: 'inside' })).toBe(aligned);
-    expect(
-      setObjectStyle(aligned, [id], { strokeAlign: 'outside' }).objects[0].style.strokeAlign,
-    ).toBe('outside');
+    expect(setObjectStyle(aligned, [id], { strokeAlign: 'outside' }).objects[0].style.strokeAlign).toBe('outside');
 
     const cleared = setObjectStyle(painted, [id], { strokeDasharray: [] });
     expect(cleared.objects[0].style.strokeDasharray).toBeNull();
@@ -153,12 +139,8 @@ describe('document edits', () => {
     const layerId = document.layers[0].id;
 
     expect(addPath(document, 'missing')).toBeNull();
-    expect(
-      addPath({ ...document, layers: [{ ...document.layers[0], locked: true }] }, layerId),
-    ).toBeNull();
-    expect(
-      addPath({ ...document, layers: [{ ...document.layers[0], visible: false }] }, layerId),
-    ).toBeNull();
+    expect(addPath({ ...document, layers: [{ ...document.layers[0], locked: true }] }, layerId)).toBeNull();
+    expect(addPath({ ...document, layers: [{ ...document.layers[0], visible: false }] }, layerId)).toBeNull();
 
     const created = addPath(document, layerId);
     const object = created?.document.objects.at(-1);

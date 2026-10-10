@@ -55,23 +55,11 @@
   </div>
   <label>
     X
-    <input
-      type="number"
-      step="any"
-      [formField]="optionsForm.x"
-      (blur)="commitNumber('x')"
-      (keydown.enter)="commitNumber('x', $event)"
-    />
+    <input type="number" step="any" [formField]="optionsForm.x" (blur)="commitNumber('x')" (keydown.enter)="commitNumber('x', $event)" />
   </label>
   <label>
     Y
-    <input
-      type="number"
-      step="any"
-      [formField]="optionsForm.y"
-      (blur)="commitNumber('y')"
-      (keydown.enter)="commitNumber('y', $event)"
-    />
+    <input type="number" step="any" [formField]="optionsForm.y" (blur)="commitNumber('y')" (keydown.enter)="commitNumber('y', $event)" />
   </label>
   <label>
     Rotation
@@ -85,23 +73,11 @@
   </label>
   <label>
     Pivot X
-    <input
-      type="number"
-      step="any"
-      [formField]="optionsForm.pivotX"
-      (blur)="commitPivot('x')"
-      (keydown.enter)="commitPivot('x', $event)"
-    />
+    <input type="number" step="any" [formField]="optionsForm.pivotX" (blur)="commitPivot('x')" (keydown.enter)="commitPivot('x', $event)" />
   </label>
   <label>
     Pivot Y
-    <input
-      type="number"
-      step="any"
-      [formField]="optionsForm.pivotY"
-      (blur)="commitPivot('y')"
-      (keydown.enter)="commitPivot('y', $event)"
-    />
+    <input type="number" step="any" [formField]="optionsForm.pivotY" (blur)="commitPivot('y')" (keydown.enter)="commitPivot('y', $event)" />
   </label>
   <label>
     Scale X

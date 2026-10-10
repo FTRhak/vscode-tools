@@ -34,9 +34,7 @@ export class SessionService {
   readonly selectedSegmentIds = computed(() => this.state().selection.selectedSegmentIds);
   readonly history = computed(() => this.state().history);
   readonly canUndo = computed(() => this.state().history.index >= 0);
-  readonly canRedo = computed(
-    () => this.state().history.index < this.state().history.entries.length - 1,
-  );
+  readonly canRedo = computed(() => this.state().history.index < this.state().history.entries.length - 1);
   readonly penObjectId = computed(() => this.state().penObjectId);
   readonly selectedLayerId = computed(() => this.state().selectedLayerId);
   readonly clipperHold = this.clipperHoldState.asReadonly();

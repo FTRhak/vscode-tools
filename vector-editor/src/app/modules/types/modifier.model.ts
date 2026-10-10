@@ -3,7 +3,6 @@ import type { TraceMode } from './trace-mode.model';
 import type { TraceRegion } from './trace-region.model';
 import type { TraceView } from './trace-view.model';
 
-
 export type Modifier =
   | {
       readonly id: string;

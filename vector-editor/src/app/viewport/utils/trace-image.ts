@@ -1,19 +1,12 @@
 import { TRACE_SAMPLE_LIMIT, traceRaster, TraceSettings } from '@vector-editor/modules/image-trace';
-import {
-  ImageContent,
-  TraceFault,
-  TraceRegion,
-} from '@vector-editor/modules/types';
+import { ImageContent, TraceFault, TraceRegion } from '@vector-editor/modules/types';
 
 export interface TraceImageResult {
   readonly regions: readonly TraceRegion[];
   readonly fault?: TraceFault;
 }
 
-export async function traceImageContent(
-  image: ImageContent,
-  settings: TraceSettings,
-): Promise<TraceImageResult> {
+export async function traceImageContent(image: ImageContent, settings: TraceSettings): Promise<TraceImageResult> {
   if (!image.dataUrl) {
     return { regions: [] };
   }
@@ -31,9 +24,11 @@ export async function traceImageContent(
   };
 }
 
-async function rasterizeFrame(
-  image: ImageContent,
-): Promise<{ readonly width: number; readonly height: number; readonly rgba: Uint8ClampedArray } | null> {
+async function rasterizeFrame(image: ImageContent): Promise<{
+  readonly width: number;
+  readonly height: number;
+  readonly rgba: Uint8ClampedArray;
+} | null> {
   if (typeof document === 'undefined' || typeof createImageBitmap !== 'function') {
     return null;
   }

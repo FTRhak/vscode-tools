@@ -2,7 +2,6 @@ import type { StrokeAlign } from './stroke-align.model';
 import type { StrokeLinecap } from './stroke-linecap.model';
 import type { StrokeLinejoin } from './stroke-join.model';
 
-
 export interface Style {
   readonly fill: string | null;
   readonly stroke: string | null;
@@ -19,13 +18,7 @@ export interface Style {
 
 export const svgStrokeDefaults: Pick<
   Style,
-  | 'strokeLinecap'
-  | 'strokeLinejoin'
-  | 'strokeMiterlimit'
-  | 'strokeOpacity'
-  | 'strokeDashoffset'
-  | 'strokeDasharray'
-  | 'strokeAlign'
+  'strokeLinecap' | 'strokeLinejoin' | 'strokeMiterlimit' | 'strokeOpacity' | 'strokeDashoffset' | 'strokeDasharray' | 'strokeAlign'
 > = {
   strokeLinecap: 'butt',
   strokeLinejoin: 'miter',

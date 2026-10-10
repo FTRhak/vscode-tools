@@ -52,9 +52,7 @@ describe('OptionsPanel', () => {
     const input = field('X');
     input.value = '12';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-    );
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(session.document()!.objects[0].transform).toEqual({
@@ -94,9 +92,7 @@ describe('OptionsPanel', () => {
     const pivotX = field('Pivot X');
     pivotX.value = '40';
     pivotX.dispatchEvent(new Event('input', { bubbles: true }));
-    pivotX.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-    );
+    pivotX.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(session.document()!.objects[0].transform).toMatchObject({
@@ -110,9 +106,7 @@ describe('OptionsPanel', () => {
     const rotation = field('Rotation');
     rotation.value = '90';
     rotation.dispatchEvent(new Event('input', { bubbles: true }));
-    rotation.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-    );
+    rotation.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(session.document()!.objects[0].transform).toMatchObject({
@@ -139,9 +133,7 @@ describe('OptionsPanel', () => {
     const input = field('X');
     input.value = '12';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-    );
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(apply.disabled).toBe(false);
@@ -209,9 +201,7 @@ describe('OptionsPanel', () => {
     const input = field('X');
     input.value = '460';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-    );
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     const moved = session.document()!.objects[0].source.subpaths[0].anchors[0];
@@ -225,9 +215,7 @@ describe('OptionsPanel', () => {
   }
 
   function button(label: string): HTMLButtonElement {
-    const match = [...fixture.nativeElement.querySelectorAll('button')].find((item) =>
-      item.textContent?.includes(label),
-    );
+    const match = [...fixture.nativeElement.querySelectorAll('button')].find((item) => item.textContent?.includes(label));
     if (!(match instanceof HTMLButtonElement)) {
       throw new Error(`${label} button is missing`);
     }
@@ -243,9 +231,7 @@ describe('OptionsPanel', () => {
   }
 
   function field(label: string): HTMLInputElement {
-    const row = [...fixture.nativeElement.querySelectorAll('label')].find((item) =>
-      item.textContent?.includes(label),
-    );
+    const row = [...fixture.nativeElement.querySelectorAll('label')].find((item) => item.textContent?.includes(label));
     const input = row?.querySelector('input');
     if (!(input instanceof HTMLInputElement)) {
       throw new Error(`${label} field is missing`);

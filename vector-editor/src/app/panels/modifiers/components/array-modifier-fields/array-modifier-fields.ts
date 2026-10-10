@@ -68,7 +68,5 @@ export class ArrayModifierFields {
 }
 
 function sameDraft(left: ArrayDraft, right: ArrayDraft): boolean {
-  return (
-    left.count === right.count && left.offsetX === right.offsetX && left.offsetY === right.offsetY
-  );
+  return left.count === right.count && left.offsetX === right.offsetX && left.offsetY === right.offsetY;
 }

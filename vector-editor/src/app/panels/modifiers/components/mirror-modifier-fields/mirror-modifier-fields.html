@@ -1,20 +1,8 @@
 <label class="axis">
   Axis
   <div class="segmented">
-    <button
-      type="button"
-      [attr.aria-pressed]="modifier().axis === 'x' || modifier().axis === 'xy'"
-      (click)="toggleAxis('x')"
-    >
-      X
-    </button>
-    <button
-      type="button"
-      [attr.aria-pressed]="modifier().axis === 'y' || modifier().axis === 'xy'"
-      (click)="toggleAxis('y')"
-    >
-      Y
-    </button>
+    <button type="button" [attr.aria-pressed]="modifier().axis === 'x' || modifier().axis === 'xy'" (click)="toggleAxis('x')">X</button>
+    <button type="button" [attr.aria-pressed]="modifier().axis === 'y' || modifier().axis === 'xy'" (click)="toggleAxis('y')">Y</button>
   </div>
 </label>
 <label class="center-point">

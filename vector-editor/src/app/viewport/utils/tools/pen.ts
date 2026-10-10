@@ -86,20 +86,14 @@ export function penPreviewData(from: Anchor, to: Vec2): string {
   return `${move} C ${formatCoordinate(handle.x)} ${formatCoordinate(handle.y)} ${formatCoordinate(to.x)} ${formatCoordinate(to.y)} ${formatCoordinate(to.x)} ${formatCoordinate(to.y)}`;
 }
 
-function placeOn(
-  object: VectorObject,
-  localPoint: Vec2 | null,
-  zoom: number,
-  isBlocked?: (object: VectorObject) => boolean,
-): PenStart {
+function placeOn(object: VectorObject, localPoint: Vec2 | null, zoom: number, isBlocked?: (object: VectorObject) => boolean): PenStart {
   const subpath = openSubpath(object, isBlocked);
   const first = subpath?.anchors[0];
   if (!subpath || !first || !localPoint) {
     return { commands: [], place: false };
   }
   const radius = anchorHitRadius(zoom, object.transform);
-  const nearStart =
-    Math.hypot(localPoint.x - first.position.x, localPoint.y - first.position.y) <= radius;
+  const nearStart = Math.hypot(localPoint.x - first.position.x, localPoint.y - first.position.y) <= radius;
   if (nearStart && subpath.anchors.length >= 2) {
     return {
       commands: [{ type: 'pen.finish', objectId: object.id, closed: true }],

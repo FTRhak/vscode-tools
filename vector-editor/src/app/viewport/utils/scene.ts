@@ -4,14 +4,7 @@ import { isImage } from '@vector-editor/modules/object-image';
 import { enabledTrace, tracePreview } from '@vector-editor/modules/image-trace';
 import { objectsInPaintOrder } from '@vector-editor/modules/paint-order';
 import { sourceToPathData } from '@vector-editor/modules/path-data';
-import {
-  Document,
-  Gradient,
-  ObjectTransform,
-  Style,
-  Subpath,
-  ViewBox,
-} from '@vector-editor/modules/types';
+import { Document, Gradient, ObjectTransform, Style, Subpath, ViewBox } from '@vector-editor/modules/types';
 
 export type SceneSurface = 'viewport' | 'preview';
 
@@ -68,18 +61,14 @@ export function gradientTransform(gradient: Gradient): string {
 
 export function gradientBackground(gradient: Gradient): string {
   const stops = gradient.stops.map(
-    (stop) =>
-      `color-mix(in srgb, ${stop.color} ${Math.round(stop.opacity * 100)}%, transparent) ${Math.round(stop.offset * 100)}%`,
+    (stop) => `color-mix(in srgb, ${stop.color} ${Math.round(stop.opacity * 100)}%, transparent) ${Math.round(stop.offset * 100)}%`,
   );
   return gradient.type === 'linear'
     ? `linear-gradient(${gradient.angle + 90}deg, ${stops.join(', ')})`
     : `radial-gradient(ellipse ${gradient.proportions * 100}% 100% at center, ${stops.join(', ')})`;
 }
 
-export function effectiveStrokeAlign(
-  style: Style,
-  subpaths: readonly Pick<Subpath, 'closed'>[],
-): 'default' | 'inside' | 'outside' {
+export function effectiveStrokeAlign(style: Style, subpaths: readonly Pick<Subpath, 'closed'>[]): 'default' | 'inside' | 'outside' {
   if (style.strokeAlign === 'default' || style.stroke === null || style.strokeWidth <= 0) {
     return 'default';
   }
@@ -89,14 +78,8 @@ export function effectiveStrokeAlign(
   return style.strokeAlign;
 }
 
-export function sceneFromDocument(
-  document: Document,
-  hold: ClipperHold | null = null,
-  surface: SceneSurface = 'viewport',
-): Scene {
-  const geometry = new Map(
-    evaluateDocument(document.objects, hold).map((item) => [item.objectId, item]),
-  );
+export function sceneFromDocument(document: Document, hold: ClipperHold | null = null, surface: SceneSurface = 'viewport'): Scene {
+  const geometry = new Map(evaluateDocument(document.objects, hold).map((item) => [item.objectId, item]));
   return {
     viewBox: document.viewBox,
     gradients: document.gradients,
@@ -143,8 +126,7 @@ export function sceneFromDocument(
       const evaluated = geometry.get(object.id);
       const subpaths = evaluated?.subpaths ?? object.source.subpaths;
       const strokeAlign = effectiveStrokeAlign(object.style, subpaths);
-      const maskRect =
-        strokeAlign === 'outside' ? outsideMaskRect(subpaths, object.style.strokeWidth) : null;
+      const maskRect = strokeAlign === 'outside' ? outsideMaskRect(subpaths, object.style.strokeWidth) : null;
       const paintAlign = maskRect === null && strokeAlign === 'outside' ? 'default' : strokeAlign;
       return [
         {
@@ -217,10 +199,7 @@ export function formatObjectTransform(transform: ObjectTransform): string {
   const translate = `translate(${transform.x} ${transform.y})`;
   const centerX = transform.originX * transform.scaleX;
   const centerY = transform.originY * transform.scaleY;
-  const rotate =
-    centerX === 0 && centerY === 0
-      ? `rotate(${transform.rotation})`
-      : `rotate(${transform.rotation} ${centerX} ${centerY})`;
+  const rotate = centerX === 0 && centerY === 0 ? `rotate(${transform.rotation})` : `rotate(${transform.rotation} ${centerX} ${centerY})`;
   const scale = `scale(${transform.scaleX} ${transform.scaleY})`;
   return `${translate} ${rotate} ${scale}`;
 }

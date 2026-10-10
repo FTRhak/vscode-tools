@@ -1,4 +1,4 @@
-<panel [panelName]="panelName" [icon]="'&#xe105;'" >
+<panel [panelName]="panelName" [icon]="'&#xe105;'">
   @if (swatches().length === 0) {
     <p>No swatches yet.</p>
   } @else {
@@ -16,12 +16,5 @@
       }
     </ul>
   }
-  <button
-    type="button"
-    class="chrome-button add"
-    [disabled]="sharedFill() === null"
-    (click)="add()"
-  >
-    Add swatch
-  </button>
+  <button type="button" class="chrome-button add" [disabled]="sharedFill() === null" (click)="add()">Add swatch</button>
 </panel>

@@ -3,13 +3,7 @@
     <form class="stroke-form" (submit)="$event.preventDefault()">
       <label>
         Stroke width
-        <input
-          type="number"
-          step="any"
-          [formField]="strokeForm.strokeWidth"
-          (blur)="commitWidth()"
-          (keydown.enter)="commitWidth($event)"
-        />
+        <input type="number" step="any" [formField]="strokeForm.strokeWidth" (blur)="commitWidth()" (keydown.enter)="commitWidth($event)" />
       </label>
       <label>
         Align stroke

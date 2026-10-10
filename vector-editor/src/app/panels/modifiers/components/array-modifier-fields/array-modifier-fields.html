@@ -1,13 +1,7 @@
 <form class="fields" (submit)="$event.preventDefault()">
   <label>
     Count
-    <input
-      type="number"
-      step="1"
-      [formField]="arrayForm.count"
-      (blur)="commitCount()"
-      (keydown.enter)="commitCount($event)"
-    />
+    <input type="number" step="1" [formField]="arrayForm.count" (blur)="commitCount()" (keydown.enter)="commitCount($event)" />
   </label>
   <label>
     Offset X

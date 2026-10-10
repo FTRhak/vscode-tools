@@ -4,7 +4,6 @@ import type { ObjectTransform } from './object-transform.model';
 import type { SourcePath } from './source-path.model';
 import type { Style } from './style.model';
 
-
 export interface VectorObject {
   readonly id: string;
   readonly name: string;

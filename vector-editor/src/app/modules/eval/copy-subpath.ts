@@ -4,15 +4,8 @@ export function replicaId(id: string, modifierId: string, replica: string): stri
   return `${id}/${modifierId}/${replica}`;
 }
 
-export function mapSubpath(
-  subpath: Subpath,
-  modifierId: string,
-  replica: string,
-  mapPoint: (point: Vec2) => Vec2,
-): Subpath {
-  const ids = new Map(
-    subpath.anchors.map((anchor) => [anchor.id, replicaId(anchor.id, modifierId, replica)]),
-  );
+export function mapSubpath(subpath: Subpath, modifierId: string, replica: string, mapPoint: (point: Vec2) => Vec2): Subpath {
+  const ids = new Map(subpath.anchors.map((anchor) => [anchor.id, replicaId(anchor.id, modifierId, replica)]));
   return {
     closed: subpath.closed,
     anchors: subpath.anchors.map((anchor) => ({

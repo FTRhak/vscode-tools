@@ -41,12 +41,7 @@ describe('sceneFromDocument', () => {
 });
 
 function square(id: string, strokeAlign: 'default' | 'inside' | 'outside'): VectorObject {
-  const anchors = [
-    anchor(`${id}-a`, 0, 0),
-    anchor(`${id}-b`, 10, 0),
-    anchor(`${id}-c`, 10, 10),
-    anchor(`${id}-d`, 0, 10),
-  ];
+  const anchors = [anchor(`${id}-a`, 0, 0), anchor(`${id}-b`, 10, 0), anchor(`${id}-c`, 10, 10), anchor(`${id}-d`, 0, 10)];
   return {
     id,
     name: id,

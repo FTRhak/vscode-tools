@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
- import { Component, computed, DestroyRef, inject, model, signal } from '@angular/core';
- import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
- import { fromEvent } from 'rxjs';
+import { Component, computed, DestroyRef, inject, model, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { fromEvent } from 'rxjs';
 import { SNAP_MODES, SnapMode } from '../../utils/snap';
 
 @Component({
@@ -25,9 +25,7 @@ export class SnapBar {
   protected readonly modes = SNAP_MODES;
   protected readonly menuOpen = signal(false);
   private readonly remembered = signal<SnapMode>('grid_100');
-  protected readonly label = computed(
-    () => SNAP_MODES.find((option) => option.id === this.mode())?.label ?? 'Off',
-  );
+  protected readonly label = computed(() => SNAP_MODES.find((option) => option.id === this.mode())?.label ?? 'Off');
   protected readonly enabled = computed(() => this.mode() !== 'off');
 
   constructor() {

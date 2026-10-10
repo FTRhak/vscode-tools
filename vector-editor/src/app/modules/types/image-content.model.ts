@@ -2,7 +2,6 @@ import type { ImageAspect } from './image-aspect.model';
 import type { ImageMime } from './image-mime.model';
 import type { ImagePlacement } from './image-placement.model';
 
-
 export interface ImageContent {
   readonly placement: ImagePlacement;
   readonly fileName: string;

@@ -26,9 +26,7 @@ export const EDITOR_TOOLS: readonly EditorToolDefinition[] = [
   { id: 'image', label: 'Add image', shortcut: 'I', group: 'Image' },
 ];
 
-export function editorToolGroups(
-  tools: readonly EditorToolDefinition[] = EDITOR_TOOLS,
-): readonly EditorToolGroup[] {
+export function editorToolGroups(tools: readonly EditorToolDefinition[] = EDITOR_TOOLS): readonly EditorToolGroup[] {
   const groups: { label: string | null; tools: EditorToolDefinition[] }[] = [];
   for (const tool of tools) {
     const label = tool.group ?? null;

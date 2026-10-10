@@ -15,7 +15,15 @@ describe('createNewDocument', () => {
     expect(object?.layerId).toBe(document.layers[0]?.id);
     expect(object?.visible).toBe(true);
     expect(object?.modifiers).toEqual([]);
-    expect(object?.transform).toEqual({ x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, originX: 0, originY: 0 });
+    expect(object?.transform).toEqual({
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      originX: 0,
+      originY: 0,
+    });
 
     const subpath = object?.source.subpaths[0];
     expect(object?.source.subpaths).toHaveLength(1);

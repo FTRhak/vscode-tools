@@ -9,11 +9,7 @@ export function hasOpenSubpath(source: SourcePath): boolean {
   return source.subpaths.some((subpath) => !subpath.closed);
 }
 
-export function placeOperand(
-  owner: ObjectTransform,
-  operand: ObjectTransform,
-  source: SourcePath,
-): SourcePath | null {
+export function placeOperand(owner: ObjectTransform, operand: ObjectTransform, source: SourcePath): SourcePath | null {
   const inverse = invertMatrix(matrixFromTransform(owner));
   if (!inverse) {
     return null;
@@ -21,11 +17,7 @@ export function placeOperand(
   return transformSource(source, multiplyMatrix(inverse, matrixFromTransform(operand)));
 }
 
-export function clipBoolean(
-  owner: SourcePath,
-  operand: SourcePath,
-  modifier: BooleanModifier,
-): SourcePath | null {
+export function clipBoolean(owner: SourcePath, operand: SourcePath, modifier: BooleanModifier): SourcePath | null {
   const subject = closedRings(owner);
   const clip = closedRings(operand);
   try {

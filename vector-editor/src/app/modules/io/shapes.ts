@@ -8,19 +8,9 @@ export function primitiveToSource(element: Element): SourcePath | null {
     case 'rect':
       return rectSource(element);
     case 'circle':
-      return ellipseSource(
-        lengthAttr(element, 'cx'),
-        lengthAttr(element, 'cy'),
-        lengthAttr(element, 'r'),
-        lengthAttr(element, 'r'),
-      );
+      return ellipseSource(lengthAttr(element, 'cx'), lengthAttr(element, 'cy'), lengthAttr(element, 'r'), lengthAttr(element, 'r'));
     case 'ellipse':
-      return ellipseSource(
-        lengthAttr(element, 'cx'),
-        lengthAttr(element, 'cy'),
-        lengthAttr(element, 'rx'),
-        lengthAttr(element, 'ry'),
-      );
+      return ellipseSource(lengthAttr(element, 'cx'), lengthAttr(element, 'cy'), lengthAttr(element, 'rx'), lengthAttr(element, 'ry'));
     case 'line':
       return lineSource(
         [
@@ -48,14 +38,8 @@ function rectSource(element: Element): SourcePath | null {
   }
   const rxAttr = element.getAttribute('rx');
   const ryAttr = element.getAttribute('ry');
-  const rx = Math.min(
-    Math.abs(rxAttr === null ? lengthAttr(element, 'ry') : lengthAttr(element, 'rx')),
-    width / 2,
-  );
-  const ry = Math.min(
-    Math.abs(ryAttr === null ? lengthAttr(element, 'rx') : lengthAttr(element, 'ry')),
-    height / 2,
-  );
+  const rx = Math.min(Math.abs(rxAttr === null ? lengthAttr(element, 'ry') : lengthAttr(element, 'rx')), width / 2);
+  const ry = Math.min(Math.abs(ryAttr === null ? lengthAttr(element, 'rx') : lengthAttr(element, 'ry')), height / 2);
   if (rx === 0 && ry === 0) {
     return lineSource(
       [
@@ -93,14 +77,7 @@ function ellipseSource(cx: number, cy: number, rx: number, ry: number): SourcePa
   };
 }
 
-function roundedRect(
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  rx: number,
-  ry: number,
-): SourcePath {
+function roundedRect(x: number, y: number, width: number, height: number, rx: number, ry: number): SourcePath {
   const kx = rx * KAPPA;
   const ky = ry * KAPPA;
   const topLeft = anchorAt({ x: x + rx, y }, { x: x + rx - kx, y }, null);
@@ -110,45 +87,21 @@ function roundedRect(
     x: x + width,
     y: y + height - ry + ky,
   });
-  const bottomRight = anchorAt(
-    { x: x + width - rx, y: y + height },
-    { x: x + width - rx + kx, y: y + height },
-    null,
-  );
+  const bottomRight = anchorAt({ x: x + width - rx, y: y + height }, { x: x + width - rx + kx, y: y + height }, null);
   const bottomLeft = anchorAt({ x: x + rx, y: y + height }, null, {
     x: x + rx - kx,
     y: y + height,
   });
   const leftBottom = anchorAt({ x, y: y + height - ry }, { x, y: y + height - ry + ky }, null);
   const leftTop = anchorAt({ x, y: y + ry }, null, { x, y: y + ry - ky });
-  const anchors = [
-    topLeft,
-    topRight,
-    rightTop,
-    rightBottom,
-    bottomRight,
-    bottomLeft,
-    leftBottom,
-    leftTop,
-  ];
-  const kinds: Array<Segment['kind']> = [
-    'line',
-    'cubic',
-    'line',
-    'cubic',
-    'line',
-    'cubic',
-    'line',
-    'cubic',
-  ];
+  const anchors = [topLeft, topRight, rightTop, rightBottom, bottomRight, bottomLeft, leftBottom, leftTop];
+  const kinds: Array<Segment['kind']> = ['line', 'cubic', 'line', 'cubic', 'line', 'cubic', 'line', 'cubic'];
   return {
     subpaths: [
       {
         closed: true,
         anchors,
-        segments: kinds.map((kind, index) =>
-          segment(kind, anchors[index], anchors[(index + 1) % anchors.length]),
-        ),
+        segments: kinds.map((kind, index) => segment(kind, anchors[index], anchors[(index + 1) % anchors.length])),
       },
     ],
   };
@@ -170,18 +123,14 @@ function lineSource(points: readonly Vec2[], closed: boolean): SourcePath | null
 }
 
 function closedCubics(anchors: readonly Anchor[]): Segment[] {
-  return anchors.map((item, index) =>
-    segment('cubic', item, anchors[(index + 1) % anchors.length]),
-  );
+  return anchors.map((item, index) => segment('cubic', item, anchors[(index + 1) % anchors.length]));
 }
 
 function readPoints(value: string | null): Vec2[] {
   if (!value) {
     return [];
   }
-  const numbers = [...value.matchAll(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g)].map((match) =>
-    Number(match[0]),
-  );
+  const numbers = [...value.matchAll(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g)].map((match) => Number(match[0]));
   const points: Vec2[] = [];
   for (let index = 0; index + 1 < numbers.length; index += 2) {
     points.push({ x: numbers[index], y: numbers[index + 1] });

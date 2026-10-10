@@ -37,9 +37,7 @@ describe('pen tool', () => {
       activeObject: object,
       localPoint: { x: 40, y: 20 },
     });
-    expect(appended.commands).toEqual([
-      { type: 'pen.addPoint', objectId: 'obj', position: { x: 40, y: 20 } },
-    ]);
+    expect(appended.commands).toEqual([{ type: 'pen.addPoint', objectId: 'obj', position: { x: 40, y: 20 } }]);
 
     const closed = startPen({
       mode: 'edit',
@@ -103,12 +101,8 @@ describe('pen tool', () => {
       moved: false,
     };
 
-    expect(
-      updatePenDrag(drag, { clientX: 3, clientY: 0, altKey: false, localPoint: { x: 3, y: 0 } }),
-    ).toEqual([]);
-    expect(
-      updatePenDrag(drag, { clientX: 8, clientY: 2, altKey: true, localPoint: { x: 8, y: 2 } }),
-    ).toEqual([
+    expect(updatePenDrag(drag, { clientX: 3, clientY: 0, altKey: false, localPoint: { x: 3, y: 0 } })).toEqual([]);
+    expect(updatePenDrag(drag, { clientX: 8, clientY: 2, altKey: true, localPoint: { x: 8, y: 2 } })).toEqual([
       {
         type: 'pen.setHandles',
         objectId: 'obj',

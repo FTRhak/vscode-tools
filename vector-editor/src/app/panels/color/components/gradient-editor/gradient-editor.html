@@ -1,11 +1,4 @@
-<button
-  type="button"
-  class="chrome-button gradient-launch"
-  [disabled]="!hasDocument()"
-  (click)="openEditor()"
->
-  Gradients
-</button>
+<button type="button" class="chrome-button gradient-launch" [disabled]="!hasDocument()" (click)="openEditor()">Gradients</button>
 
 <ng-template cdkPortal #gradientDialog="cdkPortal">
   <div class="backdrop" (click)="stopBackdrop($event)">
@@ -75,12 +68,8 @@
         <fieldset class="type-field">
           <legend>Type</legend>
           <div class="segmented">
-            <button type="button" [attr.aria-pressed]="type() === 'linear'" (click)="chooseType('linear')">
-              Linear
-            </button>
-            <button type="button" [attr.aria-pressed]="type() === 'radial'" (click)="chooseType('radial')">
-              Radial
-            </button>
+            <button type="button" [attr.aria-pressed]="type() === 'linear'" (click)="chooseType('linear')">Linear</button>
+            <button type="button" [attr.aria-pressed]="type() === 'radial'" (click)="chooseType('radial')">Radial</button>
           </div>
         </fieldset>
 
@@ -107,11 +96,7 @@
           (pointerup)="endStopDrag()"
           (pointercancel)="endStopDrag()"
         >
-          <span
-            role="img"
-            aria-label="Current gradient preview"
-            [style.background]="gradientBackground(draftGradient())"
-          ></span>
+          <span role="img" aria-label="Current gradient preview" [style.background]="gradientBackground(draftGradient())"></span>
           @for (stop of stops(); track stop.id; let index = $index) {
             <button
               type="button"
@@ -194,7 +179,7 @@
             {{ selectedGradientId() === null ? 'Create and apply' : 'Save changes' }}
           </button>
         </footer>
-    </div>
+      </div>
     </section>
   </div>
 </ng-template>

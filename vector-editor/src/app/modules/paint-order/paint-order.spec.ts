@@ -38,8 +38,6 @@ describe('isInteractionLocked', () => {
 
     expect(isInteractionLocked(document, object)).toBe(false);
     expect(isInteractionLocked(document, { ...object, locked: true })).toBe(true);
-    expect(isInteractionLocked({ ...document, layers: [{ ...layer, locked: true }] }, object)).toBe(
-      true,
-    );
+    expect(isInteractionLocked({ ...document, layers: [{ ...layer, locked: true }] }, object)).toBe(true);
   });
 });

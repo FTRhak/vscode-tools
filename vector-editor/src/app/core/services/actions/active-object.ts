@@ -1,4 +1,4 @@
-import { SessionSlice, VectorObject } from "@vector-editor/modules/types";
+import { SessionSlice, VectorObject } from '@vector-editor/modules/types';
 
 export function activeObject(state: SessionSlice): VectorObject | null {
   const id = state.selection.activeObjectId;

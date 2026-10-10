@@ -1,13 +1,13 @@
-import { Command } from "@vector-editor/commands";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { historyLabel, recordHistory } from "../../../commands/models/history";
-import { applySessionCommand } from "./apply-session-command";
-import { jumpSession } from "./jump-session";
-import { reconcileSelectedLayer } from "./document-helpers";
-import { sameSnapshot } from "./same-snapshot";
-import { snapshotOf } from "./snapshot-of";
-import { redoSession } from "./redo-session";
-import { undoSession } from "./undo-session";
+import { Command } from '@vector-editor/commands';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { historyLabel, recordHistory } from '../../../commands/models/history';
+import { applySessionCommand } from './apply-session-command';
+import { jumpSession } from './jump-session';
+import { reconcileSelectedLayer } from './document-helpers';
+import { sameSnapshot } from './same-snapshot';
+import { snapshotOf } from './snapshot-of';
+import { redoSession } from './redo-session';
+import { undoSession } from './undo-session';
 
 export function commitSession(state: SessionSlice, command: Command): SessionSlice {
   if (command.type === 'history.undo') {

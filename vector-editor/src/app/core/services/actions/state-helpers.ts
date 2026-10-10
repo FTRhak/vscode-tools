@@ -1,10 +1,7 @@
-import { SelectionState } from "../../../commands/models/history";
-import { SessionSlice, VectorObject, ObjectTransform } from "@vector-editor/modules/types";
+import { SelectionState } from '../../../commands/models/history';
+import { SessionSlice, VectorObject, ObjectTransform } from '@vector-editor/modules/types';
 
-export function withTransform(
-  object: VectorObject,
-  patch: Partial<ObjectTransform>,
-): VectorObject {
+export function withTransform(object: VectorObject, patch: Partial<ObjectTransform>): VectorObject {
   const transform = { ...object.transform };
   let changed = false;
   for (const key of ['x', 'y', 'rotation', 'scaleX', 'scaleY', 'originX', 'originY'] as const) {
@@ -44,18 +41,14 @@ export function withoutRemovedObjects(
   }
   const removed = new Set(removedIds);
   const selectedObjectIds = state.selection.selectedObjectIds.filter((id) => !removed.has(id));
-  const activeKept =
-    state.selection.activeObjectId !== null && !removed.has(state.selection.activeObjectId);
+  const activeKept = state.selection.activeObjectId !== null && !removed.has(state.selection.activeObjectId);
   return {
     ...state,
     document,
-    penObjectId:
-      state.penObjectId !== null && !removed.has(state.penObjectId) ? state.penObjectId : null,
+    penObjectId: state.penObjectId !== null && !removed.has(state.penObjectId) ? state.penObjectId : null,
     selection: {
       ...state.selection,
-      activeObjectId: activeKept
-        ? state.selection.activeObjectId
-        : (selectedObjectIds.at(-1) ?? null),
+      activeObjectId: activeKept ? state.selection.activeObjectId : (selectedObjectIds.at(-1) ?? null),
       selectedObjectIds,
       selectedAnchorIds: activeKept ? state.selection.selectedAnchorIds : [],
       selectedSegmentIds: activeKept ? state.selection.selectedSegmentIds : [],
@@ -63,16 +56,8 @@ export function withoutRemovedObjects(
   };
 }
 
-export function penSelection(
-  selection: SelectionState,
-  objectId: string,
-  anchorId: string,
-  replaceObjects: boolean,
-): SelectionState {
-  const selectedObjectIds =
-    replaceObjects || !selection.selectedObjectIds.includes(objectId)
-      ? [objectId]
-      : selection.selectedObjectIds;
+export function penSelection(selection: SelectionState, objectId: string, anchorId: string, replaceObjects: boolean): SelectionState {
+  const selectedObjectIds = replaceObjects || !selection.selectedObjectIds.includes(objectId) ? [objectId] : selection.selectedObjectIds;
   return {
     ...selection,
     activeObjectId: objectId,

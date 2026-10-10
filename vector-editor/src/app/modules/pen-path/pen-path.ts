@@ -1,16 +1,5 @@
 import { createId } from '@vector-editor/core/utils';
-import {
-  Anchor,
-  Document,
-  ObjectTransform,
-  Segment,
-  SourcePath,
-  Style,
-  Subpath,
-  svgStrokeDefaults,
-  Vec2,
-  VectorObject,
-} from '../types';
+import { Anchor, Document, ObjectTransform, Segment, SourcePath, Style, Subpath, svgStrokeDefaults, Vec2, VectorObject } from '../types';
 
 const identityTransform: ObjectTransform = {
   x: 0,
@@ -41,11 +30,7 @@ export interface PenPoint {
   readonly anchorId: string;
 }
 
-export function beginPenObject(
-  document: Document,
-  position: Vec2,
-  layerId?: string,
-): PenObject | null {
+export function beginPenObject(document: Document, position: Vec2, layerId?: string): PenObject | null {
   if (!finitePoint(position)) {
     return null;
   }
@@ -109,12 +94,7 @@ export function addPenPoint(source: SourcePath, position: Vec2): PenPoint | null
   return { source: { ...source, subpaths }, anchorId };
 }
 
-export function setPenHandles(
-  source: SourcePath,
-  anchorId: string,
-  handleOut: Vec2,
-  breakLink: boolean,
-): SourcePath {
+export function setPenHandles(source: SourcePath, anchorId: string, handleOut: Vec2, breakLink: boolean): SourcePath {
   if (!finitePoint(handleOut)) {
     return source;
   }
@@ -127,17 +107,14 @@ export function setPenHandles(
     const anchor = subpath.anchors[index];
     const nextOut = { x: handleOut.x, y: handleOut.y };
     const nextIn = breakLink ? null : reflect(anchor.position, nextOut);
-    const anchorChanged =
-      !samePoint(anchor.handleOut, nextOut) || !samePoint(anchor.handleIn, nextIn);
+    const anchorChanged = !samePoint(anchor.handleOut, nextOut) || !samePoint(anchor.handleIn, nextIn);
     const segments = incomingSegments(subpath, anchorId, breakLink);
     if (!anchorChanged && segments === subpath.segments) {
       return subpath;
     }
     changed = true;
     const anchors = anchorChanged
-      ? subpath.anchors.map((item, itemIndex) =>
-          itemIndex === index ? { ...item, handleIn: nextIn, handleOut: nextOut } : item,
-        )
+      ? subpath.anchors.map((item, itemIndex) => (itemIndex === index ? { ...item, handleIn: nextIn, handleOut: nextOut } : item))
       : subpath.anchors;
     return { ...subpath, anchors, segments };
   });
@@ -199,11 +176,7 @@ function anchorAt(id: string, position: Vec2): Anchor {
   };
 }
 
-function incomingSegments(
-  subpath: Subpath,
-  anchorId: string,
-  breakLink: boolean,
-): readonly Segment[] {
+function incomingSegments(subpath: Subpath, anchorId: string, breakLink: boolean): readonly Segment[] {
   const index = subpath.segments.findIndex((segment) => segment.toId === anchorId);
   if (index < 0) {
     return subpath.segments;
@@ -214,9 +187,7 @@ function incomingSegments(
   if (segment.kind === kind) {
     return subpath.segments;
   }
-  return subpath.segments.map((item, itemIndex) =>
-    itemIndex === index ? { ...item, kind } : item,
-  );
+  return subpath.segments.map((item, itemIndex) => (itemIndex === index ? { ...item, kind } : item));
 }
 
 function reflect(origin: Vec2, point: Vec2): Vec2 {

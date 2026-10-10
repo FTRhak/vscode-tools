@@ -72,18 +72,9 @@ export function imageObjectName(fileName: string): string {
   return base || 'Image';
 }
 
-export function addImage(
-  document: Document,
-  draft: ImageDraft,
-  layerId?: string,
-): ImageObjectResult | null {
+export function addImage(document: Document, draft: ImageDraft, layerId?: string): ImageObjectResult | null {
   const image = imageContent(draft);
-  if (
-    !image ||
-    !Number.isFinite(draft.x) ||
-    !Number.isFinite(draft.y) ||
-    !draft.name.trim()
-  ) {
+  if (!image || !Number.isFinite(draft.x) || !Number.isFinite(draft.y) || !draft.name.trim()) {
     return null;
   }
   const layer = imageLayer(document, layerId);
@@ -152,7 +143,12 @@ export function isImageDataUrl(value: string, mime: ImageMime): boolean {
 }
 
 export function safeImageFileName(name: string, mime: ImageMime): string | null {
-  const base = name.split(/[\\/]/).pop()?.replace(/[\\/:*?"<>|]/g, '').trim() ?? '';
+  const base =
+    name
+      .split(/[\\/]/)
+      .pop()
+      ?.replace(/[\\/:*?"<>|]/g, '')
+      .trim() ?? '';
   if (!base || base === '.' || base === '..' || base.includes('..')) {
     return `image.${imageExtension(mime)}`;
   }

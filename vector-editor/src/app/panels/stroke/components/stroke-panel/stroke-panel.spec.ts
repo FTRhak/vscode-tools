@@ -65,9 +65,7 @@ describe('StrokePanel', () => {
     blurred.dispatchEvent(new FocusEvent('blur'));
     await fixture.whenStable();
 
-    expect(session.document()!.objects.find((object) => object.id === id)?.style.strokeWidth).toBe(
-      2.5,
-    );
+    expect(session.document()!.objects.find((object) => object.id === id)?.style.strokeWidth).toBe(2.5);
   });
 
   it('skips a matching, negative, or empty width', async () => {
@@ -168,9 +166,7 @@ describe('StrokePanel', () => {
 
     commitSelect('Align stroke', 'outside');
     await fixture.whenStable();
-    expect(
-      session.document()!.objects.every((object) => object.style.strokeAlign === 'outside'),
-    ).toBe(true);
+    expect(session.document()!.objects.every((object) => object.style.strokeAlign === 'outside')).toBe(true);
     expect(session.history().entries.at(-1)?.label).toBe('Set stroke alignment');
   });
 
@@ -231,9 +227,7 @@ describe('StrokePanel', () => {
 
     commitSelect('Line cap', 'round');
     await fixture.whenStable();
-    expect(
-      session.document()!.objects.every((object) => object.style.strokeLinecap === 'round'),
-    ).toBe(true);
+    expect(session.document()!.objects.every((object) => object.style.strokeLinecap === 'round')).toBe(true);
   });
 
   function selectFirst(): string {
@@ -278,9 +272,7 @@ describe('StrokePanel', () => {
     field.value = value;
     field.dispatchEvent(new Event('input', { bubbles: true }));
     if (key === 'enter') {
-      field.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-      );
+      field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
       return;
     }
     field.dispatchEvent(new FocusEvent('blur'));

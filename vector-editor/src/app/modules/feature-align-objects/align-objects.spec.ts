@@ -23,8 +23,7 @@ describe('alignObjects', () => {
         placement: 'embed',
         fileName: 'photo.png',
         mime: 'image/png',
-        dataUrl:
-          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
         pixelWidth: 1,
         pixelHeight: 1,
         width: 10,
@@ -55,12 +54,7 @@ describe('alignObjects', () => {
   it('aligns centers to the selection bounding box', () => {
     const left = rect('left', 0, 0, 10, 10);
     const right = rect('right', 30, 0, 10, 10);
-    const result = alignObjects(
-      doc([left, right]),
-      [left.id, right.id],
-      'horizontalCenter',
-      'selection',
-    );
+    const result = alignObjects(doc([left, right]), [left.id, right.id], 'horizontalCenter', 'selection');
 
     expect(result.objects.map((object) => object.transform.x)).toEqual([15, 15]);
     expect(result.objects.map((object) => object.transform.y)).toEqual([0, 0]);
@@ -79,12 +73,7 @@ describe('alignObjects', () => {
     const locked = { ...rect('locked', 40, 0, 10, 10), locked: true };
     const anchor = rect('anchor', 0, 0, 10, 10);
     const free = rect('free', 30, 0, 10, 10);
-    const result = alignObjects(
-      doc([locked, anchor, free]),
-      [locked.id, anchor.id, free.id],
-      'left',
-      'selection',
-    );
+    const result = alignObjects(doc([locked, anchor, free]), [locked.id, anchor.id, free.id], 'left', 'selection');
 
     expect(result.objects[0]).toBe(locked);
     expect(result.objects[1]).toBe(anchor);
@@ -170,12 +159,7 @@ function arrayModifier(): Modifier {
 }
 
 function rect(id: string, x: number, y: number, width: number, height: number): VectorObject {
-  const anchors = [
-    corner(`${id}-0`, 0, 0),
-    corner(`${id}-1`, width, 0),
-    corner(`${id}-2`, width, height),
-    corner(`${id}-3`, 0, height),
-  ];
+  const anchors = [corner(`${id}-0`, 0, 0), corner(`${id}-1`, width, 0), corner(`${id}-2`, width, height), corner(`${id}-3`, 0, height)];
   return object(id, x, y, {
     subpaths: [
       {
@@ -220,12 +204,7 @@ function empty(id: string, x: number, y: number): VectorObject {
   return { ...object(id, x, y, { subpaths: [] }), kind: 'empty' };
 }
 
-function object(
-  id: string,
-  x: number,
-  y: number,
-  source: VectorObject['source'],
-): VectorObject {
+function object(id: string, x: number, y: number, source: VectorObject['source']): VectorObject {
   return {
     id,
     name: id,

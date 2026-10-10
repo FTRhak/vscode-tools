@@ -34,14 +34,7 @@
 }
 
 .chip.none {
-  background:
-    linear-gradient(
-      to top right,
-      transparent calc(50% - 1px),
-      var(--chrome-text),
-      transparent calc(50% + 1px)
-    ),
-    #1f1f1f;
+  background: linear-gradient(to top right, transparent calc(50% - 1px), var(--chrome-text), transparent calc(50% + 1px)), #1f1f1f;
 }
 
 .chip.mixed {
@@ -79,4 +72,3 @@ input[type='color'] {
   color: var(--chrome-muted);
   font-size: 0.85rem;
 }
-

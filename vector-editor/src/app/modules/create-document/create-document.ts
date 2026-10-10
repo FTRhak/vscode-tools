@@ -1,13 +1,5 @@
 import { createId } from '@vector-editor/core/utils';
-import {
-  Anchor,
-  Document,
-  ObjectTransform,
-  Segment,
-  Style,
-  svgStrokeDefaults,
-  Vec2,
-} from '../types';
+import { Anchor, Document, ObjectTransform, Segment, Style, svgStrokeDefaults, Vec2 } from '../types';
 
 const identityTransform: ObjectTransform = {
   x: 0,

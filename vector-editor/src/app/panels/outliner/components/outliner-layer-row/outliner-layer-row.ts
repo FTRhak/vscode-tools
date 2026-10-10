@@ -1,14 +1,4 @@
-import {
-  afterNextRender,
-  Component,
-  ElementRef,
-  inject,
-  Injector,
-  input,
-  output,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { afterNextRender, Component, ElementRef, inject, Injector, input, output, signal, viewChild } from '@angular/core';
 import { OutlinerLayer } from '../../models';
 
 @Component({

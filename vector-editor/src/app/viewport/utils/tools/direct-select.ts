@@ -30,11 +30,7 @@ export function beginDirectDrag(input: {
   readonly zoom: number;
   readonly selectedAnchorIds: readonly string[];
 }): { readonly drag: DirectDrag; readonly commands: readonly Command[] } {
-  const hit = hitTestAnchor(
-    input.object.source,
-    input.localPoint,
-    anchorHitRadius(input.zoom, input.object.transform),
-  );
+  const hit = hitTestAnchor(input.object.source, input.localPoint, anchorHitRadius(input.zoom, input.object.transform));
   const commands: Command[] = [];
   if (hit?.kind === 'anchor' && !input.selectedAnchorIds.includes(hit.anchorId)) {
     commands.push(selectAnchor(hit.anchorId, input.shiftKey));
@@ -130,12 +126,7 @@ function moveAnchors(
 ): readonly Command[] {
   const zoom = input.zoom || 1;
   const local =
-    input.localDelta ??
-    documentDeltaToLocal(
-      input.transform,
-      (input.clientX - drag.lastX) / zoom,
-      (input.clientY - drag.lastY) / zoom,
-    );
+    input.localDelta ?? documentDeltaToLocal(input.transform, (input.clientX - drag.lastX) / zoom, (input.clientY - drag.lastY) / zoom);
   drag.lastX = input.clientX;
   drag.lastY = input.clientY;
   if (!local || (local.x === 0 && local.y === 0) || input.selectedAnchorIds.length === 0) {

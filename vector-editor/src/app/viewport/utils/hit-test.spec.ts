@@ -220,9 +220,7 @@ describe('hitTestObject', () => {
     };
 
     expect(objectsInRect(doc([inside]), { x: 11, y: 5, width: 1, height: 1 })).toEqual([]);
-    expect(objectsInRect(doc([outside]), { x: 13, y: 5, width: 1, height: 1 })).toEqual([
-      'outside',
-    ]);
+    expect(objectsInRect(doc([outside]), { x: 13, y: 5, width: 1, height: 1 })).toEqual(['outside']);
     expect(objectsInRect(doc([outside]), { x: 15, y: 5, width: 1, height: 1 })).toEqual([]);
   });
 });
@@ -249,12 +247,7 @@ function innerCorner(index: number): { x: number; y: number } {
 }
 
 function square(id: string): VectorObject {
-  const anchors = [
-    anchor(`${id}-a`, 0, 0),
-    anchor(`${id}-b`, 10, 0),
-    anchor(`${id}-c`, 10, 10),
-    anchor(`${id}-d`, 0, 10),
-  ];
+  const anchors = [anchor(`${id}-a`, 0, 0), anchor(`${id}-b`, 10, 0), anchor(`${id}-c`, 10, 10), anchor(`${id}-d`, 0, 10)];
   return {
     id,
     name: id,

@@ -1,11 +1,6 @@
 <panel [panelName]="panelName" [icon]="'&#xe106;'">
   @if (frame(); as frame) {
-    <preview-svg
-      [viewBox]="frame.viewBox"
-      [ratio]="frame.ratio"
-      [objects]="frame.scene.objects"
-      [gradients]="frame.scene.gradients"
-    />
+    <preview-svg [viewBox]="frame.viewBox" [ratio]="frame.ratio" [objects]="frame.scene.objects" [gradients]="frame.scene.gradients" />
     <preview-info [viewBox]="frame.viewBox" />
   } @else {
     <p>Nothing to preview.</p>

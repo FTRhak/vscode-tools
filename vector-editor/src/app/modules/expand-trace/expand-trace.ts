@@ -14,9 +14,7 @@ export function expandTrace(
   if (!object || !isImage(object)) {
     return null;
   }
-  const trace = object.modifiers.find(
-    (modifier) => modifier.type === 'trace' && (modifierId === undefined || modifier.id === modifierId),
-  );
+  const trace = object.modifiers.find((modifier) => modifier.type === 'trace' && (modifierId === undefined || modifier.id === modifierId));
   if (!trace || trace.type !== 'trace') {
     return null;
   }

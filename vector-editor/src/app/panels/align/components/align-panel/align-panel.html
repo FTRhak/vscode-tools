@@ -9,7 +9,7 @@
           [attr.aria-label]="action.label"
           (click)="align(action.edge)"
         >
-          <i class="icon" aria-hidden="true" [innerHTML]="action.icon"]></i>
+          <i class="icon" aria-hidden="true" [innerHTML]="action.icon" ]></i>
         </button>
       }
     </div>
@@ -25,11 +25,7 @@
       </select>
     </label>
     <label class="check">
-      <input
-        type="checkbox"
-        [checked]="applyTransformation()"
-        (change)="setApplyTransformation($event)"
-      />
+      <input type="checkbox" [checked]="applyTransformation()" (change)="setApplyTransformation($event)" />
       Apply transformation
     </label>
   </div>

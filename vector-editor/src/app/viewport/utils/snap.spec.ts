@@ -1,11 +1,5 @@
 import { Document, svgStrokeDefaults, VectorObject } from '@vector-editor/core';
-import {
-  anchorSnapSources,
-  collectSnapTargets,
-  snapToGrid,
-  snapToPoints,
-  snapTranslation,
-} from './snap';
+import { anchorSnapSources, collectSnapTargets, snapToGrid, snapToPoints, snapTranslation } from './snap';
 
 describe('snap', () => {
   it('rounds positions onto each grid step', () => {
@@ -32,35 +26,17 @@ describe('snap', () => {
   });
 
   it('keeps a free move when no object point is close enough', () => {
-    const delta = snapTranslation(
-      { x: 12, y: 3 },
-      [{ start: { x: 0, y: 0 } }],
-      'object',
-      [{ x: 40, y: 40 }],
-      8,
-    );
+    const delta = snapTranslation({ x: 12, y: 3 }, [{ start: { x: 0, y: 0 } }], 'object', [{ x: 40, y: 40 }], 8);
     expect(delta).toEqual({ x: 12, y: 3 });
   });
 
   it('pulls the closest object point onto a target', () => {
-    const delta = snapTranslation(
-      { x: 2, y: 1 },
-      [{ start: { x: 0, y: 0 } }, { start: { x: 100, y: 0 } }],
-      'layer',
-      [{ x: 104, y: 2 }],
-      8,
-    );
+    const delta = snapTranslation({ x: 2, y: 1 }, [{ start: { x: 0, y: 0 } }, { start: { x: 100, y: 0 } }], 'layer', [{ x: 104, y: 2 }], 8);
     expect(delta).toEqual({ x: 4, y: 2 });
   });
 
   it('snaps the reference point onto the grid', () => {
-    const delta = snapTranslation(
-      { x: 10.4, y: 0.2 },
-      [{ start: { x: 3, y: 5 } }, { start: { x: 80, y: 80 } }],
-      'grid_100',
-      [],
-      8,
-    );
+    const delta = snapTranslation({ x: 10.4, y: 0.2 }, [{ start: { x: 3, y: 5 } }, { start: { x: 80, y: 80 } }], 'grid_100', [], 8);
     expect(delta).toEqual({ x: 10, y: 0 });
   });
 
@@ -109,14 +85,7 @@ function sampleDocument(): Document {
   };
 }
 
-function sampleObject(
-  id: string,
-  layerId: string,
-  x: number,
-  y: number,
-  anchorX: number,
-  anchorY: number,
-): VectorObject {
+function sampleObject(id: string, layerId: string, x: number, y: number, anchorX: number, anchorY: number): VectorObject {
   return {
     id,
     name: id,

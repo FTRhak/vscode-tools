@@ -26,9 +26,7 @@ describe('deleteObjects', () => {
 
     expect(result?.removedIds).toEqual([operand.id]);
     expect(result?.document.objects.map((item) => item.id)).toEqual([host.id, kept.id]);
-    expect(result?.document.objects[0].modifiers.map((modifier) => modifier.id)).toEqual([
-      'mirror',
-    ]);
+    expect(result?.document.objects[0].modifiers.map((modifier) => modifier.id)).toEqual(['mirror']);
     expect(result?.document.objects[1]).toBe(kept);
   });
 

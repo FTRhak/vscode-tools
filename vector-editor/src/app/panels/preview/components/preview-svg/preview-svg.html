@@ -2,31 +2,15 @@
   <defs>
     @for (gradient of gradients(); track gradient.id) {
       @if (gradient.type === 'linear') {
-        <linearGradient
-          [attr.id]="gradient.id"
-          gradientUnits="objectBoundingBox"
-          [attr.gradientTransform]="gradientTransform(gradient)"
-        >
+        <linearGradient [attr.id]="gradient.id" gradientUnits="objectBoundingBox" [attr.gradientTransform]="gradientTransform(gradient)">
           @for (stop of gradient.stops; track stop.id) {
-            <stop
-              [attr.offset]="stop.offset"
-              [attr.stop-color]="stop.color"
-              [attr.stop-opacity]="stop.opacity"
-            />
+            <stop [attr.offset]="stop.offset" [attr.stop-color]="stop.color" [attr.stop-opacity]="stop.opacity" />
           }
         </linearGradient>
       } @else {
-        <radialGradient
-          [attr.id]="gradient.id"
-          gradientUnits="objectBoundingBox"
-          [attr.gradientTransform]="gradientTransform(gradient)"
-        >
+        <radialGradient [attr.id]="gradient.id" gradientUnits="objectBoundingBox" [attr.gradientTransform]="gradientTransform(gradient)">
           @for (stop of gradient.stops; track stop.id) {
-            <stop
-              [attr.offset]="stop.offset"
-              [attr.stop-color]="stop.color"
-              [attr.stop-opacity]="stop.opacity"
-            />
+            <stop [attr.offset]="stop.offset" [attr.stop-color]="stop.color" [attr.stop-opacity]="stop.opacity" />
           }
         </radialGradient>
       }
@@ -86,12 +70,7 @@
         />
       } @else {
         @if (object.fill !== 'none') {
-          <path
-            [attr.d]="object.d"
-            [attr.fill]="object.fill"
-            stroke="none"
-            [attr.fill-rule]="object.fillRule"
-          />
+          <path [attr.d]="object.d" [attr.fill]="object.fill" stroke="none" [attr.fill-rule]="object.fillRule" />
         }
         @if (object.strokeAlign === 'inside') {
           <clipPath [attr.id]="object.clipId" clipPathUnits="userSpaceOnUse">
@@ -120,13 +99,7 @@
             [attr.width]="maskRect.width"
             [attr.height]="maskRect.height"
           >
-            <rect
-              [attr.x]="maskRect.x"
-              [attr.y]="maskRect.y"
-              [attr.width]="maskRect.width"
-              [attr.height]="maskRect.height"
-              fill="white"
-            />
+            <rect [attr.x]="maskRect.x" [attr.y]="maskRect.y" [attr.width]="maskRect.width" [attr.height]="maskRect.height" fill="white" />
             <path [attr.d]="object.d" fill="black" [attr.fill-rule]="object.fillRule" />
           </mask>
           <path

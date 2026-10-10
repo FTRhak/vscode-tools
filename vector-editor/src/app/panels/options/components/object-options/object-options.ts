@@ -54,9 +54,7 @@ export class ObjectOptions {
     return document.layers.find((layer) => layer.id === object.layerId)?.name ?? '';
   });
 
-  protected readonly subpathCount = computed(
-    () => this.activeObject()?.source.subpaths.length ?? 0,
-  );
+  protected readonly subpathCount = computed(() => this.activeObject()?.source.subpaths.length ?? 0);
 
   protected readonly anchorCount = computed(() => {
     const object = this.activeObject();
@@ -66,13 +64,9 @@ export class ObjectOptions {
     return object.source.subpaths.reduce((sum, subpath) => sum + subpath.anchors.length, 0);
   });
 
-  protected readonly visibleState = computed(() =>
-    shared(this.selectedObjects(), (object) => object.visible),
-  );
+  protected readonly visibleState = computed(() => shared(this.selectedObjects(), (object) => object.visible));
 
-  protected readonly lockedState = computed(() =>
-    shared(this.selectedObjects(), (object) => object.locked),
-  );
+  protected readonly lockedState = computed(() => shared(this.selectedObjects(), (object) => object.locked));
 
   protected readonly canApplyTransform = computed(() => {
     const document = this.session.document();
@@ -203,9 +197,7 @@ function hasEditableTransform(document: Document, object: VectorObject): boolean
     return false;
   }
   const transform = object.transform;
-  return (Object.keys(identityTransform) as (keyof ObjectTransform)[]).some(
-    (key) => transform[key] !== identityTransform[key],
-  );
+  return (Object.keys(identityTransform) as (keyof ObjectTransform)[]).some((key) => transform[key] !== identityTransform[key]);
 }
 
 function draftFrom(objects: readonly VectorObject[]): OptionsDraft {

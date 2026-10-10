@@ -34,10 +34,7 @@ describe('ModifiersPanel', () => {
     await addKind('Array');
     await addKind('Mirror');
 
-    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.type)).toEqual([
-      'array',
-      'mirror',
-    ]);
+    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.type)).toEqual(['array', 'mirror']);
     expect(fixture.nativeElement.textContent).toContain('Array');
     expect(fixture.nativeElement.textContent).toContain('Mirror');
     expect(countInput().value).toBe('3');
@@ -64,9 +61,7 @@ describe('ModifiersPanel', () => {
 
     button('Apply Array').click();
     await fixture.whenStable();
-    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.type)).toEqual([
-      'mirror',
-    ]);
+    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.type)).toEqual(['mirror']);
     expect(session.document()!.objects[0].source.subpaths.length).toBeGreaterThan(1);
     expect(fixture.nativeElement.textContent).not.toContain('Array');
 
@@ -101,8 +96,7 @@ describe('ModifiersPanel', () => {
     expect(labels).toContain('Image to vector');
     expect(labels).not.toContain('Array');
     const item = [...document.body.querySelectorAll('button')].find(
-      (entry): entry is HTMLButtonElement =>
-        entry instanceof HTMLButtonElement && entry.textContent?.trim() === 'Image to vector',
+      (entry): entry is HTMLButtonElement => entry instanceof HTMLButtonElement && entry.textContent?.trim() === 'Image to vector',
     );
     item?.click();
     fixture.detectChanges();
@@ -129,8 +123,7 @@ describe('ModifiersPanel', () => {
 
   function openMenu(): void {
     const trigger = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (entry): entry is HTMLButtonElement =>
-        entry instanceof HTMLButtonElement && (entry.textContent?.includes('Add modifier') ?? false),
+      (entry): entry is HTMLButtonElement => entry instanceof HTMLButtonElement && (entry.textContent?.includes('Add modifier') ?? false),
     );
     if (!trigger) {
       throw new Error('Add modifier button is missing');
@@ -142,8 +135,7 @@ describe('ModifiersPanel', () => {
   function button(label: string): HTMLButtonElement {
     const match = [...fixture.nativeElement.querySelectorAll('button')].find(
       (item): item is HTMLButtonElement =>
-        item instanceof HTMLButtonElement &&
-        (item.getAttribute('aria-label') === label || item.textContent?.trim() === label),
+        item instanceof HTMLButtonElement && (item.getAttribute('aria-label') === label || item.textContent?.trim() === label),
     );
     if (!match) {
       throw new Error(`${label} button is missing`);
@@ -151,8 +143,7 @@ describe('ModifiersPanel', () => {
     return match;
   }
 
-  const pixel =
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
   function countInput(): HTMLInputElement {
     const input = fixture.nativeElement.querySelector('input[type="number"]');

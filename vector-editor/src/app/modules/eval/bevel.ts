@@ -11,37 +11,17 @@ export function applyBevel(source: SourcePath, modifier: BevelModifier): SourceP
     return source;
   }
   const flat = flattenSource(source);
-  const closed = flat
-    .filter((path) => path.closed && path.points.length >= 3)
-    .map((path) => path.points);
-  const open = flat
-    .filter((path) => !path.closed && path.points.length >= 2)
-    .map((path) => path.points);
+  const closed = flat.filter((path) => path.closed && path.points.length >= 3).map((path) => path.points);
+  const open = flat.filter((path) => !path.closed && path.points.length >= 2).map((path) => path.points);
   const join = joinType(modifier.join);
   const miterLimit = modifier.miterLimit > 0 ? modifier.miterLimit : 2;
   try {
     const closedPaths =
-      closed.length === 0
-        ? []
-        : inflatePaths(
-            closed,
-            modifier.distance * CLIPPER_SCALE,
-            join,
-            EndType.Polygon,
-            miterLimit,
-            ARC_TOLERANCE,
-          );
+      closed.length === 0 ? [] : inflatePaths(closed, modifier.distance * CLIPPER_SCALE, join, EndType.Polygon, miterLimit, ARC_TOLERANCE);
     const openPaths =
       open.length === 0
         ? []
-        : inflatePaths(
-            open,
-            Math.abs(modifier.distance) * CLIPPER_SCALE,
-            join,
-            EndType.Round,
-            miterLimit,
-            ARC_TOLERANCE,
-          );
+        : inflatePaths(open, Math.abs(modifier.distance) * CLIPPER_SCALE, join, EndType.Round, miterLimit, ARC_TOLERANCE);
     return sourceFromPaths([...closedPaths, ...openPaths], modifier.id);
   } catch {
     return null;

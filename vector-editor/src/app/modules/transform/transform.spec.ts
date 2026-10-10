@@ -27,10 +27,7 @@ describe('transformWithRotationOrigin', () => {
   });
 
   it('leaves translation alone when the object is not rotated', () => {
-    const next = transformWithRotationOrigin(
-      { x: 4, y: 7, rotation: 0, scaleX: 2, scaleY: 1, originX: 0, originY: 0 },
-      { x: 10, y: 7 },
-    );
+    const next = transformWithRotationOrigin({ x: 4, y: 7, rotation: 0, scaleX: 2, scaleY: 1, originX: 0, originY: 0 }, { x: 10, y: 7 });
 
     expect(next).toEqual({
       x: 4,

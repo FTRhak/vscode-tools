@@ -20,14 +20,7 @@ import {
   Vec2,
   VectorObject,
 } from '@vector-editor/modules/types';
-import {
-  identityTransform,
-  Matrix,
-  multiplyMatrix,
-  parseSvgTransform,
-  placementOf,
-  transformSource,
-} from './matrix';
+import { identityTransform, Matrix, multiplyMatrix, parseSvgTransform, placementOf, transformSource } from './matrix';
 import { parsePathData } from './path-data-parse';
 import { primitiveToSource } from './shapes';
 
@@ -62,9 +55,7 @@ const defaultStyle: Style = {
   fillRule: 'nonzero',
 };
 
-export type SvgImportResult =
-  | { readonly ok: true; readonly document: Document; readonly skipped: number }
-  | { readonly ok: false };
+export type SvgImportResult = { readonly ok: true; readonly document: Document; readonly skipped: number } | { readonly ok: false };
 
 interface LayerDraft {
   readonly id: string;
@@ -312,12 +303,7 @@ function readObject(
   operandLinks: OperandLink[],
   centerPointLinks: CenterPointLink[],
 ): VectorObject | null {
-  const payload = readObjectPayload(
-    element.getAttribute(objectAttribute),
-    claim,
-    operandLinks,
-    centerPointLinks,
-  );
+  const payload = readObjectPayload(element.getAttribute(objectAttribute), claim, operandLinks, centerPointLinks);
   if (payload?.kind === 'empty') {
     return {
       id: claim(element.getAttribute('id')),
@@ -419,9 +405,7 @@ function readImage(
 
 function imageHref(element: Element): string | null {
   return (
-    element.getAttribute('href') ||
-    element.getAttributeNS('http://www.w3.org/1999/xlink', 'href') ||
-    element.getAttribute('xlink:href')
+    element.getAttribute('href') || element.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || element.getAttribute('xlink:href')
   );
 }
 
@@ -489,9 +473,7 @@ function foreignImage(element: Element, href: string | null, context: WalkContex
   if (!transform) {
     return null;
   }
-  const aspect = element.getAttribute('preserveAspectRatio')?.trim().startsWith('none')
-    ? 'none'
-    : 'xMidYMid meet';
+  const aspect = element.getAttribute('preserveAspectRatio')?.trim().startsWith('none') ? 'none' : 'xMidYMid meet';
   const embedded = readEmbeddedHref(href);
   if (embedded) {
     return {
@@ -608,34 +590,22 @@ function mimeFromName(fileName: string): ImageMime | null {
 }
 
 function geometrySource(element: Element, context: WalkContext): SourcePath | null {
-  const local =
-    element.localName === 'path'
-      ? parsePathData(element.getAttribute('d') ?? '')
-      : primitiveToSource(element);
+  const local = element.localName === 'path' ? parsePathData(element.getAttribute('d') ?? '') : primitiveToSource(element);
   if (!local) {
     return null;
   }
-  const matrix = multiplyMatrix(
-    context.matrix,
-    parseSvgTransform(element.getAttribute('transform')),
-  );
+  const matrix = multiplyMatrix(context.matrix, parseSvgTransform(element.getAttribute('transform')));
   return transformSource(local, matrix);
 }
 
-function readDocumentMeta(
-  svg: Element,
-  used: Set<string>,
-): { id: string; name: string; swatches: readonly Swatch[] } {
+function readDocumentMeta(svg: Element, used: Set<string>): { id: string; name: string; swatches: readonly Swatch[] } {
   const json = parseJson(svg.getAttribute(documentAttribute));
   const name = stringField(json, 'name') || textTitle(svg) || 'Untitled';
   const id = claimId(stringField(json, 'id'), used);
   return { id, name, swatches: readSwatches(isRecord(json) ? json['swatches'] : null, used) };
 }
 
-function readLayerMeta(
-  group: Element,
-  claim: (id: string | null) => string,
-): Pick<Layer, 'id' | 'name' | 'visible' | 'locked'> {
+function readLayerMeta(group: Element, claim: (id: string | null) => string): Pick<Layer, 'id' | 'name' | 'visible' | 'locked'> {
   const json = parseJson(group.getAttribute(layerAttribute));
   const visible = booleanField(json, 'visible');
   return {
@@ -655,9 +625,7 @@ function resolveModifierReferences(
     return objects;
   }
   const byModifier = new Map(links.map((link) => [link.modifierId, link.operandIndex]));
-  const centerPointByModifier = new Map(
-    centerPointLinks.map((link) => [link.modifierId, link.centerPointIndex]),
-  );
+  const centerPointByModifier = new Map(centerPointLinks.map((link) => [link.modifierId, link.centerPointIndex]));
   return objects.map((object) => ({
     ...object,
     modifiers: object.modifiers.flatMap((modifier) => {
@@ -667,9 +635,7 @@ function resolveModifierReferences(
       }
       if (modifier.type === 'mirror' && centerPointByModifier.has(modifier.id)) {
         const centerPoint = objects[centerPointByModifier.get(modifier.id) ?? -1];
-        return centerPoint?.kind === 'empty'
-          ? [{ ...modifier, centerPointId: centerPoint.id }]
-          : [modifier];
+        return centerPoint?.kind === 'empty' ? [{ ...modifier, centerPointId: centerPoint.id }] : [modifier];
       }
       return [modifier];
     }),
@@ -811,12 +777,7 @@ function readModifier(
   if (value['type'] === 'round') {
     const anchorCount = value['anchorCount'];
     const roundness = value['roundness'];
-    if (
-      typeof anchorCount !== 'number' ||
-      !Number.isFinite(anchorCount) ||
-      typeof roundness !== 'number' ||
-      !Number.isFinite(roundness)
-    ) {
+    if (typeof anchorCount !== 'number' || !Number.isFinite(anchorCount) || typeof roundness !== 'number' || !Number.isFinite(roundness)) {
       return null;
     }
     const mode = value['mode'];
@@ -849,11 +810,7 @@ function readModifier(
   if (value['type'] === 'trace') {
     const settings = clampTraceSettings({
       mode:
-        value['mode'] === 'colorDistance' ||
-        value['mode'] === 'grayscale' ||
-        value['mode'] === 'blackAndWhite'
-          ? value['mode']
-          : 'color',
+        value['mode'] === 'colorDistance' || value['mode'] === 'grayscale' || value['mode'] === 'blackAndWhite' ? value['mode'] : 'color',
       colors: finiteField(value, 'colors', 16),
       threshold: finiteField(value, 'threshold', 128),
       paths: finiteField(value, 'paths', 50),
@@ -1029,10 +986,7 @@ function readSwatches(value: unknown, used: Set<string>): Swatch[] {
 }
 
 function readGradients(svg: Element, used: Set<string>): Document['gradients'] {
-  const elements = [
-    ...svg.getElementsByTagName('linearGradient'),
-    ...svg.getElementsByTagName('radialGradient'),
-  ];
+  const elements = [...svg.getElementsByTagName('linearGradient'), ...svg.getElementsByTagName('radialGradient')];
   return elements.flatMap((element) => {
     const stopElements = [...element.getElementsByTagName('stop')];
     const stops = stopElements.flatMap((stop, index) => {
@@ -1040,15 +994,10 @@ function readGradients(svg: Element, used: Set<string>): Document['gradients'] {
       if (!color) {
         return [];
       }
-      const rawOffset =
-        stop.getAttribute('offset') ?? `${index / Math.max(1, stopElements.length - 1)}`;
-      const offset = rawOffset.trim().endsWith('%')
-        ? Number.parseFloat(rawOffset) / 100
-        : Number.parseFloat(rawOffset);
+      const rawOffset = stop.getAttribute('offset') ?? `${index / Math.max(1, stopElements.length - 1)}`;
+      const offset = rawOffset.trim().endsWith('%') ? Number.parseFloat(rawOffset) / 100 : Number.parseFloat(rawOffset);
       const style = parseStyleAttribute(stop.getAttribute('style'));
-      const opacity = Number.parseFloat(
-        style['stop-opacity'] ?? stop.getAttribute('stop-opacity') ?? '1',
-      );
+      const opacity = Number.parseFloat(style['stop-opacity'] ?? stop.getAttribute('stop-opacity') ?? '1');
       return [
         {
           id: claimId(stop.getAttribute('data-vector-editor-stop'), used),
@@ -1072,8 +1021,7 @@ function readGradients(svg: Element, used: Set<string>): Document['gradients'] {
         name: element.getAttribute('data-vector-editor-name') || 'Gradient',
         type: element.localName === 'radialGradient' ? 'radial' : 'linear',
         angle: Number.isFinite(angle) ? angle : 0,
-        proportions:
-          Number.isFinite(Number(proportions)) && Number(proportions) > 0 ? Number(proportions) : 1,
+        proportions: Number.isFinite(Number(proportions)) && Number(proportions) > 0 ? Number(proportions) : 1,
         stops,
       },
     ];
@@ -1089,18 +1037,13 @@ function stopColor(stop: Element | undefined): string | null {
   if (/^#[0-9a-f]{6}$/.test(value)) {
     return value;
   }
-  return /^#[0-9a-f]{3}$/.test(value)
-    ? `#${[...value.slice(1)].map((character) => `${character}${character}`).join('')}`
-    : null;
+  return /^#[0-9a-f]{3}$/.test(value) ? `#${[...value.slice(1)].map((character) => `${character}${character}`).join('')}` : null;
 }
 
 function readStyle(element: Element, inherited: Style): Style {
   const inline = parseStyleAttribute(element.getAttribute('style'));
   const fill = paintValue(inline['fill'] ?? attributeValue(element, 'fill'), inherited.fill);
-  const stroke = paintValue(
-    inline['stroke'] ?? attributeValue(element, 'stroke'),
-    inherited.stroke,
-  );
+  const stroke = paintValue(inline['stroke'] ?? attributeValue(element, 'stroke'), inherited.stroke);
   const widthSource = inline['stroke-width'] ?? attributeValue(element, 'stroke-width');
   const ruleSource = inline['fill-rule'] ?? attributeValue(element, 'fill-rule');
   const linecapSource = inline['stroke-linecap'] ?? attributeValue(element, 'stroke-linecap');
@@ -1112,10 +1055,7 @@ function readStyle(element: Element, inherited: Style): Style {
   return {
     fill,
     stroke,
-    strokeWidth:
-      widthSource === undefined
-        ? inherited.strokeWidth
-        : strokeWidth(widthSource, inherited.strokeWidth),
+    strokeWidth: widthSource === undefined ? inherited.strokeWidth : strokeWidth(widthSource, inherited.strokeWidth),
     strokeLinecap: readLinecap(linecapSource, inherited.strokeLinecap),
     strokeLinejoin: readLinejoin(linejoinSource, inherited.strokeLinejoin),
     strokeMiterlimit: readMiterlimit(miterSource, inherited.strokeMiterlimit),
@@ -1123,12 +1063,7 @@ function readStyle(element: Element, inherited: Style): Style {
     strokeDasharray: readDasharray(dashSource, inherited.strokeDasharray),
     strokeDashoffset: readDashoffset(offsetSource, inherited.strokeDashoffset),
     strokeAlign: inherited.strokeAlign,
-    fillRule:
-      ruleSource === 'evenodd'
-        ? 'evenodd'
-        : ruleSource === 'nonzero'
-          ? 'nonzero'
-          : inherited.fillRule,
+    fillRule: ruleSource === 'evenodd' ? 'evenodd' : ruleSource === 'nonzero' ? 'nonzero' : inherited.fillRule,
   };
 }
 
@@ -1178,10 +1113,7 @@ function strokeWidth(value: string, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function readLinecap(
-  value: string | undefined,
-  inherited: Style['strokeLinecap'],
-): Style['strokeLinecap'] {
+function readLinecap(value: string | undefined, inherited: Style['strokeLinecap']): Style['strokeLinecap'] {
   if (value === undefined || value.trim().toLowerCase() === 'inherit') {
     return inherited;
   }
@@ -1189,10 +1121,7 @@ function readLinecap(
   return trimmed === 'butt' || trimmed === 'round' || trimmed === 'square' ? trimmed : inherited;
 }
 
-function readLinejoin(
-  value: string | undefined,
-  inherited: Style['strokeLinejoin'],
-): Style['strokeLinejoin'] {
+function readLinejoin(value: string | undefined, inherited: Style['strokeLinejoin']): Style['strokeLinejoin'] {
   if (value === undefined || value.trim().toLowerCase() === 'inherit') {
     return inherited;
   }
@@ -1201,11 +1130,7 @@ function readLinejoin(
 }
 
 function readMiterlimit(value: string | undefined, inherited: number): number {
-  if (
-    value === undefined ||
-    value.trim().toLowerCase() === 'inherit' ||
-    value.trim().endsWith('%')
-  ) {
+  if (value === undefined || value.trim().toLowerCase() === 'inherit' || value.trim().endsWith('%')) {
     return inherited;
   }
   const parsed = Number.parseFloat(value);
@@ -1217,9 +1142,7 @@ function readStrokeOpacity(value: string | undefined, inherited: number): number
     return inherited;
   }
   const trimmed = value.trim();
-  const parsed = trimmed.endsWith('%')
-    ? Number.parseFloat(trimmed) / 100
-    : Number.parseFloat(trimmed);
+  const parsed = trimmed.endsWith('%') ? Number.parseFloat(trimmed) / 100 : Number.parseFloat(trimmed);
   if (!Number.isFinite(parsed)) {
     return inherited;
   }
@@ -1227,21 +1150,14 @@ function readStrokeOpacity(value: string | undefined, inherited: number): number
 }
 
 function readDashoffset(value: string | undefined, inherited: number): number {
-  if (
-    value === undefined ||
-    value.trim().toLowerCase() === 'inherit' ||
-    value.trim().endsWith('%')
-  ) {
+  if (value === undefined || value.trim().toLowerCase() === 'inherit' || value.trim().endsWith('%')) {
     return inherited;
   }
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : inherited;
 }
 
-function readDasharray(
-  value: string | undefined,
-  inherited: readonly number[] | null,
-): readonly number[] | null {
+function readDasharray(value: string | undefined, inherited: readonly number[] | null): readonly number[] | null {
   if (value === undefined || value.trim().toLowerCase() === 'inherit') {
     return inherited;
   }
@@ -1299,12 +1215,7 @@ function readViewBox(svg: Element): Document['viewBox'] {
       .trim()
       .split(/[\s,]+/)
       .map(Number);
-    if (
-      values.length === 4 &&
-      values.every((value) => Number.isFinite(value)) &&
-      values[2] > 0 &&
-      values[3] > 0
-    ) {
+    if (values.length === 4 && values.every((value) => Number.isFinite(value)) && values[2] > 0 && values[3] > 0) {
       return { x: values[0], y: values[1], width: values[2], height: values[3] };
     }
   }
@@ -1386,12 +1297,7 @@ function readVec(value: unknown): Vec2 | null {
   }
   const x = value['x'];
   const y = value['y'];
-  if (
-    typeof x !== 'number' ||
-    typeof y !== 'number' ||
-    !Number.isFinite(x) ||
-    !Number.isFinite(y)
-  ) {
+  if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) {
     return null;
   }
   return { x, y };

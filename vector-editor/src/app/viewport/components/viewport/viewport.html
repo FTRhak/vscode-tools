@@ -4,31 +4,15 @@
     <defs>
       @for (gradient of scene.gradients; track gradient.id) {
         @if (gradient.type === 'linear') {
-          <linearGradient
-            [attr.id]="gradient.id"
-            gradientUnits="objectBoundingBox"
-            [attr.gradientTransform]="gradientTransform(gradient)"
-          >
+          <linearGradient [attr.id]="gradient.id" gradientUnits="objectBoundingBox" [attr.gradientTransform]="gradientTransform(gradient)">
             @for (stop of gradient.stops; track stop.id) {
-              <stop
-                [attr.offset]="stop.offset"
-                [attr.stop-color]="stop.color"
-                [attr.stop-opacity]="stop.opacity"
-              />
+              <stop [attr.offset]="stop.offset" [attr.stop-color]="stop.color" [attr.stop-opacity]="stop.opacity" />
             }
           </linearGradient>
         } @else {
-          <radialGradient
-            [attr.id]="gradient.id"
-            gradientUnits="objectBoundingBox"
-            [attr.gradientTransform]="gradientTransform(gradient)"
-          >
+          <radialGradient [attr.id]="gradient.id" gradientUnits="objectBoundingBox" [attr.gradientTransform]="gradientTransform(gradient)">
             @for (stop of gradient.stops; track stop.id) {
-              <stop
-                [attr.offset]="stop.offset"
-                [attr.stop-color]="stop.color"
-                [attr.stop-opacity]="stop.opacity"
-              />
+              <stop [attr.offset]="stop.offset" [attr.stop-color]="stop.color" [attr.stop-opacity]="stop.opacity" />
             }
           </radialGradient>
         }
@@ -45,10 +29,7 @@
         [attr.height]="scene.viewBox.height"
       />
       @for (object of scene.objects; track object.id) {
-        <g
-          [attr.transform]="object.transform"
-          [attr.opacity]="editing() && activeId() !== object.id ? 0.4 : null"
-        >
+        <g [attr.transform]="object.transform" [attr.opacity]="editing() && activeId() !== object.id ? 0.4 : null">
           @if (object.kind === 'image') {
             @if (object.tracePaths.length > 0) {
               @for (path of object.tracePaths; track $index) {
@@ -116,12 +97,7 @@
             />
           } @else {
             @if (object.fill !== 'none') {
-              <path
-                [attr.d]="object.d"
-                [attr.fill]="object.fill"
-                stroke="none"
-                [attr.fill-rule]="object.fillRule"
-              />
+              <path [attr.d]="object.d" [attr.fill]="object.fill" stroke="none" [attr.fill-rule]="object.fillRule" />
             }
             @if (object.strokeAlign === 'inside') {
               <clipPath [attr.id]="object.clipId" clipPathUnits="userSpaceOnUse">
@@ -189,53 +165,22 @@
       }
       @for (point of emptyPoints(); track point.id) {
         <g class="empty-point" [class.selected]="point.selected" pointer-events="none">
-          <line
-            [attr.x1]="point.x - point.arm"
-            [attr.y1]="point.y"
-            [attr.x2]="point.x + point.arm"
-            [attr.y2]="point.y"
-          />
-          <line
-            [attr.x1]="point.x"
-            [attr.y1]="point.y - point.arm"
-            [attr.x2]="point.x"
-            [attr.y2]="point.y + point.arm"
-          />
+          <line [attr.x1]="point.x - point.arm" [attr.y1]="point.y" [attr.x2]="point.x + point.arm" [attr.y2]="point.y" />
+          <line [attr.x1]="point.x" [attr.y1]="point.y - point.arm" [attr.x2]="point.x" [attr.y2]="point.y + point.arm" />
         </g>
       }
       @for (origin of rotationOrigins(); track origin.id) {
         <g class="rotation-origin" pointer-events="none">
           <circle [attr.cx]="origin.x" [attr.cy]="origin.y" [attr.r]="origin.radius" />
-          <line
-            [attr.x1]="origin.x - origin.arm"
-            [attr.y1]="origin.y"
-            [attr.x2]="origin.x + origin.arm"
-            [attr.y2]="origin.y"
-          />
-          <line
-            [attr.x1]="origin.x"
-            [attr.y1]="origin.y - origin.arm"
-            [attr.x2]="origin.x"
-            [attr.y2]="origin.y + origin.arm"
-          />
+          <line [attr.x1]="origin.x - origin.arm" [attr.y1]="origin.y" [attr.x2]="origin.x + origin.arm" [attr.y2]="origin.y" />
+          <line [attr.x1]="origin.x" [attr.y1]="origin.y - origin.arm" [attr.x2]="origin.x" [attr.y2]="origin.y + origin.arm" />
         </g>
       }
       @if (anchorOverlay(); as overlay) {
         <g [attr.transform]="overlay.transform" pointer-events="none">
           @for (handle of overlay.handles; track handle.id) {
-            <line
-              class="handle-line"
-              [attr.x1]="handle.x1"
-              [attr.y1]="handle.y1"
-              [attr.x2]="handle.x2"
-              [attr.y2]="handle.y2"
-            />
-            <circle
-              class="handle"
-              [attr.cx]="handle.x2"
-              [attr.cy]="handle.y2"
-              [attr.r]="overlay.handleRadius"
-            />
+            <line class="handle-line" [attr.x1]="handle.x1" [attr.y1]="handle.y1" [attr.x2]="handle.x2" [attr.y2]="handle.y2" />
+            <circle class="handle" [attr.cx]="handle.x2" [attr.cy]="handle.y2" [attr.r]="overlay.handleRadius" />
           }
           @for (anchor of overlay.anchors; track anchor.id) {
             <rect
@@ -286,8 +231,4 @@
     </g>
   }
 </svg>
-<app-shape-dialog
-  [request]="shapeDialog()"
-  (confirmed)="confirmShape($event)"
-  (dismissed)="dismissShape()"
-/>
+<app-shape-dialog [request]="shapeDialog()" (confirmed)="confirmShape($event)" (dismissed)="dismissShape()" />

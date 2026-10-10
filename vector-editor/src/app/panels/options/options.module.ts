@@ -7,7 +7,7 @@ import { AnchorOptions } from './components/anchor-options/anchor-options';
 import { ObjectOptions } from './components/object-options/object-options';
 
 @NgModule({
-  declarations: [OptionsPanel, AnchorOptions, ObjectOptions ],
+  declarations: [OptionsPanel, AnchorOptions, ObjectOptions],
   exports: [OptionsPanel],
   imports: [CommonModule, SharedModule, FormField],
 })

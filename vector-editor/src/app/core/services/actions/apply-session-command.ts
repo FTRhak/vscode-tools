@@ -1,4 +1,4 @@
-import { createNewDocument } from "@vector-editor/modules/create-document";
+import { createNewDocument } from '@vector-editor/modules/create-document';
 import {
   addSwatch,
   applySwatch,
@@ -8,21 +8,21 @@ import {
   setObjectStyle,
   updateGradient,
   updateLayer,
-} from "@vector-editor/modules/document-edits";
-import { setAnchorHandle, setAnchorPointType, setAnchorPosition, translateAnchors } from "@vector-editor/modules/edit-path";
-import { addModifier, removeModifier, reorderModifier, updateModifier } from "@vector-editor/modules/modifier-edits";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { emptySelection } from "@vector-editor/commands";
-import { DocumentCommand } from "../../models";
-import { applyAnchorSelect } from "./apply-anchor-select";
-import { applyDeleteAnchors } from "./apply-delete-anchors";
-import { applyEditSelectionKind } from "./apply-edit-selection-kind";
-import { applyImagePlacement } from "./apply-image-placement";
-import { applyInsertPoint } from "./apply-insert-point";
-import { applyMode } from "./apply-mode";
-import { applySelect } from "./apply-select";
-import { applyTool } from "./apply-tool";
-import { applyDocument, defaultLayerId } from "./document-helpers";
+} from '@vector-editor/modules/document-edits';
+import { setAnchorHandle, setAnchorPointType, setAnchorPosition, translateAnchors } from '@vector-editor/modules/edit-path';
+import { addModifier, removeModifier, reorderModifier, updateModifier } from '@vector-editor/modules/modifier-edits';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { emptySelection } from '@vector-editor/commands';
+import { DocumentCommand } from '../../models';
+import { applyAnchorSelect } from './apply-anchor-select';
+import { applyDeleteAnchors } from './apply-delete-anchors';
+import { applyEditSelectionKind } from './apply-edit-selection-kind';
+import { applyImagePlacement } from './apply-image-placement';
+import { applyInsertPoint } from './apply-insert-point';
+import { applyMode } from './apply-mode';
+import { applySelect } from './apply-select';
+import { applyTool } from './apply-tool';
+import { applyDocument, defaultLayerId } from './document-helpers';
 import {
   applyAddLayer,
   applyAddPath,
@@ -45,8 +45,8 @@ import {
   applyShapeAdd,
   applyTransform,
   applyTranslate,
-} from "./object-actions";
-import { replaceSource } from "./replace-source";
+} from './object-actions';
+import { replaceSource } from './replace-source';
 
 export function applySessionCommand(state: SessionSlice, command: DocumentCommand): SessionSlice {
   switch (command.type) {
@@ -83,33 +83,19 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
         viewport: { panX: command.panX, panY: command.panY, zoom: command.zoom },
       });
     case 'session.select':
-      return command.target === 'anchor'
-        ? applyAnchorSelect(state, command)
-        : applySelect(state, command);
+      return command.target === 'anchor' ? applyAnchorSelect(state, command) : applySelect(state, command);
     case 'session.selectLayer':
       return applySelectLayer(state, command.id);
     case 'path.translateAnchors':
-      return replaceSource(state, command.objectId, (source) =>
-        translateAnchors(source, command.anchorIds, command.dx, command.dy),
-      );
+      return replaceSource(state, command.objectId, (source) => translateAnchors(source, command.anchorIds, command.dx, command.dy));
     case 'path.setAnchor':
-      return replaceSource(state, command.objectId, (source) =>
-        setAnchorPosition(source, command.anchorIds, command.position),
-      );
+      return replaceSource(state, command.objectId, (source) => setAnchorPosition(source, command.anchorIds, command.position));
     case 'path.setHandle':
       return replaceSource(state, command.objectId, (source) =>
-        setAnchorHandle(
-          source,
-          command.anchorIds,
-          command.slot,
-          command.position,
-          command.breakLink,
-        ),
+        setAnchorHandle(source, command.anchorIds, command.slot, command.position, command.breakLink),
       );
     case 'path.setAnchorType':
-      return replaceSource(state, command.objectId, (source) =>
-        setAnchorPointType(source, command.anchorIds, command.pointType),
-      );
+      return replaceSource(state, command.objectId, (source) => setAnchorPointType(source, command.anchorIds, command.pointType));
     case 'path.deleteAnchors':
       return applyDeleteAnchors(state, command);
     case 'path.insertPoint':
@@ -146,21 +132,15 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
         }),
       );
     case 'gradient.create':
-      return applyDocument(state, (document) =>
-        createGradient(document, command.gradient, command.target, command.objectIds),
-      );
+      return applyDocument(state, (document) => createGradient(document, command.gradient, command.target, command.objectIds));
     case 'gradient.update':
-      return applyDocument(state, (document) =>
-        updateGradient(document, command.id, command.gradient),
-      );
+      return applyDocument(state, (document) => updateGradient(document, command.id, command.gradient));
     case 'gradient.delete':
       return applyDocument(state, (document) => deleteGradient(document, command.id));
     case 'swatch.add':
       return applyDocument(state, (document) => addSwatch(document, command.name, command.color));
     case 'swatch.apply':
-      return applyDocument(state, (document) =>
-        applySwatch(document, command.swatchId, command.target, command.objectIds),
-      );
+      return applyDocument(state, (document) => applySwatch(document, command.swatchId, command.target, command.objectIds));
     case 'layer.add':
       return applyAddLayer(state);
     case 'path.add':
@@ -190,17 +170,11 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
         addModifier(object, command.kind, state.document?.objects ?? [], command.trace),
       );
     case 'modifier.update':
-      return applyObjectChange(state, command.objectId, (object) =>
-        updateModifier(object, command.modifierId, command.patch),
-      );
+      return applyObjectChange(state, command.objectId, (object) => updateModifier(object, command.modifierId, command.patch));
     case 'modifier.remove':
-      return applyObjectChange(state, command.objectId, (object) =>
-        removeModifier(object, command.modifierId),
-      );
+      return applyObjectChange(state, command.objectId, (object) => removeModifier(object, command.modifierId));
     case 'modifier.reorder':
-      return applyObjectChange(state, command.objectId, (object) =>
-        reorderModifier(object, command.modifierId, command.index),
-      );
+      return applyObjectChange(state, command.objectId, (object) => reorderModifier(object, command.modifierId, command.index));
     case 'modifier.apply':
       return applyModifierCommand(state, command.objectId, command.modifierId);
     case 'modifier.applyAll':

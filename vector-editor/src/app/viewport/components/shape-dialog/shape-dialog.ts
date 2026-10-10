@@ -76,8 +76,7 @@ export class ShapeDialog {
     required(path.count, { message: 'Enter a count.' });
     min(path.count, 3, { message: 'Enter at least 3.' });
     max(path.count, ({ valueOf }) => (valueOf(path.kind) === 'star' ? 32 : 64), {
-      message: ({ valueOf }) =>
-        valueOf(path.kind) === 'star' ? 'Enter at most 32 points.' : 'Enter at most 64 sides.',
+      message: ({ valueOf }) => (valueOf(path.kind) === 'star' ? 'Enter at most 32 points.' : 'Enter at most 64 sides.'),
     });
   });
   protected readonly kind = computed(() => this.draft().kind);
@@ -103,9 +102,7 @@ export class ShapeDialog {
     });
   }
 
-  protected fieldError(
-    field: 'width' | 'height' | 'radius' | 'innerRadius' | 'count',
-  ): string | null {
+  protected fieldError(field: 'width' | 'height' | 'radius' | 'innerRadius' | 'count'): string | null {
     if (!this.submitted()) {
       return null;
     }
@@ -115,14 +112,7 @@ export class ShapeDialog {
   protected confirm(): void {
     this.submitted.set(true);
     const { width, height, radius, innerRadius, count } = this.draft();
-    if (
-      this.shapeForm().invalid() ||
-      width === null ||
-      height === null ||
-      radius === null ||
-      innerRadius === null ||
-      count === null
-    ) {
+    if (this.shapeForm().invalid() || width === null || height === null || radius === null || innerRadius === null || count === null) {
       return;
     }
     this.confirmed.emit({ width, height, radius, innerRadius, count });

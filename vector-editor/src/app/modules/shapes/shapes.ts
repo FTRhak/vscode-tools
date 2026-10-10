@@ -1,16 +1,6 @@
 import { createId } from '@vector-editor/core/utils';
 import { nextSeriesName } from '../document-edits';
-import {
-  Anchor,
-  Document,
-  ObjectTransform,
-  Segment,
-  SourcePath,
-  Style,
-  svgStrokeDefaults,
-  Vec2,
-  VectorObject,
-} from '../types';
+import { Anchor, Document, ObjectTransform, Segment, SourcePath, Style, svgStrokeDefaults, Vec2, VectorObject } from '../types';
 
 /** Four-cubic approximation of a circle or ellipse. */
 export const ELLIPSE_KAPPA = 0.5522847498307936;
@@ -91,13 +81,7 @@ interface DraftPoint {
 }
 
 export function isShapeKind(value: string): value is ShapeKind {
-  return (
-    value === 'rectangle' ||
-    value === 'ellipse' ||
-    value === 'star' ||
-    value === 'polygon' ||
-    value === 'rhombus'
-  );
+  return value === 'rectangle' || value === 'ellipse' || value === 'star' || value === 'polygon' || value === 'rhombus';
 }
 
 export function clampShapeCount(kind: ShapeKind, count: number): number {
@@ -140,13 +124,7 @@ export function shapeSource(placement: ShapePlacement): SourcePath | null {
   }
   if (placement.kind === 'star') {
     const points = clampShapeCount('star', placement.count);
-    return starSource(
-      placement.origin,
-      placement.radius,
-      placement.innerRadius,
-      points,
-      -Math.PI / 2,
-    );
+    return starSource(placement.origin, placement.radius, placement.innerRadius, points, -Math.PI / 2);
   }
   const bounds = {
     x: placement.origin.x,
@@ -163,12 +141,7 @@ export function shapeSource(placement: ShapePlacement): SourcePath | null {
   return rectangleSource(bounds);
 }
 
-export function addShape(
-  document: Document,
-  name: string,
-  source: SourcePath,
-  layerId?: string,
-): ShapeObjectResult | null {
+export function addShape(document: Document, name: string, source: SourcePath, layerId?: string): ShapeObjectResult | null {
   const base = name.trim();
   if (!base || !closedShape(source)) {
     return null;
@@ -216,12 +189,7 @@ function radialSource(drag: ShapeDrag): SourcePath | null {
   return starSource(drag.origin, outer, inner, points, rotation);
 }
 
-function boundsFromDrag(
-  origin: Vec2,
-  current: Vec2,
-  fromCenter: boolean,
-  constrain: boolean,
-): Bounds | null {
+function boundsFromDrag(origin: Vec2, current: Vec2, fromCenter: boolean, constrain: boolean): Bounds | null {
   let dx = current.x - origin.x;
   let dy = current.y - origin.y;
   if (constrain) {
@@ -326,12 +294,7 @@ function rhombusSource(bounds: Bounds): SourcePath | null {
   );
 }
 
-function polygonSource(
-  center: Vec2,
-  radius: number,
-  sides: number,
-  rotation: number,
-): SourcePath | null {
+function polygonSource(center: Vec2, radius: number, sides: number, rotation: number): SourcePath | null {
   if (radius <= MIN_EXTENT || !Number.isFinite(rotation)) {
     return null;
   }
@@ -348,13 +311,7 @@ function polygonSource(
   return closedPath(points, 'line');
 }
 
-function starSource(
-  center: Vec2,
-  outer: number,
-  inner: number,
-  points: number,
-  rotation: number,
-): SourcePath | null {
+function starSource(center: Vec2, outer: number, inner: number, points: number, rotation: number): SourcePath | null {
   if (outer <= MIN_EXTENT || !Number.isFinite(inner) || !Number.isFinite(rotation)) {
     return null;
   }
@@ -401,13 +358,7 @@ function closedPath(points: readonly DraftPoint[], kind: 'line' | 'cubic'): Sour
 
 function closedShape(source: SourcePath): boolean {
   const subpath = source.subpaths[0];
-  return (
-    source.subpaths.length === 1 &&
-    !!subpath &&
-    subpath.closed &&
-    subpath.anchors.length >= 3 &&
-    subpath.segments.length >= 3
-  );
+  return source.subpaths.length === 1 && !!subpath && subpath.closed && subpath.anchors.length >= 3 && subpath.segments.length >= 3;
 }
 
 function shapeLayer(document: Document, layerId: string | undefined) {

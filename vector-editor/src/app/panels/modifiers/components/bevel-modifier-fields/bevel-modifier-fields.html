@@ -25,30 +25,15 @@
 <fieldset class="axis">
   <legend>Join</legend>
   <label>
-    <input
-      type="radio"
-      [name]="'join-' + modifier().id"
-      [checked]="modifier().join === 'bevel'"
-      (change)="commitJoin('bevel')"
-    />
+    <input type="radio" [name]="'join-' + modifier().id" [checked]="modifier().join === 'bevel'" (change)="commitJoin('bevel')" />
     Bevel
   </label>
   <label>
-    <input
-      type="radio"
-      [name]="'join-' + modifier().id"
-      [checked]="modifier().join === 'miter'"
-      (change)="commitJoin('miter')"
-    />
+    <input type="radio" [name]="'join-' + modifier().id" [checked]="modifier().join === 'miter'" (change)="commitJoin('miter')" />
     Miter
   </label>
   <label>
-    <input
-      type="radio"
-      [name]="'join-' + modifier().id"
-      [checked]="modifier().join === 'round'"
-      (change)="commitJoin('round')"
-    />
+    <input type="radio" [name]="'join-' + modifier().id" [checked]="modifier().join === 'round'" (change)="commitJoin('round')" />
     Round
   </label>
 </fieldset>

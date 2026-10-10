@@ -2,24 +2,11 @@
   <div class="group" role="group" aria-label="File">
     <button type="button" class="chrome-button" data-file-new (click)="newDocument()">New</button>
     <button type="button" class="chrome-button" (click)="openFile()">Open</button>
-    <button
-      type="button"
-      class="chrome-button"
-      data-file-save
-      [disabled]="!hasDocument()"
-      (click)="saveFile()"
-    >
-      Save
-    </button>
+    <button type="button" class="chrome-button" data-file-save [disabled]="!hasDocument()" (click)="saveFile()">Save</button>
     <p class="file-status" aria-live="polite">{{ status() }}</p>
   </div>
   <div class="mode" aria-live="polite">
-    <button
-      type="button"
-      class="chrome-button"
-      [attr.aria-label]="modeLabel() + ' mode'"
-      (click)="toggleMode()"
-    >
+    <button type="button" class="chrome-button" [attr.aria-label]="modeLabel() + ' mode'" (click)="toggleMode()">
       {{ modeLabel() }}
     </button>
     @if (selectionKindLabel(); as kind) {

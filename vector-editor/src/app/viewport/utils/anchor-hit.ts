@@ -31,12 +31,7 @@ export function anchorsInRect(object: VectorObject, rect: DocumentRect): readonl
   for (const subpath of object.source.subpaths) {
     for (const anchor of subpath.anchors) {
       const point = localToDocument(object.transform, anchor.position);
-      if (
-        point.x >= box.minX &&
-        point.x <= box.maxX &&
-        point.y >= box.minY &&
-        point.y <= box.maxY
-      ) {
+      if (point.x >= box.minX && point.x <= box.maxX && point.y >= box.minY && point.y <= box.maxY) {
         ids.push(anchor.id);
       }
     }
@@ -57,11 +52,7 @@ function closestAnchor(source: SourcePath, point: Vec2, radius: number): string 
   return best?.id ?? null;
 }
 
-function closestHandle(
-  source: SourcePath,
-  point: Vec2,
-  radius: number,
-): { readonly anchorId: string; readonly slot: 'in' | 'out' } | null {
+function closestHandle(source: SourcePath, point: Vec2, radius: number): { readonly anchorId: string; readonly slot: 'in' | 'out' } | null {
   let best: {
     readonly anchorId: string;
     readonly slot: 'in' | 'out';

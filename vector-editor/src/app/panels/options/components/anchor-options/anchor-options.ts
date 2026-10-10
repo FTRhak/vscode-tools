@@ -108,12 +108,7 @@ export class AnchorOptions {
     const y = slot === 'in' ? draft.handleInY : draft.handleOutY;
     const handles = anchors.map((anchor) => (slot === 'in' ? anchor.handleIn : anchor.handleOut));
     if (handles.some((handle) => handle === null)) {
-      if (
-        typeof x !== 'number' ||
-        typeof y !== 'number' ||
-        !Number.isFinite(x) ||
-        !Number.isFinite(y)
-      ) {
+      if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) {
         return;
       }
       this.bus.dispatch({
@@ -127,11 +122,7 @@ export class AnchorOptions {
       return;
     }
     const value = key === 'x' ? x : y;
-    if (
-      typeof value !== 'number' ||
-      !Number.isFinite(value) ||
-      value === sharedHandle(handles, key)
-    ) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value === sharedHandle(handles, key)) {
       return;
     }
     this.bus.dispatch({
@@ -155,12 +146,7 @@ export class AnchorOptions {
     if (!objectId || anchors.length < 2) {
       return;
     }
-    if (
-      typeof dx !== 'number' ||
-      typeof dy !== 'number' ||
-      !Number.isFinite(dx) ||
-      !Number.isFinite(dy)
-    ) {
+    if (typeof dx !== 'number' || typeof dy !== 'number' || !Number.isFinite(dx) || !Number.isFinite(dy)) {
       return;
     }
     if (dx === 0 && dy === 0) {

@@ -21,12 +21,9 @@ export class OptionsPanel {
     return document.objects.filter((object) => selected.has(object.id));
   });
 
-  protected readonly showObjectOptions = computed(
-    () => this.session.mode() === 'object' && this.selectedObjects().length > 0,
-  );
+  protected readonly showObjectOptions = computed(() => this.session.mode() === 'object' && this.selectedObjects().length > 0);
 
   protected readonly showAnchorOptions = computed(() => this.anchorsOfActive(this.session).length > 0);
-
 
   private anchorsOfActive(session: SessionService): readonly Anchor[] {
     if (session.mode() !== 'edit') {

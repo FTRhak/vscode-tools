@@ -12,23 +12,11 @@
   </label>
   <label>
     X
-    <input
-      type="number"
-      step="any"
-      [formField]="anchorForm.x"
-      (blur)="commitAnchor('x')"
-      (keydown.enter)="commitAnchor('x', $event)"
-    />
+    <input type="number" step="any" [formField]="anchorForm.x" (blur)="commitAnchor('x')" (keydown.enter)="commitAnchor('x', $event)" />
   </label>
   <label>
     Y
-    <input
-      type="number"
-      step="any"
-      [formField]="anchorForm.y"
-      (blur)="commitAnchor('y')"
-      (keydown.enter)="commitAnchor('y', $event)"
-    />
+    <input type="number" step="any" [formField]="anchorForm.y" (blur)="commitAnchor('y')" (keydown.enter)="commitAnchor('y', $event)" />
   </label>
   <label>
     Handle in X
@@ -73,23 +61,11 @@
   @if (showAnchorDelta()) {
     <label>
       dX
-      <input
-        type="number"
-        step="any"
-        [formField]="anchorForm.dx"
-        (blur)="commitDelta()"
-        (keydown.enter)="commitDelta($event)"
-      />
+      <input type="number" step="any" [formField]="anchorForm.dx" (blur)="commitDelta()" (keydown.enter)="commitDelta($event)" />
     </label>
     <label>
       dY
-      <input
-        type="number"
-        step="any"
-        [formField]="anchorForm.dy"
-        (blur)="commitDelta()"
-        (keydown.enter)="commitDelta($event)"
-      />
+      <input type="number" step="any" [formField]="anchorForm.dy" (blur)="commitDelta()" (keydown.enter)="commitDelta($event)" />
     </label>
   }
 </form>

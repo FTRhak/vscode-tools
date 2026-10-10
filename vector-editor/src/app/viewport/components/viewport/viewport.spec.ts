@@ -255,9 +255,7 @@ describe('Viewport', () => {
       x: anchor.handleOut!.x + 20,
       y: anchor.handleOut!.y,
     });
-    expect(
-      session.history().entries.filter((entry) => entry.label === 'Move anchors'),
-    ).toHaveLength(1);
+    expect(session.history().entries.filter((entry) => entry.label === 'Move anchors')).toHaveLength(1);
   });
 
   it('bends a handle and keeps the opposite handle when Alt is held', async () => {
@@ -575,9 +573,7 @@ describe('Viewport', () => {
       type: 'document.replace',
       document: {
         ...current,
-        objects: current.objects.map((object) =>
-          object.id === copyId ? { ...object, layerId: otherLayerId } : object,
-        ),
+        objects: current.objects.map((object) => (object.id === copyId ? { ...object, layerId: otherLayerId } : object)),
       },
     });
     await chooseSnap(fixture, 'object');
@@ -628,9 +624,7 @@ describe('Viewport', () => {
     bus.dispatch({ type: 'object.setTransform', ids: [id], transform: { rotation: 90 } });
     await fixture.whenStable();
 
-    const transform = canvas()
-      .querySelector('.selection')
-      ?.parentElement?.getAttribute('transform');
+    const transform = canvas().querySelector('.selection')?.parentElement?.getAttribute('transform');
     expect(transform).toContain('rotate(90 200 50)');
     expect(canvas().querySelector('.rotation-origin circle')?.getAttribute('cx')).toBe('200');
     expect(canvas().querySelector('.rotation-origin circle')?.getAttribute('cy')).toBe('50');
@@ -805,5 +799,4 @@ function pointer(target: HTMLElement, type: string, x: number, y: number, shiftK
   );
 }
 
-const pixel =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';

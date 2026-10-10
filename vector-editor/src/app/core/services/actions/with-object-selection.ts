@@ -1,5 +1,5 @@
-import { SessionSlice } from "@vector-editor/modules/types";
-import { sameIds } from "./document-helpers";
+import { SessionSlice } from '@vector-editor/modules/types';
+import { sameIds } from './document-helpers';
 
 export function withObjectSelection(
   state: SessionSlice,

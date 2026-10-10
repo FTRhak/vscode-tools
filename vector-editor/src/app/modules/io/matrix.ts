@@ -56,11 +56,7 @@ export function applyMatrix(matrix: Matrix, point: Vec2): Vec2 {
 
 export function matrixFromTransform(transform: ObjectTransform): Matrix {
   const scale = matrix(transform.scaleX, 0, 0, transform.scaleY, 0, 0);
-  const rotation = rotateMatrix(
-    transform.rotation,
-    transform.originX * transform.scaleX,
-    transform.originY * transform.scaleY,
-  );
+  const rotation = rotateMatrix(transform.rotation, transform.originX * transform.scaleX, transform.originY * transform.scaleY);
   const translation = translateMatrix(transform.x, transform.y);
   return multiplyMatrix(translation, multiplyMatrix(rotation, scale));
 }
@@ -130,9 +126,7 @@ export function parseSvgTransform(value: string | null): Matrix {
     return identityMatrix;
   }
   let result = identityMatrix;
-  for (const match of value.matchAll(
-    /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi,
-  )) {
+  for (const match of value.matchAll(/(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi)) {
     const kind = match[1]?.toLowerCase();
     const args = numbersIn(match[2] ?? '');
     const next = transformPart(kind, args);
@@ -174,10 +168,7 @@ function rotateMatrix(degrees: number, cx = 0, cy = 0): Matrix {
   if (cx === 0 && cy === 0) {
     return rotation;
   }
-  return multiplyMatrix(
-    multiplyMatrix(translateMatrix(cx, cy), rotation),
-    translateMatrix(-cx, -cy),
-  );
+  return multiplyMatrix(multiplyMatrix(translateMatrix(cx, cy), rotation), translateMatrix(-cx, -cy));
 }
 
 function matrix(a: number, b: number, c: number, d: number, e: number, f: number): Matrix {

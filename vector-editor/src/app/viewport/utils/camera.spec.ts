@@ -2,11 +2,7 @@ import { fitArtboard, MAX_ZOOM, panBy, screenToDocument, zoomAtPoint } from './c
 
 describe('camera', () => {
   it('fits the artboard inside the view with padding', () => {
-    const camera = fitArtboard(
-      { width: 1248, height: 848 },
-      { x: 0, y: 0, width: 1200, height: 800 },
-      24,
-    );
+    const camera = fitArtboard({ width: 1248, height: 848 }, { x: 0, y: 0, width: 1200, height: 800 }, 24);
 
     expect(camera.zoom).toBe(1);
     expect(camera.panX).toBe(24);

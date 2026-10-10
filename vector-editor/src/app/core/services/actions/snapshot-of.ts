@@ -1,5 +1,5 @@
-import { SessionSnapshot } from "@vector-editor/commands";
-import { SessionSlice } from "@vector-editor/modules/types";
+import { SessionSnapshot } from '@vector-editor/commands';
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function snapshotOf(state: SessionSlice): SessionSnapshot {
   return {

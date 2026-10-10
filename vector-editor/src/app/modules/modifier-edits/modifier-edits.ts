@@ -1,13 +1,6 @@
-
 import { createId } from '@vector-editor/core/utils';
 import { evaluateObjectPrefix, remintSource } from '../eval';
-import {
-  clampTraceSettings,
-  defaultTraceSettings,
-  sanitizeTraceRegions,
-  traceFault,
-  traceView,
-} from '../image-trace';
+import { clampTraceSettings, defaultTraceSettings, sanitizeTraceRegions, traceFault, traceView } from '../image-trace';
 import { isEmptyPoint } from '../object-empty-point';
 import { isImage } from '../object-image';
 import { Modifier, Style, TraceFault, TraceMode, TraceRegion, TraceView, VectorObject } from '../types';
@@ -64,11 +57,7 @@ export function addModifier(
   return { ...object, modifiers: [...object.modifiers, modifier] };
 }
 
-export function updateModifier(
-  object: VectorObject,
-  modifierId: string,
-  patch: ModifierPatch,
-): VectorObject {
+export function updateModifier(object: VectorObject, modifierId: string, patch: ModifierPatch): VectorObject {
   if (isEmptyPoint(object)) {
     return object;
   }
@@ -94,11 +83,7 @@ export function removeModifier(object: VectorObject, modifierId: string): Vector
   return modifiers.length === object.modifiers.length ? object : { ...object, modifiers };
 }
 
-export function reorderModifier(
-  object: VectorObject,
-  modifierId: string,
-  index: number,
-): VectorObject {
+export function reorderModifier(object: VectorObject, modifierId: string, index: number): VectorObject {
   if (isEmptyPoint(object)) {
     return object;
   }
@@ -119,11 +104,7 @@ export function reorderModifier(
   return { ...object, modifiers };
 }
 
-export function applyModifier(
-  object: VectorObject,
-  modifierId: string,
-  objects: readonly VectorObject[] = [object],
-): VectorObject {
+export function applyModifier(object: VectorObject, modifierId: string, objects: readonly VectorObject[] = [object]): VectorObject {
   if (blocksModifiers(object)) {
     return object;
   }
@@ -131,17 +112,10 @@ export function applyModifier(
   if (index < 0) {
     return object;
   }
-  return bake(
-    object,
-    evaluateObjectPrefix(object, object.modifiers.slice(0, index + 1), objects),
-    object.modifiers.slice(index + 1),
-  );
+  return bake(object, evaluateObjectPrefix(object, object.modifiers.slice(0, index + 1), objects), object.modifiers.slice(index + 1));
 }
 
-export function applyAllModifiers(
-  object: VectorObject,
-  objects: readonly VectorObject[] = [object],
-): VectorObject {
+export function applyAllModifiers(object: VectorObject, objects: readonly VectorObject[] = [object]): VectorObject {
   if (blocksModifiers(object) || object.modifiers.length === 0) {
     return object;
   }
@@ -156,10 +130,7 @@ function bake(
   },
   modifiers: readonly Modifier[],
 ): VectorObject {
-  const style =
-    evaluated.fillRule === object.style.fillRule
-      ? object.style
-      : { ...object.style, fillRule: evaluated.fillRule };
+  const style = evaluated.fillRule === object.style.fillRule ? object.style : { ...object.style, fillRule: evaluated.fillRule };
   return {
     ...object,
     source: remintSource({ subpaths: evaluated.subpaths }),
@@ -175,12 +146,7 @@ function acceptsKind(object: VectorObject, kind: ModifierKind): boolean {
   return !isImage(object);
 }
 
-function defaultModifier(
-  object: VectorObject,
-  kind: ModifierKind,
-  objects: readonly VectorObject[],
-  trace?: TraceAdd,
-): Modifier {
+function defaultModifier(object: VectorObject, kind: ModifierKind, objects: readonly VectorObject[], trace?: TraceAdd): Modifier {
   switch (kind) {
     case 'array':
       return defaultArray();
@@ -255,9 +221,7 @@ function defaultRound(object: VectorObject, objects: readonly VectorObject[]): M
 }
 
 function defaultBoolean(objectId: string, objects: readonly VectorObject[]): Modifier {
-  const operand = objects.find(
-    (item) => item.id !== objectId && !isEmptyPoint(item) && !isImage(item),
-  );
+  const operand = objects.find((item) => item.id !== objectId && !isEmptyPoint(item) && !isImage(item));
   return {
     id: createId(),
     type: 'boolean',
@@ -270,18 +234,10 @@ function defaultBoolean(objectId: string, objects: readonly VectorObject[]): Mod
 function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
   const enabled = patch.enabled !== undefined ? patch.enabled : modifier.enabled;
   if (modifier.type === 'array') {
-    const count =
-      patch.count !== undefined && Number.isFinite(patch.count)
-        ? Math.max(1, Math.floor(patch.count))
-        : modifier.count;
+    const count = patch.count !== undefined && Number.isFinite(patch.count) ? Math.max(1, Math.floor(patch.count)) : modifier.count;
     const offsetX = finite(patch.offsetX, modifier.offsetX);
     const offsetY = finite(patch.offsetY, modifier.offsetY);
-    if (
-      enabled === modifier.enabled &&
-      count === modifier.count &&
-      offsetX === modifier.offsetX &&
-      offsetY === modifier.offsetY
-    ) {
+    if (enabled === modifier.enabled && count === modifier.count && offsetX === modifier.offsetX && offsetY === modifier.offsetY) {
       return modifier;
     }
     return { ...modifier, enabled, count, offsetX, offsetY };
@@ -294,11 +250,7 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
         : patch.centerPointId === null || patch.centerPointId.length === 0
           ? undefined
           : patch.centerPointId;
-    if (
-      enabled === modifier.enabled &&
-      axis === modifier.axis &&
-      centerPointId === modifier.centerPointId
-    ) {
+    if (enabled === modifier.enabled && axis === modifier.axis && centerPointId === modifier.centerPointId) {
       return modifier;
     }
     if (centerPointId === undefined) {
@@ -311,12 +263,7 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
     const distance = finite(patch.distance, modifier.distance);
     const join = patch.join ?? modifier.join;
     const miterLimit = finite(patch.miterLimit, modifier.miterLimit);
-    if (
-      enabled === modifier.enabled &&
-      distance === modifier.distance &&
-      join === modifier.join &&
-      miterLimit === modifier.miterLimit
-    ) {
+    if (enabled === modifier.enabled && distance === modifier.distance && join === modifier.join && miterLimit === modifier.miterLimit) {
       return modifier;
     }
     return { ...modifier, enabled, distance, join, miterLimit };
@@ -328,9 +275,7 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
         ? Math.min(1000, Math.max(2, Math.floor(patch.anchorCount)))
         : modifier.anchorCount;
     const roundness =
-      patch.roundness !== undefined && Number.isFinite(patch.roundness)
-        ? Math.max(0, Math.min(100, patch.roundness))
-        : modifier.roundness;
+      patch.roundness !== undefined && Number.isFinite(patch.roundness) ? Math.max(0, Math.min(100, patch.roundness)) : modifier.roundness;
     if (
       enabled === modifier.enabled &&
       mode === modifier.mode &&
@@ -346,21 +291,13 @@ function patchModifier(modifier: Modifier, patch: ModifierPatch): Modifier {
   }
   const operation = patch.operation ?? modifier.operation;
   const operandId = patch.operandId !== undefined ? patch.operandId : modifier.operandId;
-  if (
-    enabled === modifier.enabled &&
-    operation === modifier.operation &&
-    operandId === modifier.operandId
-  ) {
+  if (enabled === modifier.enabled && operation === modifier.operation && operandId === modifier.operandId) {
     return modifier;
   }
   return { ...modifier, enabled, operation, operandId };
 }
 
-function patchTrace(
-  modifier: Extract<Modifier, { type: 'trace' }>,
-  patch: ModifierPatch,
-  enabled: boolean,
-): Modifier {
+function patchTrace(modifier: Extract<Modifier, { type: 'trace' }>, patch: ModifierPatch, enabled: boolean): Modifier {
   const settings = clampTraceSettings({
     mode: patch.traceMode ?? modifier.mode,
     colors: patch.colors ?? modifier.colors,
@@ -373,8 +310,7 @@ function patchTrace(
   });
   const view = traceView(patch.view, modifier.view);
   const regions = patch.regions !== undefined ? sanitizeTraceRegions(patch.regions) : modifier.regions;
-  const fault =
-    regions.length > 0 ? undefined : traceFault(patch.fault, modifier.fault);
+  const fault = regions.length > 0 ? undefined : traceFault(patch.fault, modifier.fault);
   if (
     enabled === modifier.enabled &&
     settings.mode === modifier.mode &&

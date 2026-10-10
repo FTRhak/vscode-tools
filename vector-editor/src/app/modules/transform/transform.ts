@@ -12,10 +12,7 @@ export function rotationOriginDocument(transform: ObjectTransform): Vec2 {
  * Moves the rotation point to `point` in document space.
  * Translation is adjusted so the drawn geometry stays where it is.
  */
-export function transformWithRotationOrigin(
-  transform: ObjectTransform,
-  point: Vec2,
-): ObjectTransform | null {
+export function transformWithRotationOrigin(transform: ObjectTransform, point: Vec2): ObjectTransform | null {
   if (transform.scaleX === 0 || transform.scaleY === 0) {
     return null;
   }

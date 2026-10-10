@@ -1,20 +1,9 @@
 import { Anchor, Segment, SourcePath, Vec2 } from '../types';
-import {
-  anchorPointType,
-  deleteAnchors,
-  insertPoint,
-  setAnchorHandle,
-  setAnchorPointType,
-  setAnchorPosition,
-  translateAnchors,
-} from '.';
+import { anchorPointType, deleteAnchors, insertPoint, setAnchorHandle, setAnchorPointType, setAnchorPosition, translateAnchors } from '.';
 
 describe('edit path', () => {
   it('moves an anchor together with both handles', () => {
-    const source = path([
-      anchor('a', 0, 0, { x: -10, y: 0 }, { x: 10, y: 0 }),
-      anchor('b', 20, 0, null, null),
-    ]);
+    const source = path([anchor('a', 0, 0, { x: -10, y: 0 }, { x: 10, y: 0 }), anchor('b', 20, 0, null, null)]);
 
     const next = translateAnchors(source, ['a'], 3, -2);
     const moved = next.subpaths[0].anchors[0];
@@ -60,10 +49,7 @@ describe('edit path', () => {
   });
 
   it('converts a line point into corner, smooth, and symmetric handles', () => {
-    const source = path(
-      [anchor('a', 0, 0, null, null), anchor('b', 90, 0, null, null)],
-      [segment('ab', 'line', 'a', 'b')],
-    );
+    const source = path([anchor('a', 0, 0, null, null), anchor('b', 90, 0, null, null)], [segment('ab', 'line', 'a', 'b')]);
 
     const corner = setAnchorPointType(source, ['a'], 'corner');
     expect(corner.subpaths[0].anchors[0]).toMatchObject({
@@ -130,9 +116,7 @@ describe('edit path', () => {
     const source = path([anchor('a', 0, 0, null, null)]);
 
     expect(setAnchorHandle(source, ['a'], 'in', { x: 2 }, false)).toBe(source);
-    expect(
-      setAnchorHandle(source, ['a'], 'in', { x: 2, y: 3 }, true).subpaths[0].anchors[0].handleIn,
-    ).toEqual({
+    expect(setAnchorHandle(source, ['a'], 'in', { x: 2, y: 3 }, true).subpaths[0].anchors[0].handleIn).toEqual({
       x: 2,
       y: 3,
     });
@@ -175,24 +159,14 @@ describe('edit path', () => {
 
   it('splits a line and keeps the untouched anchor', () => {
     const kept = anchor('c', 0, 20, null, null);
-    const source = path(
-      [anchor('a', 0, 0, null, null), anchor('b', 100, 0, null, null), kept],
-      [segment('ab', 'line', 'a', 'b')],
-    );
+    const source = path([anchor('a', 0, 0, null, null), anchor('b', 100, 0, null, null), kept], [segment('ab', 'line', 'a', 'b')]);
 
     const inserted = insertPoint(source, 'ab', 0.25);
 
-    expect(inserted?.source.subpaths[0].anchors.map((item) => item.id)).toEqual([
-      'a',
-      inserted?.anchorId,
-      'b',
-      'c',
-    ]);
+    expect(inserted?.source.subpaths[0].anchors.map((item) => item.id)).toEqual(['a', inserted?.anchorId, 'b', 'c']);
     expect(inserted?.source.subpaths[0].anchors[1].position).toEqual({ x: 25, y: 0 });
     expect(inserted?.source.subpaths[0].anchors[1].handleIn).toBeNull();
-    expect(
-      inserted?.source.subpaths[0].segments.map((item) => [item.fromId, item.toId, item.kind]),
-    ).toEqual([
+    expect(inserted?.source.subpaths[0].segments.map((item) => [item.fromId, item.toId, item.kind])).toEqual([
       ['a', inserted?.anchorId, 'line'],
       [inserted?.anchorId, 'b', 'line'],
     ]);
@@ -224,28 +198,15 @@ describe('edit path', () => {
 
   it('inserts on the closing segment after the last anchor', () => {
     const source = path(
-      [
-        anchor('a', 0, 0, null, null),
-        anchor('b', 10, 0, null, null),
-        anchor('c', 0, 10, null, null),
-      ],
-      [
-        segment('ab', 'line', 'a', 'b'),
-        segment('bc', 'line', 'b', 'c'),
-        segment('ca', 'line', 'c', 'a'),
-      ],
+      [anchor('a', 0, 0, null, null), anchor('b', 10, 0, null, null), anchor('c', 0, 10, null, null)],
+      [segment('ab', 'line', 'a', 'b'), segment('bc', 'line', 'b', 'c'), segment('ca', 'line', 'c', 'a')],
       true,
     );
 
     const inserted = insertPoint(source, 'ca', 0.5);
 
     expect(inserted?.source.subpaths[0].closed).toBe(true);
-    expect(inserted?.source.subpaths[0].anchors.map((item) => item.id)).toEqual([
-      'a',
-      'b',
-      'c',
-      inserted?.anchorId,
-    ]);
+    expect(inserted?.source.subpaths[0].anchors.map((item) => item.id)).toEqual(['a', 'b', 'c', inserted?.anchorId]);
     expect(inserted?.source.subpaths[0].anchors[3].position).toEqual({ x: 0, y: 5 });
     expect(inserted?.source.subpaths[0].segments.map((item) => [item.fromId, item.toId])).toEqual([
       ['a', 'b'],
@@ -256,11 +217,7 @@ describe('edit path', () => {
   });
 
   it('leaves a single survivor open and without segments', () => {
-    const source = path(
-      [anchor('a', 0, 0, null, null), anchor('b', 1, 0, null, null)],
-      [segment('ab', 'line', 'a', 'b')],
-      true,
-    );
+    const source = path([anchor('a', 0, 0, null, null), anchor('b', 1, 0, null, null)], [segment('ab', 'line', 'a', 'b')], true);
 
     const next = deleteAnchors(source, ['b']);
 
@@ -272,21 +229,11 @@ describe('edit path', () => {
   });
 });
 
-function path(
-  anchors: readonly Anchor[],
-  segments: readonly Segment[] = [],
-  closed = false,
-): SourcePath {
+function path(anchors: readonly Anchor[], segments: readonly Segment[] = [], closed = false): SourcePath {
   return { subpaths: [{ closed, anchors, segments }] };
 }
 
-function anchor(
-  id: string,
-  x: number,
-  y: number,
-  handleIn: Vec2 | null,
-  handleOut: Vec2 | null,
-): Anchor {
+function anchor(id: string, x: number, y: number, handleIn: Vec2 | null, handleOut: Vec2 | null): Anchor {
   return { id, position: { x, y }, handleIn, handleOut };
 }
 
@@ -310,21 +257,9 @@ function pointOnHalves(source: SourcePath, t: number): Vec2 {
   const anchors = source.subpaths[0].anchors;
   const [from, middle, to] = anchors;
   if (t <= 0.5) {
-    return cubicSample(
-      from.position,
-      from.handleOut ?? from.position,
-      middle.handleIn ?? middle.position,
-      middle.position,
-      t / 0.5,
-    );
+    return cubicSample(from.position, from.handleOut ?? from.position, middle.handleIn ?? middle.position, middle.position, t / 0.5);
   }
-  return cubicSample(
-    middle.position,
-    middle.handleOut ?? middle.position,
-    to.handleIn ?? to.position,
-    to.position,
-    (t - 0.5) / 0.5,
-  );
+  return cubicSample(middle.position, middle.handleOut ?? middle.position, to.handleIn ?? to.position, to.position, (t - 0.5) / 0.5);
 }
 
 function cubicSample(p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, t: number): Vec2 {

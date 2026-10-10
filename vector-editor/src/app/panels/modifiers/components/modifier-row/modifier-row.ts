@@ -70,9 +70,7 @@ export class ModifierRow {
   });
 
   protected readonly peers = computed(() =>
-    this.objects().filter(
-      (object) => object.id !== this.objectId() && !isEmptyPoint(object) && !isImage(object),
-    ),
+    this.objects().filter((object) => object.id !== this.objectId() && !isEmptyPoint(object) && !isImage(object)),
   );
 
   protected readonly emptyPoints = computed(() => this.objects().filter(isEmptyPoint));

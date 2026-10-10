@@ -1,6 +1,6 @@
-import { SessionSlice } from "@vector-editor/modules/types";
-import { reconcileSelectedLayer } from "./document-helpers";
-import { reconcilePen } from "./state-helpers";
+import { SessionSlice } from '@vector-editor/modules/types';
+import { reconcileSelectedLayer } from './document-helpers';
+import { reconcilePen } from './state-helpers';
 
 export function redoSession(state: SessionSlice): SessionSlice {
   const index = state.history.index + 1;

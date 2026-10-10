@@ -49,9 +49,7 @@ export class KeymapService {
       }
     };
 
-    fromEvent<KeyboardEvent>(this.document, 'keydown')
-      .pipe(takeUntilDestroyed())
-      .subscribe(onKeyDown);
+    fromEvent<KeyboardEvent>(this.document, 'keydown').pipe(takeUntilDestroyed()).subscribe(onKeyDown);
   }
 
   private runFileShortcut(event: KeyboardEvent): boolean {

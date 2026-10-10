@@ -1,15 +1,6 @@
 import { createId } from '@vector-editor/core/utils';
 import { sourceToPathData } from '../path-data';
-import {
-  Modifier,
-  SourcePath,
-  TraceFault,
-  TraceMode,
-  TraceRegion,
-  TraceView,
-  VectorObject,
-  Vec2,
-} from '../types';
+import { Modifier, SourcePath, TraceFault, TraceMode, TraceRegion, TraceView, VectorObject, Vec2 } from '../types';
 
 export const TRACE_SAMPLE_LIMIT = 384;
 
@@ -511,11 +502,7 @@ function regionSource(
   const radius = 0.5 + (settings.corners / 100) * 2;
   const subpaths = loops.flatMap((loop) => {
     const simplified = rdpClosed(dropCollinear(loop), epsilon);
-    return simplified.length >= 3
-      ? [
-          toFrameSubpath(roundLoop(simplified, radius), width, height, frameWidth, frameHeight),
-        ]
-      : [];
+    return simplified.length >= 3 ? [toFrameSubpath(roundLoop(simplified, radius), width, height, frameWidth, frameHeight)] : [];
   });
   return { subpaths };
 }
@@ -532,8 +519,7 @@ function boundaryLoops(labels: Int16Array, label: number, width: number, height:
       next.set(key, [point]);
     }
   };
-  const inside = (x: number, y: number) =>
-    x >= 0 && y >= 0 && x < width && y < height && labels[y * width + x] === label;
+  const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < width && y < height && labels[y * width + x] === label;
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       if (!inside(x, y)) {
@@ -606,10 +592,7 @@ function roundLoop(points: readonly Point[], radius: number): SourcePath['subpat
       return { entry: point, exit: point };
     }
     const tangent = Math.tan(deflection / 2);
-    const adjacentLength = Math.min(
-      Math.hypot(point.x - previous.x, point.y - previous.y),
-      Math.hypot(next.x - point.x, next.y - point.y),
-    );
+    const adjacentLength = Math.min(Math.hypot(point.x - previous.x, point.y - previous.y), Math.hypot(next.x - point.x, next.y - point.y));
     const trim = Math.min(radius * tangent, adjacentLength * 0.45);
     if (trim <= 0) {
       return { entry: point, exit: point };
@@ -656,7 +639,12 @@ function roundLoop(points: readonly Point[], radius: number): SourcePath['subpat
         toId: group.exit.id,
       });
     }
-    found.push({ id: createId(), kind: 'line' as const, fromId: group.exit.id, toId: next.entry.id });
+    found.push({
+      id: createId(),
+      kind: 'line' as const,
+      fromId: group.exit.id,
+      toId: next.entry.id,
+    });
     return found;
   });
   return {
@@ -674,9 +662,7 @@ function toFrameSubpath(
   frameHeight: number,
 ): SourcePath['subpaths'][number] {
   const map = (point: Vec2 | null): Vec2 | null =>
-    point
-      ? { x: (point.x / width) * frameWidth, y: (point.y / height) * frameHeight }
-      : null;
+    point ? { x: (point.x / width) * frameWidth, y: (point.y / height) * frameHeight } : null;
   return {
     ...subpath,
     anchors: subpath.anchors.map((anchor) => ({
@@ -829,7 +815,10 @@ function splitBucket(
   return { low: sorted.slice(0, cut), high: sorted.slice(cut) };
 }
 
-function mergePalette(labels: Int16Array, palette: readonly string[]): { readonly labels: Int16Array; readonly palette: readonly string[] } {
+function mergePalette(
+  labels: Int16Array,
+  palette: readonly string[],
+): { readonly labels: Int16Array; readonly palette: readonly string[] } {
   const remap = new Map<string, number>();
   const nextPalette: string[] = [];
   const next = new Int16Array(labels.length).fill(-1);
@@ -929,7 +918,11 @@ function luminance(rgba: Uint8ClampedArray, index: number): number {
 }
 
 function nearWhite(color: string): boolean {
-  return Number.parseInt(color.slice(1, 3), 16) >= 250 && Number.parseInt(color.slice(3, 5), 16) >= 250 && Number.parseInt(color.slice(5, 7), 16) >= 250;
+  return (
+    Number.parseInt(color.slice(1, 3), 16) >= 250 &&
+    Number.parseInt(color.slice(3, 5), 16) >= 250 &&
+    Number.parseInt(color.slice(5, 7), 16) >= 250
+  );
 }
 
 function grayHex(tone: number): string {
@@ -941,7 +934,9 @@ function hex(red: number, green: number, blue: number): string {
 }
 
 function channel(value: number): string {
-  return Math.round(Math.min(255, Math.max(0, value))).toString(16).padStart(2, '0');
+  return Math.round(Math.min(255, Math.max(0, value)))
+    .toString(16)
+    .padStart(2, '0');
 }
 
 function unit(x: number, y: number): Point {
@@ -950,9 +945,7 @@ function unit(x: number, y: number): Point {
 }
 
 function traceMode(value: TraceMode): TraceMode {
-  return value === 'colorDistance' || value === 'grayscale' || value === 'blackAndWhite' || value === 'color'
-    ? value
-    : 'color';
+  return value === 'colorDistance' || value === 'grayscale' || value === 'blackAndWhite' || value === 'color' ? value : 'color';
 }
 
 function clampInteger(value: number, min: number, max: number, fallback: number): number {

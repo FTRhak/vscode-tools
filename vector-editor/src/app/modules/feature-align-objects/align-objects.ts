@@ -3,13 +3,7 @@ import { evaluateDocument } from '../eval/evaluate';
 import { isInteractionLocked } from '../paint-order/paint-order';
 import { Document, VectorObject, ViewBox } from '../types';
 
-export type AlignEdge =
-  | 'left'
-  | 'horizontalCenter'
-  | 'right'
-  | 'top'
-  | 'verticalCenter'
-  | 'bottom';
+export type AlignEdge = 'left' | 'horizontalCenter' | 'right' | 'top' | 'verticalCenter' | 'bottom';
 
 export type AlignTarget = 'selection' | 'artboard' | 'first';
 
@@ -24,11 +18,7 @@ export function countAlignable(document: Document, ids: readonly string[]): numb
   return alignCandidates(document, ids).length;
 }
 
-export function canAlignObjects(
-  document: Document,
-  ids: readonly string[],
-  to: AlignTarget,
-): boolean {
+export function canAlignObjects(document: Document, ids: readonly string[], to: AlignTarget): boolean {
   const measured = measureSelected(document, ids);
   const referenceId = ids[0];
   const movers = movable(document, to === 'first' ? referenceId : undefined, measured);
@@ -39,12 +29,7 @@ export function canAlignObjects(
   );
 }
 
-export function alignObjects(
-  document: Document,
-  ids: readonly string[],
-  edge: AlignEdge,
-  to: AlignTarget,
-): Document {
+export function alignObjects(document: Document, ids: readonly string[], edge: AlignEdge, to: AlignTarget): Document {
   const measured = measureSelected(document, ids);
   const referenceId = ids[0];
   const reference = measured.find((item) => item.object.id === referenceId);
@@ -53,11 +38,7 @@ export function alignObjects(
     return document;
   }
   const target =
-    to === 'artboard'
-      ? artboardBounds(document.viewBox)
-      : to === 'first' && reference
-        ? reference.bounds
-        : unionBounds(movers);
+    to === 'artboard' ? artboardBounds(document.viewBox) : to === 'first' && reference ? reference.bounds : unionBounds(movers);
   const shifts = new Map<string, number>();
   const goal = edgeValue(target, edge);
   for (const candidate of movers) {
@@ -87,11 +68,7 @@ export function alignObjects(
   return changed ? { ...document, objects } : document;
 }
 
-function alignTargetReady(
-  to: AlignTarget,
-  movers: readonly AlignCandidate[],
-  reference: AlignCandidate | undefined,
-): boolean {
+function alignTargetReady(to: AlignTarget, movers: readonly AlignCandidate[], reference: AlignCandidate | undefined): boolean {
   if (to === 'artboard') {
     return movers.length >= 1;
   }
@@ -105,14 +82,8 @@ function alignCandidates(document: Document, ids: readonly string[]): readonly A
   return movable(document, undefined, measureSelected(document, ids));
 }
 
-function movable(
-  document: Document,
-  referenceId: string | undefined,
-  measured: readonly AlignCandidate[],
-): readonly AlignCandidate[] {
-  return measured.filter(
-    (item) => item.object.id !== referenceId && !isInteractionLocked(document, item.object),
-  );
+function movable(document: Document, referenceId: string | undefined, measured: readonly AlignCandidate[]): readonly AlignCandidate[] {
+  return measured.filter((item) => item.object.id !== referenceId && !isInteractionLocked(document, item.object));
 }
 
 function measureSelected(document: Document, ids: readonly string[]): readonly AlignCandidate[] {
@@ -120,19 +91,14 @@ function measureSelected(document: Document, ids: readonly string[]): readonly A
     return [];
   }
   const wanted = new Set(ids);
-  const geometry = new Map(
-    evaluateDocument(document.objects).map((item) => [item.objectId, item]),
-  );
+  const geometry = new Map(evaluateDocument(document.objects).map((item) => [item.objectId, item]));
   const byId = new Map<string, AlignCandidate>();
   for (const object of document.objects) {
     if (!wanted.has(object.id)) {
       continue;
     }
     const evaluated = geometry.get(object.id);
-    const bounds = documentBounds(
-      object,
-      evaluated ? { subpaths: evaluated.subpaths } : undefined,
-    );
+    const bounds = documentBounds(object, evaluated ? { subpaths: evaluated.subpaths } : undefined);
     if (bounds) {
       byId.set(object.id, { object, bounds });
     }

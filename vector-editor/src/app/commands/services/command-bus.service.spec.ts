@@ -194,9 +194,7 @@ describe('CommandBus', () => {
 
     bus.dispatch({ type: 'history.undo' });
     expect(session.document()!.objects[0].transform).toMatchObject({ x: 15, y: -3, scaleX: 2 });
-    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual(
-      anchor.position,
-    );
+    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual(anchor.position);
   });
 
   it('does not bake an identity or locked transform', () => {
@@ -254,9 +252,7 @@ describe('CommandBus', () => {
       originX: 30,
       originY: 18,
     });
-    expect(
-      session.history().entries.filter((entry) => entry.label === 'Move rotation origin'),
-    ).toHaveLength(1);
+    expect(session.history().entries.filter((entry) => entry.label === 'Move rotation origin')).toHaveLength(1);
     bus.dispatch({ type: 'history.undo' });
     expect(session.document()!.objects[0].transform).toMatchObject({ originX: 0, originY: 0 });
   });
@@ -374,12 +370,8 @@ describe('CommandBus', () => {
     expect(session.history().entries.at(-1)?.label).toBe('Move anchors');
 
     bus.dispatch({ type: 'history.undo' });
-    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual(
-      anchor.position,
-    );
-    expect(
-      session.history().entries.filter((entry) => entry.label === 'Move anchors'),
-    ).toHaveLength(1);
+    expect(session.document()!.objects[0].source.subpaths[0].anchors[0].position).toEqual(anchor.position);
+    expect(session.history().entries.filter((entry) => entry.label === 'Move anchors')).toHaveLength(1);
 
     bus.dispatch({
       type: 'path.deleteAnchors',
@@ -452,9 +444,7 @@ describe('CommandBus', () => {
     bus.dispatch({ type: 'pen.addPoint', objectId: objectId!, position: { x: 90, y: 20 } });
     bus.dispatch({ type: 'session.setMode', mode: 'object' });
     expect(session.penObjectId()).toBeNull();
-    expect(session.document()!.objects.at(-1)!.source.subpaths[0].anchors.length).toBeGreaterThan(
-      1,
-    );
+    expect(session.document()!.objects.at(-1)!.source.subpaths[0].anchors.length).toBeGreaterThan(1);
 
     bus.dispatch({ type: 'session.setMode', mode: 'edit' });
     bus.dispatch({ type: 'pen.addPoint', objectId: objectId!, position: { x: 110, y: 20 } });
@@ -710,11 +700,7 @@ describe('CommandBus', () => {
     bus.dispatch({ type: 'object.setTransform', ids: [id], transform: { x: 12 } });
 
     const length = session.history().entries.length;
-    expect(session.history().entries.map((entry) => entry.label)).toEqual([
-      'New document',
-      'Select',
-      'Set transform',
-    ]);
+    expect(session.history().entries.map((entry) => entry.label)).toEqual(['New document', 'Select', 'Set transform']);
 
     bus.dispatch({ type: 'history.jump', index: 1 });
     expect(session.history().entries).toHaveLength(length);
@@ -762,10 +748,7 @@ describe('CommandBus', () => {
     expect(session.selectedObjectIds()).toEqual([]);
     expect(session.mode()).toBe('object');
     bus.dispatch({ type: 'object.setTransform', ids: [id], transform: { y: 3 } });
-    expect(session.history().entries.map((entry) => entry.label)).toEqual([
-      'New document',
-      'Set transform',
-    ]);
+    expect(session.history().entries.map((entry) => entry.label)).toEqual(['New document', 'Set transform']);
     expect(session.history().index).toBe(1);
     expect(session.document()!.objects[0].transform).toMatchObject({ x: 0, y: 3 });
   });
@@ -786,10 +769,7 @@ describe('CommandBus', () => {
     expect(added[1]).toMatchObject({ axis: 'x', enabled: true });
 
     bus.dispatch({ type: 'modifier.reorder', objectId: id, modifierId: added[1].id, index: 0 });
-    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.type)).toEqual([
-      'mirror',
-      'array',
-    ]);
+    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.type)).toEqual(['mirror', 'array']);
     bus.dispatch({
       type: 'modifier.update',
       objectId: id,
@@ -819,10 +799,7 @@ describe('CommandBus', () => {
     expect(session.history().entries.at(-1)?.label).toBe('Apply modifier');
 
     bus.dispatch({ type: 'history.undo' });
-    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.id)).toEqual([
-      arrayId,
-      added[1].id,
-    ]);
+    expect(session.document()!.objects[0].modifiers.map((modifier) => modifier.id)).toEqual([arrayId, added[1].id]);
     expect(session.selectedAnchorIds()).toEqual([anchorId]);
 
     bus.dispatch({ type: 'modifier.applyAll', objectId: id });
@@ -938,7 +915,11 @@ describe('CommandBus', () => {
       objectIds: [image!.id],
       fill: '#ff0000',
     });
-    bus.dispatch({ type: 'object.setTransform', ids: [image!.id], transform: { scaleX: 2, scaleY: 3 } });
+    bus.dispatch({
+      type: 'object.setTransform',
+      ids: [image!.id],
+      transform: { scaleX: 2, scaleY: 3 },
+    });
     bus.dispatch({ type: 'object.applyTransform', id: image!.id });
     expect(session.document()!.objects.find((object) => object.id === image?.id)?.image).toMatchObject({
       width: 40,
@@ -1011,7 +992,12 @@ describe('CommandBus', () => {
     const traced = session.document()!.objects.find((object) => object.id === imageId);
     expect(traced?.kind).toBe('image');
     expect(traced?.modifiers).toHaveLength(1);
-    expect(traced?.modifiers[0]).toMatchObject({ type: 'trace', mode: 'color', colors: 16, view: 'result' });
+    expect(traced?.modifiers[0]).toMatchObject({
+      type: 'trace',
+      mode: 'color',
+      colors: 16,
+      view: 'result',
+    });
     const modifierId = traced?.modifiers[0]?.id ?? '';
     bus.dispatch({ type: 'modifier.apply', objectId: imageId, modifierId });
 
@@ -1029,5 +1015,4 @@ describe('CommandBus', () => {
   });
 });
 
-const pixel =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';

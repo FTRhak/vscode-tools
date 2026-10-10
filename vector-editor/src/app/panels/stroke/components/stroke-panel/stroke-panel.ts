@@ -29,15 +29,9 @@ export class StrokePanel {
   });
 
   protected readonly hasSelection = computed(() => this.selectedObjects().length > 0);
-  protected readonly lineCap = computed(
-    () => shared(this.selectedObjects(), (object) => object.style.strokeLinecap) ?? '',
-  );
-  protected readonly strokeAlign = computed(
-    () => shared(this.selectedObjects(), (object) => object.style.strokeAlign) ?? '',
-  );
-  protected readonly lineJoin = computed(
-    () => shared(this.selectedObjects(), (object) => object.style.strokeLinejoin) ?? '',
-  );
+  protected readonly lineCap = computed(() => shared(this.selectedObjects(), (object) => object.style.strokeLinecap) ?? '');
+  protected readonly strokeAlign = computed(() => shared(this.selectedObjects(), (object) => object.style.strokeAlign) ?? '');
+  protected readonly lineJoin = computed(() => shared(this.selectedObjects(), (object) => object.style.strokeLinejoin) ?? '');
   private readonly strokeSource = computed(
     (): StrokeDraft => {
       const objects = this.selectedObjects();
@@ -139,12 +133,7 @@ export class StrokePanel {
     }
     const value = this.strokeDraft()[field];
     const objects = this.selectedObjects();
-    if (
-      typeof value !== 'number' ||
-      !Number.isFinite(value) ||
-      !acceptsNumber(field, value) ||
-      objects.length === 0
-    ) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || !acceptsNumber(field, value) || objects.length === 0) {
       return;
     }
     if (value === shared(objects, (object) => object.style[field])) {

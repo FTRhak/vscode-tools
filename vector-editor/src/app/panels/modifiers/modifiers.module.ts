@@ -4,7 +4,16 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormField } from '@angular/forms/signals';
 import { SharedModule } from '@vector-editor/shared';
-import { ArrayModifierFields, BevelModifierFields, BooleanModifierFields, MirrorModifierFields, ModifierRow, ModifiersPanel, RoundModifierFields, TraceModifierFields } from './components';
+import {
+  ArrayModifierFields,
+  BevelModifierFields,
+  BooleanModifierFields,
+  MirrorModifierFields,
+  ModifierRow,
+  ModifiersPanel,
+  RoundModifierFields,
+  TraceModifierFields,
+} from './components';
 
 @NgModule({
   declarations: [
@@ -18,14 +27,6 @@ import { ArrayModifierFields, BevelModifierFields, BooleanModifierFields, Mirror
     MirrorModifierFields,
   ],
   exports: [ModifiersPanel],
-  imports: [
-    CommonModule,
-    SharedModule,
-    CdkDropList,
-    CdkDrag,
-    CdkDragHandle,
-    CdkMenuModule,
-    FormField,
-  ],
+  imports: [CommonModule, SharedModule, CdkDropList, CdkDrag, CdkDragHandle, CdkMenuModule, FormField],
 })
 export class PanelModifiersModule {}

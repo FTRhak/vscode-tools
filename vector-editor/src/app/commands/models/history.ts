@@ -160,8 +160,7 @@ export function recordHistory(
   command: Command,
 ): HistoryState {
   const current = history.entries[history.index];
-  const canCoalesce =
-    history.index === history.entries.length - 1 && gestureContinues(command, current?.label);
+  const canCoalesce = history.index === history.entries.length - 1 && gestureContinues(command, current?.label);
 
   if (canCoalesce && current) {
     const entries = history.entries.slice(0, -1);

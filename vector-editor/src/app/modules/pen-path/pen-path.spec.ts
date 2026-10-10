@@ -24,17 +24,11 @@ describe('pen path', () => {
         segments: [],
       },
     ]);
-    expect(beginPenObject(created!.document, { x: 0, y: 0 })?.document.objects.at(-1)?.name).toBe(
-      'Path 3',
-    );
+    expect(beginPenObject(created!.document, { x: 0, y: 0 })?.document.objects.at(-1)?.name).toBe('Path 3');
     expect(beginPenObject(document, { x: Number.NaN, y: 0 })).toBeNull();
     const layer = document.layers[0];
-    expect(
-      beginPenObject({ ...document, layers: [{ ...layer, locked: true }] }, { x: 1, y: 1 }),
-    ).toBeNull();
-    expect(
-      beginPenObject({ ...document, layers: [{ ...layer, visible: false }] }, { x: 1, y: 1 }),
-    ).toBeNull();
+    expect(beginPenObject({ ...document, layers: [{ ...layer, locked: true }] }, { x: 1, y: 1 })).toBeNull();
+    expect(beginPenObject({ ...document, layers: [{ ...layer, visible: false }] }, { x: 1, y: 1 })).toBeNull();
   });
 
   it('starts the stroke on the requested layer', () => {
@@ -63,9 +57,7 @@ describe('pen path', () => {
 
     expect(added?.anchorId).toBeTruthy();
     expect(added?.source.subpaths[0].anchors).toHaveLength(2);
-    expect(added?.source.subpaths[0].segments).toEqual([
-      expect.objectContaining({ kind: 'line', fromId: 'a', toId: added?.anchorId }),
-    ]);
+    expect(added?.source.subpaths[0].segments).toEqual([expect.objectContaining({ kind: 'line', fromId: 'a', toId: added?.anchorId })]);
     const closed = { subpaths: [{ ...source.subpaths[0], closed: true }] };
     expect(addPenPoint(closed, { x: 1, y: 1 })).toBeNull();
   });
@@ -79,10 +71,7 @@ describe('pen path', () => {
   });
 
   it('mirrors handle in and turns the incoming segment into a cubic', () => {
-    const source = openPath(
-      [anchor('a', 0, 0, null, null), anchor('b', 20, 0, null, null)],
-      [segment('ab', 'line', 'a', 'b')],
-    );
+    const source = openPath([anchor('a', 0, 0, null, null), anchor('b', 20, 0, null, null)], [segment('ab', 'line', 'a', 'b')]);
 
     const next = setPenHandles(source, 'b', { x: 30, y: 10 }, false);
     const anchorB = next.subpaths[0].anchors[1];
@@ -94,10 +83,7 @@ describe('pen path', () => {
   });
 
   it('leaves handle in empty when the link is broken', () => {
-    const source = openPath(
-      [anchor('a', 0, 0, null, null), anchor('b', 20, 0, null, null)],
-      [segment('ab', 'line', 'a', 'b')],
-    );
+    const source = openPath([anchor('a', 0, 0, null, null), anchor('b', 20, 0, null, null)], [segment('ab', 'line', 'a', 'b')]);
 
     const next = setPenHandles(source, 'b', { x: 28, y: 4 }, true);
 
@@ -107,10 +93,7 @@ describe('pen path', () => {
   });
 
   it('keeps a cubic incoming segment when the previous anchor has a handle out', () => {
-    const source = openPath(
-      [anchor('a', 0, 0, null, { x: 6, y: 0 }), anchor('b', 20, 0, null, null)],
-      [segment('ab', 'cubic', 'a', 'b')],
-    );
+    const source = openPath([anchor('a', 0, 0, null, { x: 6, y: 0 }), anchor('b', 20, 0, null, null)], [segment('ab', 'cubic', 'a', 'b')]);
 
     const next = setPenHandles(source, 'b', { x: 24, y: 0 }, true);
 
@@ -141,13 +124,7 @@ function openPath(anchors: readonly Anchor[], segments: readonly Segment[] = [])
   return { subpaths: [{ closed: false, anchors, segments }] };
 }
 
-function anchor(
-  id: string,
-  x: number,
-  y: number,
-  handleIn: Vec2 | null,
-  handleOut: Vec2 | null,
-): Anchor {
+function anchor(id: string, x: number, y: number, handleIn: Vec2 | null, handleOut: Vec2 | null): Anchor {
   return { id, position: { x, y }, handleIn, handleOut };
 }
 

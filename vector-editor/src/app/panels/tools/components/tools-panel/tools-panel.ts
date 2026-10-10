@@ -1,13 +1,7 @@
 import { Component, inject } from '@angular/core';
-import {
-  CommandBus,
-  EDITOR_TOOLS_ICONS,
-  editorToolGroups,
-  EditorTool,
-} from '@vector-editor/commands';
+import { CommandBus, EDITOR_TOOLS_ICONS, editorToolGroups, EditorTool } from '@vector-editor/commands';
 import { SessionService } from '@vector-editor/core';
 import { ImagePlace } from '@vector-editor/viewport';
-
 
 @Component({
   selector: 'app-tools-panel',

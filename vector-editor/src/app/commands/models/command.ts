@@ -18,17 +18,7 @@ export type ColorSlot = 'fill' | 'stroke';
 export type EditorMode = 'object' | 'edit';
 
 export type EditorTool =
-  | 'select'
-  | 'direct-select'
-  | 'pen'
-  | 'add-point'
-  | 'empty-point'
-  | 'rectangle'
-  | 'ellipse'
-  | 'star'
-  | 'polygon'
-  | 'rhombus'
-  | 'image';
+  'select' | 'direct-select' | 'pen' | 'add-point' | 'empty-point' | 'rectangle' | 'ellipse' | 'star' | 'polygon' | 'rhombus' | 'image';
 
 export const EDITOR_TOOLS_ICONS: { [K in EditorTool]: string } = {
   select: '&#xe107;',

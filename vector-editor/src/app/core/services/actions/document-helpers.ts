@@ -1,10 +1,7 @@
-import { layersFrontToBack } from "@vector-editor/modules/paint-order";
-import { Document, SessionSlice, VectorObject } from "@vector-editor/modules/types";
+import { layersFrontToBack } from '@vector-editor/modules/paint-order';
+import { Document, SessionSlice, VectorObject } from '@vector-editor/modules/types';
 
-export function applyDocument(
-  state: SessionSlice,
-  update: (document: Document) => Document,
-): SessionSlice {
+export function applyDocument(state: SessionSlice, update: (document: Document) => Document): SessionSlice {
   if (!state.document) {
     return state;
   }
@@ -12,11 +9,7 @@ export function applyDocument(
   return document === state.document ? state : { ...state, document };
 }
 
-export function mapObjects(
-  document: Document,
-  ids: readonly string[],
-  update: (object: VectorObject) => VectorObject,
-): Document {
+export function mapObjects(document: Document, ids: readonly string[], update: (object: VectorObject) => VectorObject): Document {
   if (ids.length === 0) {
     return document;
   }

@@ -161,14 +161,7 @@ export function parsePathData(data: string): SourcePath {
       const large = cursor.readFlag();
       const sweep = cursor.readFlag();
       const point = readPoint(relative);
-      if (
-        rx === null ||
-        ry === null ||
-        rotation === null ||
-        large === null ||
-        sweep === null ||
-        !point
-      ) {
+      if (rx === null || ry === null || rotation === null || large === null || sweep === null || !point) {
         break;
       }
       arcTo(rx, ry, rotation, large, sweep, point);
@@ -234,14 +227,7 @@ export function parsePathData(data: string): SourcePath {
     prevCubic = null;
   }
 
-  function arcTo(
-    rx: number,
-    ry: number,
-    rotation: number,
-    large: boolean,
-    sweep: boolean,
-    point: Vec2,
-  ): void {
+  function arcTo(rx: number, ry: number, rotation: number, large: boolean, sweep: boolean, point: Vec2): void {
     const curves = arcCurves(cx, cy, rx, ry, rotation, large, sweep, point.x, point.y);
     if (curves.length === 0) {
       if (point.x !== cx || point.y !== cy) {
@@ -322,8 +308,7 @@ function arcCurves(
   const x1pSq = x1p * x1p;
   const y1pSq = y1p * y1p;
   const denominator = rxSq * y1pSq + rySq * x1pSq;
-  const radicand =
-    denominator === 0 ? 0 : (rxSq * rySq - rxSq * y1pSq - rySq * x1pSq) / denominator;
+  const radicand = denominator === 0 ? 0 : (rxSq * rySq - rxSq * y1pSq - rySq * x1pSq) / denominator;
   const root = Math.sqrt(Math.max(0, radicand));
   const sign = large === sweep ? -1 : 1;
   const cxp = sign * root * ((rx * y1p) / ry);
@@ -353,15 +338,7 @@ function arcCurves(
   return curves;
 }
 
-function approximateArc(
-  cx: number,
-  cy: number,
-  rx: number,
-  ry: number,
-  phi: number,
-  start: number,
-  end: number,
-): ArcCurve {
+function approximateArc(cx: number, cy: number, rx: number, ry: number, phi: number, start: number, end: number): ArcCurve {
   const delta = end - start;
   const k = (4 / 3) * Math.tan(delta / 4);
   const map = (angle: number, dx: number, dy: number): Vec2 => {
@@ -433,9 +410,7 @@ class PathCursor {
 
   readNumber(): number | null {
     this.skipSeparators();
-    const match = /^[+-]?(?:\d+\.\d+|\d+\.|\.\d+|\d+)(?:[eE][+-]?\d+)?/.exec(
-      this.data.slice(this.index),
-    );
+    const match = /^[+-]?(?:\d+\.\d+|\d+\.|\.\d+|\d+)(?:[eE][+-]?\d+)?/.exec(this.data.slice(this.index));
     if (!match) {
       return null;
     }

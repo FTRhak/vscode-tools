@@ -36,9 +36,7 @@ describe('OutlinerPanel', () => {
 
     bus.dispatch({ type: 'session.select', target: 'object', ids: [], op: 'clear' });
     await fixture.whenStable();
-    row.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-    );
+    row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
     expect(session.selectedObjectIds()).toEqual([id]);
   });
@@ -51,9 +49,7 @@ describe('OutlinerPanel', () => {
     const second = session.document()!.objects[1].id;
 
     objectRow('Path').click();
-    objectRow('Path copy').dispatchEvent(
-      new MouseEvent('click', { bubbles: true, shiftKey: true }),
-    );
+    objectRow('Path copy').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
     await fixture.whenStable();
 
     expect(session.selectedObjectIds()).toEqual([first, second]);
@@ -68,9 +64,7 @@ describe('OutlinerPanel', () => {
     if (!(layer instanceof HTMLElement)) {
       throw new Error('Layer row is missing');
     }
-    layer.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
-    );
+    layer.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(objectRow('Path').tabIndex).toBe(0);
@@ -135,12 +129,8 @@ describe('OutlinerPanel', () => {
       throw new Error('Layer tree is missing');
     }
 
-    tree.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
-    );
-    tree.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
-    );
+    tree.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    tree.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(session.selectedLayerId()).toBe(firstId);
@@ -235,9 +225,7 @@ describe('OutlinerPanel', () => {
       throw new Error('Layer name input is missing');
     }
 
-    input.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
-    );
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(objectRow('Path').tabIndex).toBe(-1);

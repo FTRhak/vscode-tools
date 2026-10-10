@@ -8,12 +8,7 @@ export interface SegmentHit {
   readonly t: number;
 }
 
-export function addPointHitRadius(
-  zoom: number,
-  transform: ObjectTransform,
-  strokeWidth: number,
-  hasStroke: boolean,
-): number {
+export function addPointHitRadius(zoom: number, transform: ObjectTransform, strokeWidth: number, hasStroke: boolean): number {
   const scale = Math.max(Math.abs(transform.scaleX), Math.abs(transform.scaleY));
   const pixelsPerUnit = zoom * scale;
   const screen = pixelsPerUnit > 0 ? ADD_POINT_HIT_PX / pixelsPerUnit : ADD_POINT_HIT_PX;
@@ -21,16 +16,11 @@ export function addPointHitRadius(
   return Math.max(screen, stroke);
 }
 
-export function hitTestSegment(
-  source: SourcePath,
-  point: Vec2,
-  radius: number,
-): SegmentHit | null {
+export function hitTestSegment(source: SourcePath, point: Vec2, radius: number): SegmentHit | null {
   if (!Number.isFinite(radius) || radius < 0) {
     return null;
   }
-  let best: { readonly segmentId: string; readonly t: number; readonly distance: number } | null =
-    null;
+  let best: { readonly segmentId: string; readonly t: number; readonly distance: number } | null = null;
   for (const subpath of source.subpaths) {
     const anchors = new Map(subpath.anchors.map((anchor) => [anchor.id, anchor]));
     for (const segment of subpath.segments) {
@@ -52,21 +42,14 @@ export function hitTestSegment(
   return best ? { segmentId: best.segmentId, t: best.t } : null;
 }
 
-function closestOnLine(
-  start: Vec2,
-  end: Vec2,
-  point: Vec2,
-): { readonly t: number; readonly distance: number } {
+function closestOnLine(start: Vec2, end: Vec2, point: Vec2): { readonly t: number; readonly distance: number } {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const lengthSquared = dx * dx + dy * dy;
   if (lengthSquared === 0) {
     return { t: 0, distance: Math.hypot(point.x - start.x, point.y - start.y) };
   }
-  const t = Math.max(
-    0,
-    Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared),
-  );
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared));
   return {
     t,
     distance: Math.hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy)),

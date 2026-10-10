@@ -1,14 +1,11 @@
-import { Command } from "@vector-editor/commands";
-import { insertPoint } from "@vector-editor/modules/edit-path";
-import { isImage } from "@vector-editor/modules/object-image";
-import { isInteractionLocked } from "@vector-editor/modules/paint-order";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { mapObjects } from "./document-helpers";
+import { Command } from '@vector-editor/commands';
+import { insertPoint } from '@vector-editor/modules/edit-path';
+import { isImage } from '@vector-editor/modules/object-image';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { mapObjects } from './document-helpers';
 
-export function applyInsertPoint(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'path.insertPoint' }>,
-): SessionSlice {
+export function applyInsertPoint(state: SessionSlice, command: Extract<Command, { type: 'path.insertPoint' }>): SessionSlice {
   if (!state.document) {
     return state;
   }

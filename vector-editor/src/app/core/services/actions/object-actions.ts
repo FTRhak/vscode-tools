@@ -1,26 +1,23 @@
-import { Command } from "@vector-editor/commands";
-import { deleteLayer, deleteObjects } from "@vector-editor/modules/delete-objects";
-import { addLayer, addPath } from "@vector-editor/modules/document-edits";
-import { duplicateObjects } from "@vector-editor/modules/duplicate-objects";
-import { expandTrace } from "@vector-editor/modules/expand-trace";
-import { alignObjects } from "@vector-editor/modules/feature-align-objects";
-import { identityTransform, matrixFromTransform, transformSource } from "@vector-editor/modules/io";
-import { applyAllModifiers, applyModifier } from "@vector-editor/modules/modifier-edits/modifier-edits";
-import { addEmptyPoint } from "@vector-editor/modules/object-empty-point";
-import { addImage, isImage } from "@vector-editor/modules/object-image";
-import { isInteractionLocked } from "@vector-editor/modules/paint-order";
-import { addPenPoint, beginPenObject, finishPen, setPenHandles } from "@vector-editor/modules/pen-path";
-import { addShape } from "@vector-editor/modules/shapes/shapes";
-import { rotationOriginDocument, transformWithRotationOrigin } from "@vector-editor/modules/transform";
-import { ObjectTransform, SessionSlice, VectorObject } from "@vector-editor/modules/types";
-import { applyDocument, mapObjects } from "./document-helpers";
-import { replaceSource } from "./replace-source";
-import { penSelection, withFlags, withTransform, withoutRemovedObjects } from "./state-helpers";
+import { Command } from '@vector-editor/commands';
+import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
+import { addLayer, addPath } from '@vector-editor/modules/document-edits';
+import { duplicateObjects } from '@vector-editor/modules/duplicate-objects';
+import { expandTrace } from '@vector-editor/modules/expand-trace';
+import { alignObjects } from '@vector-editor/modules/feature-align-objects';
+import { identityTransform, matrixFromTransform, transformSource } from '@vector-editor/modules/io';
+import { applyAllModifiers, applyModifier } from '@vector-editor/modules/modifier-edits/modifier-edits';
+import { addEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { addImage, isImage } from '@vector-editor/modules/object-image';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order';
+import { addPenPoint, beginPenObject, finishPen, setPenHandles } from '@vector-editor/modules/pen-path';
+import { addShape } from '@vector-editor/modules/shapes/shapes';
+import { rotationOriginDocument, transformWithRotationOrigin } from '@vector-editor/modules/transform';
+import { ObjectTransform, SessionSlice, VectorObject } from '@vector-editor/modules/types';
+import { applyDocument, mapObjects } from './document-helpers';
+import { replaceSource } from './replace-source';
+import { penSelection, withFlags, withTransform, withoutRemovedObjects } from './state-helpers';
 
-export function applyTranslate(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.translate' }>,
-): SessionSlice {
+export function applyTranslate(state: SessionSlice, command: Extract<Command, { type: 'object.translate' }>): SessionSlice {
   const current = state.document;
   if (!current || !Number.isFinite(command.dx) || !Number.isFinite(command.dy)) {
     return state;
@@ -44,23 +41,15 @@ export function applyTranslate(
   return document === state.document ? state : { ...state, document };
 }
 
-export function applyTransform(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.setTransform' }>,
-): SessionSlice {
+export function applyTransform(state: SessionSlice, command: Extract<Command, { type: 'object.setTransform' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
-  const document = mapObjects(state.document, command.ids, (object) =>
-    withTransform(object, command.transform),
-  );
+  const document = mapObjects(state.document, command.ids, (object) => withTransform(object, command.transform));
   return document === state.document ? state : { ...state, document };
 }
 
-export function applyRotationOrigin(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.setRotationOrigin' }>,
-): SessionSlice {
+export function applyRotationOrigin(state: SessionSlice, command: Extract<Command, { type: 'object.setRotationOrigin' }>): SessionSlice {
   const current = state.document;
   if (!current) {
     return state;
@@ -83,10 +72,7 @@ export function applyRotationOrigin(
   return document === state.document ? state : { ...state, document };
 }
 
-export function applyBakedTransform(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.applyTransform' }>,
-): SessionSlice {
+export function applyBakedTransform(state: SessionSlice, command: Extract<Command, { type: 'object.applyTransform' }>): SessionSlice {
   const current = state.document;
   if (!current) {
     return state;
@@ -136,10 +122,7 @@ function isIdentityTransform(transform: ObjectTransform): boolean {
   );
 }
 
-export function applyFlags(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.setFlags' }>,
-): SessionSlice {
+export function applyFlags(state: SessionSlice, command: Extract<Command, { type: 'object.setFlags' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
@@ -147,10 +130,7 @@ export function applyFlags(
   return document === state.document ? state : { ...state, document };
 }
 
-export function applyDuplicate(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.duplicate' }>,
-): SessionSlice {
+export function applyDuplicate(state: SessionSlice, command: Extract<Command, { type: 'object.duplicate' }>): SessionSlice {
   if (!state.document || command.ids.length === 0) {
     return state;
   }
@@ -171,26 +151,15 @@ export function applyDuplicate(
   };
 }
 
-export function applyAlign(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.align' }>,
-): SessionSlice {
-  const aligned = applyDocument(state, (document) =>
-    alignObjects(document, command.ids, command.edge, command.to),
-  );
+export function applyAlign(state: SessionSlice, command: Extract<Command, { type: 'object.align' }>): SessionSlice {
+  const aligned = applyDocument(state, (document) => alignObjects(document, command.ids, command.edge, command.to));
   if (!command.applyTransform) {
     return aligned;
   }
-  return command.ids.reduce(
-    (next, id) => applyBakedTransform(next, { type: 'object.applyTransform', id }),
-    aligned,
-  );
+  return command.ids.reduce((next, id) => applyBakedTransform(next, { type: 'object.applyTransform', id }), aligned);
 }
 
-export function applyDelete(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'object.delete' }>,
-): SessionSlice {
+export function applyDelete(state: SessionSlice, command: Extract<Command, { type: 'object.delete' }>): SessionSlice {
   if (!state.document || command.ids.length === 0) {
     return state;
   }
@@ -201,10 +170,7 @@ export function applyDelete(
   return withoutRemovedObjects(state, result.document, result.removedIds);
 }
 
-export function applyDeleteLayer(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'layer.delete' }>,
-): SessionSlice {
+export function applyDeleteLayer(state: SessionSlice, command: Extract<Command, { type: 'layer.delete' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
@@ -215,18 +181,11 @@ export function applyDeleteLayer(
   return withoutRemovedObjects(state, result.document, result.removedIds);
 }
 
-export function applyPenBegin(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'pen.begin' }>,
-): SessionSlice {
+export function applyPenBegin(state: SessionSlice, command: Extract<Command, { type: 'pen.begin' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
-  const created = beginPenObject(
-    state.document,
-    command.position,
-    state.selectedLayerId ?? undefined,
-  );
+  const created = beginPenObject(state.document, command.position, state.selectedLayerId ?? undefined);
   if (!created) {
     return state;
   }
@@ -239,10 +198,7 @@ export function applyPenBegin(
   };
 }
 
-export function applyPenAddPoint(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'pen.addPoint' }>,
-): SessionSlice {
+export function applyPenAddPoint(state: SessionSlice, command: Extract<Command, { type: 'pen.addPoint' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
@@ -265,22 +221,14 @@ export function applyPenAddPoint(
   };
 }
 
-export function applyPenSetHandles(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'pen.setHandles' }>,
-): SessionSlice {
+export function applyPenSetHandles(state: SessionSlice, command: Extract<Command, { type: 'pen.setHandles' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
-  return replaceSource(state, command.objectId, (source) =>
-    setPenHandles(source, command.anchorId, command.handleOut, command.breakLink),
-  );
+  return replaceSource(state, command.objectId, (source) => setPenHandles(source, command.anchorId, command.handleOut, command.breakLink));
 }
 
-export function applyPenFinish(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'pen.finish' }>,
-): SessionSlice {
+export function applyPenFinish(state: SessionSlice, command: Extract<Command, { type: 'pen.finish' }>): SessionSlice {
   const cleared = state.penObjectId === null ? state : { ...state, penObjectId: null };
   if (!command.closed || !state.document) {
     return cleared;
@@ -299,19 +247,11 @@ export function applyPenFinish(
   };
 }
 
-export function applyObjectChange(
-  state: SessionSlice,
-  objectId: string,
-  update: (object: VectorObject) => VectorObject,
-): SessionSlice {
+export function applyObjectChange(state: SessionSlice, objectId: string, update: (object: VectorObject) => VectorObject): SessionSlice {
   return applyDocument(state, (document) => mapObjects(document, [objectId], update));
 }
 
-export function applyModifierCommand(
-  state: SessionSlice,
-  objectId: string,
-  modifierId?: string,
-): SessionSlice {
+export function applyModifierCommand(state: SessionSlice, objectId: string, modifierId?: string): SessionSlice {
   const document = state.document;
   if (!document) {
     return state;
@@ -336,24 +276,15 @@ export function applyModifierCommand(
   if (modifierId === undefined) {
     return applyBakedModifier(state, objectId, (object) => applyAllModifiers(object, document.objects));
   }
-  return applyBakedModifier(state, objectId, (object) =>
-    applyModifier(object, modifierId, document.objects),
-  );
+  return applyBakedModifier(state, objectId, (object) => applyModifier(object, modifierId, document.objects));
 }
 
-export function applyBakedModifier(
-  state: SessionSlice,
-  objectId: string,
-  update: (object: VectorObject) => VectorObject,
-): SessionSlice {
+export function applyBakedModifier(state: SessionSlice, objectId: string, update: (object: VectorObject) => VectorObject): SessionSlice {
   const next = applyObjectChange(state, objectId, update);
   if (next === state || next.selection.activeObjectId !== objectId) {
     return next;
   }
-  if (
-    next.selection.selectedAnchorIds.length === 0 &&
-    next.selection.selectedSegmentIds.length === 0
-  ) {
+  if (next.selection.selectedAnchorIds.length === 0 && next.selection.selectedSegmentIds.length === 0) {
     return next;
   }
   return {
@@ -389,18 +320,11 @@ export function applyAddLayer(state: SessionSlice): SessionSlice {
   return { ...state, document, selectedLayerId: added.id };
 }
 
-export function applyPointAdd(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'point.add' }>,
-): SessionSlice {
+export function applyPointAdd(state: SessionSlice, command: Extract<Command, { type: 'point.add' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
-  const created = addEmptyPoint(
-    state.document,
-    command.position,
-    state.selectedLayerId ?? undefined,
-  );
+  const created = addEmptyPoint(state.document, command.position, state.selectedLayerId ?? undefined);
   if (!created) {
     return state;
   }
@@ -418,19 +342,11 @@ export function applyPointAdd(
   };
 }
 
-export function applyShapeAdd(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'shape.add' }>,
-): SessionSlice {
+export function applyShapeAdd(state: SessionSlice, command: Extract<Command, { type: 'shape.add' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
-  const created = addShape(
-    state.document,
-    command.name,
-    command.source,
-    state.selectedLayerId ?? undefined,
-  );
+  const created = addShape(state.document, command.name, command.source, state.selectedLayerId ?? undefined);
   if (!created) {
     return state;
   }
@@ -448,10 +364,7 @@ export function applyShapeAdd(
   };
 }
 
-export function applyImageAdd(
-  state: SessionSlice,
-  command: Extract<Command, { type: 'image.add' }>,
-): SessionSlice {
+export function applyImageAdd(state: SessionSlice, command: Extract<Command, { type: 'image.add' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
@@ -511,4 +424,3 @@ export function applyAddPath(state: SessionSlice, layerId: string): SessionSlice
     },
   };
 }
-

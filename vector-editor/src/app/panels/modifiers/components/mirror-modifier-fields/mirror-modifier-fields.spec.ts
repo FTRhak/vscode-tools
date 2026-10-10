@@ -52,8 +52,7 @@ describe('MirrorModifierFields', () => {
 
   function button(label: string): HTMLButtonElement {
     const match = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (item): item is HTMLButtonElement =>
-        item instanceof HTMLButtonElement && item.textContent?.trim() === label,
+      (item): item is HTMLButtonElement => item instanceof HTMLButtonElement && item.textContent?.trim() === label,
     );
     if (!match) {
       throw new Error(`${label} axis button is missing`);

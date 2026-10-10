@@ -1,10 +1,5 @@
 @if (request()) {
-  <div
-    class="backdrop"
-    data-shape-dialog
-    (click)="cancel()"
-    (pointerdown)="$event.stopPropagation()"
-  >
+  <div class="backdrop" data-shape-dialog (click)="cancel()" (pointerdown)="$event.stopPropagation()">
     <div
       class="dialog"
       role="dialog"

@@ -1,4 +1,3 @@
-
 import { TraceRegion } from '../types';
 import { traceRaster, TraceRasterInput } from './image-trace';
 
@@ -37,9 +36,7 @@ describe('traceRaster', () => {
     const subpath = red?.source.subpaths[0];
 
     expect(subpath?.segments.filter((segment) => segment.kind === 'cubic')).toHaveLength(4);
-    expect(subpath?.anchors.some((anchor) => anchor.position.x === 0 && anchor.position.y === 0)).toBe(
-      false,
-    );
+    expect(subpath?.anchors.some((anchor) => anchor.position.x === 0 && anchor.position.y === 0)).toBe(false);
   });
 
   it('uses the corners setting to control the rounding radius', () => {
@@ -48,9 +45,7 @@ describe('traceRaster', () => {
     const high = traceRaster({ ...image, corners: 100 }).find((region) => region.fill === '#ff0000');
     const leftEdgeY = (region: TraceRegion | undefined) =>
       Math.min(
-        ...(region?.source.subpaths[0]?.anchors
-          .filter((anchor) => anchor.position.x === 0)
-          .map((anchor) => anchor.position.y) ?? []),
+        ...(region?.source.subpaths[0]?.anchors.filter((anchor) => anchor.position.x === 0).map((anchor) => anchor.position.y) ?? []),
       );
 
     expect(leftEdgeY(high)).toBeGreaterThan(leftEdgeY(low));
@@ -59,16 +54,13 @@ describe('traceRaster', () => {
   it('removes more contour anchors as optimization increases', () => {
     const image = raster(24, 24, (x, y) => (x < 12 + (y % 2) * 2 ? [255, 0, 0] : [0, 0, 255]));
     const countAnchors = (optimization: number) =>
-      traceRaster({ ...image, optimization }).find((region) => region.fill === '#ff0000')?.source
-        .subpaths[0]?.anchors.length ?? 0;
+      traceRaster({ ...image, optimization }).find((region) => region.fill === '#ff0000')?.source.subpaths[0]?.anchors.length ?? 0;
 
     expect(countAnchors(100)).toBeLessThan(countAnchors(0));
   });
 
   it('keeps a hole as a second subpath so evenodd fill can open it', () => {
-    const regions = traceRaster(
-      raster(8, 8, (x, y) => (x >= 2 && x < 6 && y >= 2 && y < 6 ? [0, 0, 255] : [255, 0, 0])),
-    );
+    const regions = traceRaster(raster(8, 8, (x, y) => (x >= 2 && x < 6 && y >= 2 && y < 6 ? [0, 0, 255] : [255, 0, 0])));
     const red = regions.find((region) => region.fill === '#ff0000');
     const blue = regions.find((region) => region.fill === '#0000ff');
     expect(red?.source.subpaths).toHaveLength(2);
@@ -119,11 +111,7 @@ describe('traceRaster', () => {
   });
 });
 
-function raster(
-  width: number,
-  height: number,
-  paint: (x: number, y: number) => readonly [number, number, number],
-): TraceRasterInput {
+function raster(width: number, height: number, paint: (x: number, y: number) => readonly [number, number, number]): TraceRasterInput {
   const rgba = new Uint8ClampedArray(width * height * 4);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -138,11 +126,21 @@ function raster(
   return { ...settings, width, height, rgba, frameWidth: width, frameHeight: height };
 }
 
-function bounds(region: TraceRegion | undefined): { minX: number; maxX: number; minY: number; maxY: number } {
+function bounds(region: TraceRegion | undefined): {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+} {
   return boundsOf(region?.source.subpaths.flatMap((subpath) => subpath.anchors.map((anchor) => anchor.position)) ?? []);
 }
 
-function boundsOf(points: readonly { x: number; y: number }[]): { minX: number; maxX: number; minY: number; maxY: number } {
+function boundsOf(points: readonly { x: number; y: number }[]): {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+} {
   return points.reduce(
     (box, point) => ({
       minX: Math.min(box.minX, point.x),

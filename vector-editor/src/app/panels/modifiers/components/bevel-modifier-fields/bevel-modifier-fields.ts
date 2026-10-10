@@ -42,11 +42,7 @@ export class BevelModifierFields {
       event.preventDefault();
     }
     const value = this.draft().distance;
-    if (
-      typeof value !== 'number' ||
-      !Number.isFinite(value) ||
-      value === this.modifier().distance
-    ) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value === this.modifier().distance) {
       return;
     }
     this.committed.emit({ distance: value });
@@ -57,11 +53,7 @@ export class BevelModifierFields {
       event.preventDefault();
     }
     const value = this.draft().miterLimit;
-    if (
-      typeof value !== 'number' ||
-      !Number.isFinite(value) ||
-      value === this.modifier().miterLimit
-    ) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value === this.modifier().miterLimit) {
       return;
     }
     this.committed.emit({ miterLimit: value });

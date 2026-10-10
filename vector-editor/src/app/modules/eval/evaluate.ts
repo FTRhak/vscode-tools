@@ -2,14 +2,7 @@ import { imageTraceDiagnostics } from '@vector-editor/modules/image-trace';
 import { applyMatrix, identityTransform, invertMatrix, matrixFromTransform } from '@vector-editor/modules/io';
 import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { isImage } from '@vector-editor/modules/object-image';
-import {
-  Modifier,
-  SourcePath,
-  Style,
-  Subpath,
-  svgStrokeDefaults,
-  VectorObject,
-} from '@vector-editor/modules/types';
+import { Modifier, SourcePath, Style, Subpath, svgStrokeDefaults, VectorObject } from '@vector-editor/modules/types';
 import { applyArray } from './array';
 import { applyBevel } from './bevel';
 import { clipBoolean, hasOpenSubpath, placeOperand } from './boolean';
@@ -98,10 +91,7 @@ export function captureClipperHold(objects: readonly VectorObject[]): ClipperHol
   return { steps };
 }
 
-export function evaluateSource(
-  source: SourcePath,
-  modifiers: readonly Modifier[],
-): EvaluatedSource {
+export function evaluateSource(source: SourcePath, modifiers: readonly Modifier[]): EvaluatedSource {
   const object: VectorObject = {
     id: 'source',
     name: '',
@@ -158,7 +148,11 @@ function walkStack(
     return { source: { subpaths: [] }, diagnostics: [], booleanRan: false };
   }
   if (isImage(object)) {
-    return { source: { subpaths: [] }, diagnostics: imageTraceDiagnostics(object), booleanRan: false };
+    return {
+      source: { subpaths: [] },
+      diagnostics: imageTraceDiagnostics(object),
+      booleanRan: false,
+    };
   }
   const diagnostics: string[] = [];
   let current = object.source;
@@ -279,12 +273,7 @@ function cyclicModifierIds(objects: readonly VectorObject[]): Set<string> {
   for (const object of objects) {
     const list = [];
     for (const modifier of object.modifiers) {
-      if (
-        modifier.enabled &&
-        modifier.type === 'boolean' &&
-        modifier.operandId.length > 0 &&
-        modifier.operandId !== object.id
-      ) {
+      if (modifier.enabled && modifier.type === 'boolean' && modifier.operandId.length > 0 && modifier.operandId !== object.id) {
         list.push({ modifierId: modifier.id, operandId: modifier.operandId });
       }
     }

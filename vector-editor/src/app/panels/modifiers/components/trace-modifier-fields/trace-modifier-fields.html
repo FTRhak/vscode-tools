@@ -11,42 +11,22 @@
   <fieldset class="axis">
     <legend>View</legend>
     <label>
-      <input
-        type="radio"
-        [name]="'view-' + modifier().id"
-        [checked]="modifier().view === 'result'"
-        (change)="commitView('result')"
-      />
+      <input type="radio" [name]="'view-' + modifier().id" [checked]="modifier().view === 'result'" (change)="commitView('result')" />
       Result
     </label>
     <label>
-      <input
-        type="radio"
-        [name]="'view-' + modifier().id"
-        [checked]="modifier().view === 'outlines'"
-        (change)="commitView('outlines')"
-      />
+      <input type="radio" [name]="'view-' + modifier().id" [checked]="modifier().view === 'outlines'" (change)="commitView('outlines')" />
       Outlines
     </label>
     <label>
-      <input
-        type="radio"
-        [name]="'view-' + modifier().id"
-        [checked]="modifier().view === 'source'"
-        (change)="commitView('source')"
-      />
+      <input type="radio" [name]="'view-' + modifier().id" [checked]="modifier().view === 'source'" (change)="commitView('source')" />
       Source image
     </label>
   </fieldset>
   <fieldset class="axis">
     <legend>Mode</legend>
     <label>
-      <input
-        type="radio"
-        [name]="'mode-' + modifier().id"
-        [checked]="modifier().mode === 'color'"
-        (change)="commitMode('color')"
-      />
+      <input type="radio" [name]="'mode-' + modifier().id" [checked]="modifier().mode === 'color'" (change)="commitMode('color')" />
       Color
     </label>
     <label>
@@ -59,12 +39,7 @@
       Colors Distance
     </label>
     <label>
-      <input
-        type="radio"
-        [name]="'mode-' + modifier().id"
-        [checked]="modifier().mode === 'grayscale'"
-        (change)="commitMode('grayscale')"
-      />
+      <input type="radio" [name]="'mode-' + modifier().id" [checked]="modifier().mode === 'grayscale'" (change)="commitMode('grayscale')" />
       Grayscale
     </label>
     <label>
@@ -131,7 +106,9 @@
     />
   </label>
   <label>
-    <span>Optimization <output>{{ modifier().optimization }}%</output></span>
+    <span
+      >Optimization <output>{{ modifier().optimization }}%</output></span
+    >
     <input
       type="range"
       min="0"

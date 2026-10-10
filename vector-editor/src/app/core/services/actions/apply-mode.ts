@@ -1,7 +1,6 @@
-import { SessionSlice } from "@vector-editor/modules/types";
-import { sameIds } from "./document-helpers";
-import { withoutEmptySelection } from "./without-empty-selection";
-
+import { SessionSlice } from '@vector-editor/modules/types';
+import { sameIds } from './document-helpers';
+import { withoutEmptySelection } from './without-empty-selection';
 
 export function applyMode(state: SessionSlice, mode: SessionSlice['mode']): SessionSlice {
   const cleared = mode === 'edit' ? withoutEmptySelection(state) : state.selection;
