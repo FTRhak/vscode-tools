@@ -10,7 +10,7 @@ import {
   SessionService,
 } from '@vector-editor/core';
 import { traceImageContent } from '@vector-editor/viewport';
-import { ModifierKind } from '../../../../core/model/modifier-edits';
+import { ModifierKind } from '@vector-editor/modules/modifier-edits';
 
 @Component({
   selector: 'app-modifiers-panel',

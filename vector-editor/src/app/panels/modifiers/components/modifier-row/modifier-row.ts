@@ -2,7 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
 import { isEmptyPoint, isImage, Modifier, TraceSettings, VectorObject } from '@vector-editor/core';
 import { traceImageContent } from '@vector-editor/viewport';
-import { ModifierPatch } from '../../../../core/model/modifier-edits';
+import { ModifierPatch } from '@vector-editor/modules/modifier-edits';
 import { TraceModifierPatch } from '../trace-modifier-fields/trace-modifier-fields';
 
 @Component({

@@ -1,17 +1,7 @@
 import { computed, Service, signal } from '@angular/core';
-import { Command, EditorMode, EditorTool } from '../commands/models/command';
-import {
-  emptyHistory,
-  emptySelection,
-  HistoryState,
-  historyLabel,
-  recordHistory,
-  SelectionState,
-  SessionSnapshot,
-} from '../commands/models/history';
-import { captureClipperHold, ClipperHold } from './eval/evaluate';
-import { alignObjects } from './model/align-objects';
-import { createNewDocument } from './model/create-document';
+import { alignObjects } from '@vector-editor/modules/align-objects';
+import { createNewDocument } from '@vector-editor/modules/create-document';
+import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
 import {
   addLayer,
   addPath,
@@ -23,9 +13,8 @@ import {
   setObjectStyle,
   updateGradient,
   updateLayer,
-} from './model/document-edits';
-import { deleteLayer, deleteObjects } from './model/delete-objects';
-import { duplicateObjects } from './model/duplicate-objects';
+} from '@vector-editor/modules/document-edits';
+import { duplicateObjects } from '@vector-editor/modules/duplicate-objects';
 import {
   deleteAnchors,
   insertPoint,
@@ -33,8 +22,10 @@ import {
   setAnchorPointType,
   setAnchorPosition,
   translateAnchors,
-} from './model/edit-path';
-import { expandTrace } from './model/expand-trace';
+} from '@vector-editor/modules/edit-path';
+import { addEmptyPoint, isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { expandTrace } from '@vector-editor/modules/expand-trace';
+import { addImage, isImage } from '@vector-editor/modules/image';
 import {
   addModifier,
   applyAllModifiers,
@@ -42,14 +33,11 @@ import {
   removeModifier,
   reorderModifier,
   updateModifier,
-} from './model/modifier-edits';
-import { isInteractionLocked, layersFrontToBack } from './model/paint-order';
-import { addEmptyPoint, isEmptyPoint } from './model/empty-point';
-import { addImage, isImage } from './model/image';
-import { addShape } from './model/shapes';
-import { addPenPoint, beginPenObject, finishPen, setPenHandles } from './model/pen-path';
-import { identityTransform, matrixFromTransform, transformSource } from './io/matrix';
-import { rotationOriginDocument, transformWithRotationOrigin } from './model/transform';
+} from '@vector-editor/modules/modifier-edits';
+import { isInteractionLocked, layersFrontToBack } from '@vector-editor/modules/paint-order';
+import { addPenPoint, beginPenObject, finishPen, setPenHandles } from '@vector-editor/modules/pen-path';
+import { addShape } from '@vector-editor/modules/shapes';
+import { rotationOriginDocument, transformWithRotationOrigin } from '@vector-editor/modules/transform';
 import {
   Document,
   ImagePlacement,
@@ -57,7 +45,19 @@ import {
   SourcePath,
   VectorObject,
   ViewportCamera,
-} from './model/types';
+} from '@vector-editor/modules/types';
+import { Command, EditorMode, EditorTool } from '../commands/models/command';
+import {
+  emptyHistory,
+  emptySelection,
+  historyLabel,
+  HistoryState,
+  recordHistory,
+  SelectionState,
+  SessionSnapshot,
+} from '../commands/models/history';
+import { captureClipperHold, ClipperHold } from './eval/evaluate';
+import { identityTransform, matrixFromTransform, transformSource } from './io/matrix';
 
 export interface SessionSlice {
   readonly mode: EditorMode;
