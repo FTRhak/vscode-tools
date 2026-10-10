@@ -89,7 +89,7 @@ export const svgStrokeDefaults: Pick<
   strokeAlign: 'default',
 };
 
-export type TraceMode = 'color' | 'grayscale' | 'blackAndWhite';
+export type TraceMode = 'color' | 'colorDistance' | 'grayscale' | 'blackAndWhite';
 
 export type TraceView = 'result' | 'outlines' | 'source';
 

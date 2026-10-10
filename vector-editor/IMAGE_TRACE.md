@@ -108,6 +108,11 @@ same edge limit.
 2. Assign each visible pixel to a palette label:
    - `color`: median-cut palette splitting by the RGB channel with the largest
      range, up to the requested color count.
+   - `colorDistance`: starts with the most frequent visible RGB color, then
+     repeatedly selects the distinct sampled color farthest from the existing
+     palette by minimum squared RGB distance. Pixels are assigned to their
+     nearest selected palette color. The palette contains up to the requested
+     number of colors.
    - `grayscale`: luminance bins, with each output gray based on its bin's
      average tone.
    - `blackAndWhite`: luminance compared with `threshold`; `colors` is not used.

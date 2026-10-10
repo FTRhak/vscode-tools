@@ -65,6 +65,21 @@ describe('traceRaster', () => {
     const solid = traceRaster({ ...image, mode: 'blackAndWhite', threshold: 250 });
     expect(solid.map((region) => region.fill)).toEqual(['#000000']);
   });
+
+  it('selects the most distant colors in color distance mode', () => {
+    const image = raster(8, 4, (x) => {
+      if (x < 6) {
+        return [255, 0, 0];
+      }
+      if (x === 6) {
+        return [200, 0, 0];
+      }
+      return [0, 0, 255];
+    });
+    const regions = traceRaster({ ...image, mode: 'colorDistance', colors: 2 });
+
+    expect(regions.map((region) => region.fill).sort()).toEqual(['#0000ff', '#ff0000']);
+  });
 });
 
 function raster(

@@ -258,8 +258,98 @@ function quantize(sample: Sample, settings: TraceSettings): { readonly labels: I
     });
     return mergePalette(dropWhite(labels, palette, settings.ignoreWhite), palette);
   }
+  if (settings.mode === 'colorDistance') {
+    const selected = farthestColors(sample, settings.colors);
+    return mergePalette(
+      dropWhite(assignNearestColors(sample, selected), selected.map(colorHex), settings.ignoreWhite),
+      selected.map(colorHex),
+    );
+  }
   const cut = medianCut(sample, settings.colors);
   return mergePalette(dropWhite(cut.labels, cut.palette, settings.ignoreWhite), cut.palette);
+}
+
+function farthestColors(sample: Sample, target: number): readonly number[] {
+  const frequencies = new Map<number, number>();
+  for (let index = 0; index < sample.width * sample.height; index += 1) {
+    const offset = index * 4;
+    if ((sample.rgba[offset + 3] ?? 0) < 128) {
+      continue;
+    }
+    const color = packColor(sample.rgba[offset] ?? 0, sample.rgba[offset + 1] ?? 0, sample.rgba[offset + 2] ?? 0);
+    frequencies.set(color, (frequencies.get(color) ?? 0) + 1);
+  }
+  const colors = [...frequencies.keys()].sort((left, right) => left - right);
+  if (colors.length === 0) {
+    return [];
+  }
+  let first = colors[0] ?? 0;
+  let highestFrequency = 0;
+  for (const color of colors) {
+    const frequency = frequencies.get(color) ?? 0;
+    if (frequency > highestFrequency) {
+      first = color;
+      highestFrequency = frequency;
+    }
+  }
+  const selected = [first];
+  const minDistances = new Uint32Array(colors.length);
+  while (selected.length < target && selected.length < colors.length) {
+    const latest = selected[selected.length - 1] ?? 0;
+    let best = -1;
+    let bestDistance = -1;
+    for (let index = 0; index < colors.length; index += 1) {
+      const color = colors[index] ?? 0;
+      const distance = colorDistanceSquared(color, latest);
+      minDistances[index] = Math.min(minDistances[index] || Number.MAX_SAFE_INTEGER, distance);
+      if (!selected.includes(color) && minDistances[index] > bestDistance) {
+        best = index;
+        bestDistance = minDistances[index] ?? 0;
+      }
+    }
+    if (best < 0) {
+      break;
+    }
+    selected.push(colors[best] ?? 0);
+  }
+  return selected;
+}
+
+function assignNearestColors(sample: Sample, palette: readonly number[]): Int16Array {
+  const labels = new Int16Array(sample.width * sample.height).fill(-1);
+  for (let index = 0; index < labels.length; index += 1) {
+    const offset = index * 4;
+    if ((sample.rgba[offset + 3] ?? 0) < 128) {
+      continue;
+    }
+    const color = packColor(sample.rgba[offset] ?? 0, sample.rgba[offset + 1] ?? 0, sample.rgba[offset + 2] ?? 0);
+    let closest = 0;
+    let closestDistance = Number.MAX_SAFE_INTEGER;
+    for (let label = 0; label < palette.length; label += 1) {
+      const distance = colorDistanceSquared(color, palette[label] ?? 0);
+      if (distance < closestDistance) {
+        closest = label;
+        closestDistance = distance;
+      }
+    }
+    labels[index] = closest;
+  }
+  return labels;
+}
+
+function packColor(red: number, green: number, blue: number): number {
+  return (red << 16) | (green << 8) | blue;
+}
+
+function colorDistanceSquared(left: number, right: number): number {
+  const red = ((left >> 16) & 255) - ((right >> 16) & 255);
+  const green = ((left >> 8) & 255) - ((right >> 8) & 255);
+  const blue = (left & 255) - (right & 255);
+  return red * red + green * green + blue * blue;
+}
+
+function colorHex(color: number): string {
+  return `#${color.toString(16).padStart(6, '0')}`;
 }
 
 function medianCut(sample: Sample, target: number): { readonly labels: Int16Array; readonly palette: readonly string[] } {
@@ -826,7 +916,9 @@ function unit(x: number, y: number): Point {
 }
 
 function traceMode(value: TraceMode): TraceMode {
-  return value === 'grayscale' || value === 'blackAndWhite' || value === 'color' ? value : 'color';
+  return value === 'colorDistance' || value === 'grayscale' || value === 'blackAndWhite' || value === 'color'
+    ? value
+    : 'color';
 }
 
 function clampInteger(value: number, min: number, max: number, fallback: number): number {

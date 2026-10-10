@@ -854,9 +854,18 @@ describe('image svg', () => {
     expect(added).not.toBeNull();
     const traced = {
       ...added!.document,
-      objects: added!.document.objects.map((object) =>
-        object.id === added!.objectId ? addModifier(object, 'trace', added!.document.objects, { regions }) : object,
-      ),
+      objects: added!.document.objects.map((object) => {
+        if (object.id !== added!.objectId) {
+          return object;
+        }
+        const tracedObject = addModifier(object, 'trace', added!.document.objects, { regions });
+        return {
+          ...tracedObject,
+          modifiers: tracedObject.modifiers.map((modifier) =>
+            modifier.type === 'trace' ? { ...modifier, mode: 'colorDistance' as const } : modifier,
+          ),
+        };
+      }),
     };
 
     const all = importSvg(exportSvg(traced, 'all'));
@@ -870,7 +879,7 @@ describe('image svg', () => {
     const allImage = all.document.objects.find((object) => object.kind === 'image');
     expect(allImage?.image?.dataUrl).toBe(pixel);
     expect(allImage?.transform).toMatchObject({ x: 4, y: 6 });
-    expect(allImage?.modifiers[0]).toMatchObject({ type: 'trace', mode: 'color', colors: 16 });
+    expect(allImage?.modifiers[0]).toMatchObject({ type: 'trace', mode: 'colorDistance', colors: 16 });
     expect(allImage?.modifiers[0]?.type === 'trace' ? allImage.modifiers[0].regions : []).toHaveLength(2);
 
     const optimized = importSvg(exportSvg(traced, 'optimized'));
@@ -880,7 +889,11 @@ describe('image svg', () => {
     }
     const optimizedImage = optimized.document.objects.find((object) => object.kind === 'image');
     expect(optimizedImage?.modifiers).toHaveLength(1);
-    expect(optimizedImage?.modifiers[0]).toMatchObject({ type: 'trace', view: 'result' });
+    expect(optimizedImage?.modifiers[0]).toMatchObject({
+      type: 'trace',
+      mode: 'colorDistance',
+      view: 'result',
+    });
     expect(optimizedImage?.modifiers[0]?.type === 'trace' ? optimizedImage.modifiers[0].regions : []).toHaveLength(2);
     expect(optimizedImage?.image?.dataUrl).toBe(pixel);
 

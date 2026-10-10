@@ -53,6 +53,15 @@
       <input
         type="radio"
         [name]="'mode-' + modifier().id"
+        [checked]="modifier().mode === 'colorDistance'"
+        (change)="commitMode('colorDistance')"
+      />
+      Colors Distance
+    </label>
+    <label>
+      <input
+        type="radio"
+        [name]="'mode-' + modifier().id"
         [checked]="modifier().mode === 'grayscale'"
         (change)="commitMode('grayscale')"
       />

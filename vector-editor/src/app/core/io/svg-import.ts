@@ -848,7 +848,12 @@ function readModifier(
   }
   if (value['type'] === 'trace') {
     const settings = clampTraceSettings({
-      mode: value['mode'] === 'grayscale' || value['mode'] === 'blackAndWhite' ? value['mode'] : 'color',
+      mode:
+        value['mode'] === 'colorDistance' ||
+        value['mode'] === 'grayscale' ||
+        value['mode'] === 'blackAndWhite'
+          ? value['mode']
+          : 'color',
       colors: finiteField(value, 'colors', 16),
       threshold: finiteField(value, 'threshold', 128),
       paths: finiteField(value, 'paths', 50),
