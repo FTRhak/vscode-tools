@@ -1,2 +1,1 @@
-export { SessionService } from './session.service';
-export type { SessionSlice } from './session.service';
+export { SessionService } from './services/session.service';

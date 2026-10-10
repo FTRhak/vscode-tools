@@ -26,3 +26,4 @@ export * from './viewport-camera.model';
 export * from './view-box.model';
 export * from './layer.model';
 export * from './swatch.model';
+export * from './session-slice.model';
