@@ -1,1 +1,1 @@
-export { StrokePanel } from './components';
+export { StrokeModule } from './stroke.module';

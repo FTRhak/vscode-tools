@@ -1,0 +1,1 @@
+export type { StrokeDraft } from './stroke-draft.model';

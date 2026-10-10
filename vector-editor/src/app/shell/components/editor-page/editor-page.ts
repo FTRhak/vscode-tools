@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { KeymapService } from '@vector-editor/keymap';
-import { AlignPanel } from '@vector-editor/panels/align';
+import { AlignModule } from '@vector-editor/panels/align';
 import { PanelColorModule } from '@vector-editor/panels/color';
 import { HistoryPanel } from '@vector-editor/panels/history';
 import { PanelModifiersModule } from '@vector-editor/panels/modifiers';
 import { PanelOptionsModule } from '@vector-editor/panels/options';
 import { OutlinerModule } from '@vector-editor/panels/outliner';
 import { PanelPreviewModule } from '@vector-editor/panels/preview';
-import { StrokePanel } from '@vector-editor/panels/stroke';
+import { StrokeModule } from '@vector-editor/panels/stroke';
 import { SwatchesPanel } from '@vector-editor/panels/swatches';
 import { ToolsModule } from '@vector-editor/panels/tools';
 import { Viewport } from '@vector-editor/viewport';
@@ -26,11 +26,11 @@ import { TopBar } from '../top-bar/top-bar';
     Viewport,
     OutlinerModule,
     PanelOptionsModule,
-    AlignPanel,
+    AlignModule,
     PanelModifiersModule,
     ToolsModule,
     PanelColorModule,
-    StrokePanel,
+    StrokeModule,
     SwatchesPanel,
     PanelPreviewModule,
     HistoryPanel,

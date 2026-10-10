@@ -1,19 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
 import { AlignEdge, AlignTarget, canAlignObjects, SessionService } from '@vector-editor/core';
-import { SharedModule } from '@vector-editor/shared';
-
-type IconLine = readonly [number, number, number, number];
-
-interface AlignAction {
-  readonly edge: AlignEdge;
-  readonly label: string;
-  readonly lines: readonly IconLine[];
-}
+import { AlignAction } from '../../models';
 
 @Component({
   selector: 'align-panel',
-  imports: [SharedModule],
+  standalone: false,
   templateUrl: './align-panel.html',
   styleUrl: './align-panel.scss',
 })
@@ -27,62 +19,32 @@ export class AlignPanel {
     {
       edge: 'left',
       label: 'Align left',
-      lines: [
-        [2, 1, 2, 15],
-        [5, 3, 14, 3],
-        [5, 8, 10, 8],
-        [5, 13, 12, 13],
-      ],
+      icon: '&#xe10c;',
     },
     {
       edge: 'horizontalCenter',
       label: 'Align horizontal center',
-      lines: [
-        [8, 1, 8, 15],
-        [3, 3, 13, 3],
-        [5, 8, 11, 8],
-        [4, 13, 12, 13],
-      ],
+      icon: '&#xe10b;',
     },
     {
       edge: 'right',
       label: 'Align right',
-      lines: [
-        [14, 1, 14, 15],
-        [2, 3, 11, 3],
-        [6, 8, 11, 8],
-        [4, 13, 11, 13],
-      ],
+      icon: '&#xe10d;',
     },
     {
       edge: 'top',
       label: 'Align top',
-      lines: [
-        [1, 2, 15, 2],
-        [3, 5, 3, 14],
-        [8, 5, 8, 10],
-        [13, 5, 13, 12],
-      ],
+      icon: '&#xe10f;',
     },
     {
       edge: 'verticalCenter',
       label: 'Align vertical center',
-      lines: [
-        [1, 8, 15, 8],
-        [3, 3, 3, 13],
-        [8, 5, 8, 11],
-        [13, 4, 13, 12],
-      ],
+      icon: '&#xe10e;',
     },
     {
       edge: 'bottom',
       label: 'Align bottom',
-      lines: [
-        [1, 14, 15, 14],
-        [3, 2, 3, 11],
-        [8, 6, 8, 11],
-        [13, 4, 13, 11],
-      ],
+      icon: '&#xe110;',
     },
   ];
 

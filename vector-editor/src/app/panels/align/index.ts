@@ -1,1 +1,1 @@
-export { AlignPanel } from './components';
+export { AlignModule } from './align.module';

@@ -1,22 +1,14 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
-import { form, FormField, max, min } from '@angular/forms/signals';
+import { form, max, min } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
 import { SessionService, VectorObject } from '@vector-editor/core';
-import { SharedModule } from '@vector-editor/shared';
-
-interface StrokeDraft {
-  readonly strokeWidth: number | null;
-  readonly strokeMiterlimit: number | null;
-  readonly strokeOpacity: number | null;
-  readonly strokeDashoffset: number | null;
-  readonly strokeDasharray: string;
-}
+import { StrokeDraft } from '../../models';
 
 type NumberField = 'strokeMiterlimit' | 'strokeOpacity' | 'strokeDashoffset';
 
 @Component({
   selector: 'stroke-panel',
-  imports: [SharedModule, FormField],
+  standalone: false,
   templateUrl: './stroke-panel.html',
   styleUrl: './stroke-panel.scss',
 })
