@@ -1,4 +1,4 @@
-import type { Document } from '@vector-editor/core';
+import type { Document } from '@vector-editor/modules/types';
 import type { Command, EditSelectionKind, EditorMode } from './command';
 
 export interface SelectionState {

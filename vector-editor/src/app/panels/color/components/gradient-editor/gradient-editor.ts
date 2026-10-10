@@ -3,15 +3,15 @@ import { CdkPortal, CdkPortalOutlet } from '@angular/cdk/portal';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ColorSlot, CommandBus } from '@vector-editor/commands';
 import {
-  createId,
   Gradient,
   GradientStop,
   GradientType,
-  nextSeriesName,
-  SessionService,
-} from '@vector-editor/core';
+} from '@vector-editor/modules/types';
 import { ColorTarget } from '../../services/color-target';
 import { gradientBackground } from '../../../../viewport/utils/scene';
+import { SessionService } from '@vector-editor/core';
+import { createId } from '@vector-editor/core/utils';
+import { nextSeriesName } from '@vector-editor/modules/document-edits';
 
 @Component({
   selector: 'app-gradient-editor',

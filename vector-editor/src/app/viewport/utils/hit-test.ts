@@ -1,17 +1,15 @@
+import { ClipperHold, EvaluatedGeometry, evaluateDocument } from '@vector-editor/core';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { isImage } from '@vector-editor/modules/image';
+import { objectsInPaintOrder } from '@vector-editor/modules/paint-order';
 import {
-  ClipperHold,
   Document,
-  evaluateDocument,
-  isEmptyPoint,
-  isImage,
-  EvaluatedGeometry,
-  objectsInPaintOrder,
   ObjectTransform,
   SourcePath,
   Subpath,
   Vec2,
   VectorObject,
-} from '@vector-editor/core';
+} from '@vector-editor/modules/types';
 import { effectiveStrokeAlign } from './scene';
 
 export interface DocumentRect {

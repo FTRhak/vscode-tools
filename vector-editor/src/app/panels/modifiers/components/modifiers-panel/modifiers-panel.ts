@@ -2,15 +2,15 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, computed, inject } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
 import {
-  defaultTraceSettings,
   evaluateDocument,
-  isEmptyPoint,
-  isImage,
-  Modifier,
   SessionService,
 } from '@vector-editor/core';
 import { traceImageContent } from '@vector-editor/viewport';
 import { ModifierKind } from '@vector-editor/modules/modifier-edits';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { isImage } from '@vector-editor/modules/image';
+import { defaultTraceSettings } from '@vector-editor/modules/image-trace';
+import { Modifier } from '@vector-editor/modules/types';
 
 @Component({
   selector: 'app-modifiers-panel',

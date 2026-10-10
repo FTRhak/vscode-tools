@@ -1,6 +1,6 @@
-import { createId } from '../model/create-id';
-import { imageContent, isImageDataUrl, isImageMime } from '../model/image';
-import { clampTraceSettings } from '../model/image-trace';
+import { createId } from '@vector-editor/core/utils';
+import { imageContent, isImageDataUrl, isImageMime } from '@vector-editor/modules/image';
+import { clampTraceSettings } from '@vector-editor/modules/image-trace';
 import {
   Anchor,
   Document,
@@ -13,13 +13,13 @@ import {
   Segment,
   SourcePath,
   Style,
-  svgStrokeDefaults,
   Subpath,
+  svgStrokeDefaults,
   Swatch,
   TraceRegion,
   Vec2,
   VectorObject,
-} from '../model/types';
+} from '@vector-editor/modules/types';
 import {
   identityTransform,
   Matrix,

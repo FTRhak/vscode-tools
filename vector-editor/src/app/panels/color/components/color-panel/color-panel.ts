@@ -1,8 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { ColorSlot, CommandBus } from '@vector-editor/commands';
-import { Gradient, SessionService, VectorObject } from '@vector-editor/core';
-import { ColorTarget } from '../../services/color-target';
+import { SessionService } from '@vector-editor/core';
+import { Gradient, VectorObject } from '@vector-editor/modules/types';
 import { gradientBackground } from '../../../../viewport/utils/scene';
+import { ColorTarget } from '../../services/color-target';
 
 type SharedColor =
   | { readonly kind: 'color'; readonly value: string }

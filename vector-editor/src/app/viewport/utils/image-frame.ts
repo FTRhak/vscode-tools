@@ -1,4 +1,4 @@
-import { ImageAspect, Vec2 } from '@vector-editor/core';
+import { ImageAspect, Vec2 } from '@vector-editor/modules/types';
 
 export interface ImageFrame {
   readonly x: number;

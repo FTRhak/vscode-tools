@@ -2,10 +2,11 @@ import { DOCUMENT } from '@angular/common';
 import { inject, Service } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Command, CommandBus, EditorTool, oppositeMode } from '@vector-editor/commands';
-import { deletableObjectIds, SessionService } from '@vector-editor/core';
+import { SessionService } from '@vector-editor/core';
 import { fromEvent } from 'rxjs';
 import { FileActions } from '../../shell/services/file-actions.service';
 import { ImagePlace } from '@vector-editor/viewport';
+import { deletableObjectIds } from '@vector-editor/modules/delete-objects';
 
 const toolKeys: Readonly<Record<string, EditorTool>> = {
   v: 'select',

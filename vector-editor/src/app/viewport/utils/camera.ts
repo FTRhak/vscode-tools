@@ -1,4 +1,4 @@
-import { Vec2, ViewBox, ViewportCamera } from '@vector-editor/core';
+import { Vec2, ViewBox, ViewportCamera } from '@vector-editor/modules/types';
 
 export const MIN_ZOOM = 0.02;
 export const MAX_ZOOM = 64;

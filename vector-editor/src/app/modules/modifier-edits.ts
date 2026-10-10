@@ -1,6 +1,7 @@
-import { evaluateObjectPrefix } from '../eval/evaluate';
-import { remintSource } from '../eval/remint';
-import { createId } from './create-id';
+
+import { createId } from '@vector-editor/core/utils';
+import { evaluateObjectPrefix } from '../core/eval/evaluate';
+import { remintSource } from '../core/eval/remint';
 import { isEmptyPoint } from './empty-point';
 import { isImage } from './image';
 import {

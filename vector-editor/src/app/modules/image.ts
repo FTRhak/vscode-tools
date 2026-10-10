@@ -1,5 +1,5 @@
 import { nextSeriesName } from './document-edits';
-import { createId } from './create-id';
+import { createId } from '../core/utils/create-id';
 import {
   Document,
   ImageAspect,

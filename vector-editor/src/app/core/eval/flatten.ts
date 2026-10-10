@@ -1,5 +1,5 @@
 import { type Path64, type Paths64 } from 'clipper2-ts';
-import { SourcePath, Subpath, Vec2 } from '../model/types';
+import { SourcePath, Subpath, Vec2 } from '@vector-editor/modules/types';
 import { replicaId } from './copy-subpath';
 
 export const CLIPPER_SCALE = 1000;

@@ -1,4 +1,4 @@
-import { Modifier, SourcePath, Vec2 } from '../model/types';
+import { Modifier, SourcePath, Vec2 } from '@vector-editor/modules/types';
 import { sourceBounds } from './bounds';
 import { mapSubpath } from './copy-subpath';
 

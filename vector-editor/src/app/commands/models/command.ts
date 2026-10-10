@@ -11,7 +11,7 @@ import type {
   SourcePath,
   Style,
   Vec2,
-} from '../../core/model/types';
+} from '@vector-editor/modules/types';
 
 export type ColorSlot = 'fill' | 'stroke';
 

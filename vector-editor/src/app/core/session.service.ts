@@ -1,6 +1,6 @@
 import { computed, Service, signal } from '@angular/core';
 import { alignObjects } from '@vector-editor/modules/align-objects';
-import { createNewDocument } from '@vector-editor/modules/create-document';
+import { createNewDocument } from '../modules/create-document';
 import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
 import {
   addLayer,

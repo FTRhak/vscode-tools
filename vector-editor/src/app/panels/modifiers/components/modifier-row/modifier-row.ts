@@ -1,8 +1,11 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { isEmptyPoint, isImage, Modifier, TraceSettings, VectorObject } from '@vector-editor/core';
-import { traceImageContent } from '@vector-editor/viewport';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { isImage } from '@vector-editor/modules/image';
+import { TraceSettings } from '@vector-editor/modules/image-trace';
 import { ModifierPatch } from '@vector-editor/modules/modifier-edits';
+import { Modifier, VectorObject } from '@vector-editor/modules/types';
+import { traceImageContent } from '@vector-editor/viewport';
 import { TraceModifierPatch } from '../trace-modifier-fields/trace-modifier-fields';
 
 @Component({

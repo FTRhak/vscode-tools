@@ -1,4 +1,4 @@
-import { Document, Vec2, VectorObject } from '@vector-editor/core';
+import { Document, Vec2, VectorObject } from '@vector-editor/modules/types';
 import { localToDocument } from './hit-test';
 
 export type SnapMode = 'off' | 'grid_100' | 'grid_010' | 'grid_001' | 'object' | 'layer';

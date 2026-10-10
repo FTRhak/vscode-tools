@@ -1,6 +1,6 @@
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
-import { Modifier } from '@vector-editor/core';
+import { Modifier } from '@vector-editor/modules/types';
 
 type ArrayModifier = Extract<Modifier, { type: 'array' }>;
 

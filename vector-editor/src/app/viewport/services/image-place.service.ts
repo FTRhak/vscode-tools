@@ -1,6 +1,8 @@
 import { DOCUMENT } from '@angular/common';
 import { DestroyRef, effect, inject, Service, signal } from '@angular/core';
-import { ImageMime, imageObjectName, isImageMime, SessionService } from '@vector-editor/core';
+import { SessionService } from '@vector-editor/core';
+import { imageObjectName, isImageMime } from '@vector-editor/modules/image';
+import { ImageMime } from '@vector-editor/modules/types';
 import { FileActions } from '../../shell/services/file-actions.service';
 
 export interface ArmedImage {

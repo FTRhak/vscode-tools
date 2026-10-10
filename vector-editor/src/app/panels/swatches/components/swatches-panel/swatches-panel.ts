@@ -1,9 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { nextSeriesName, SessionService, VectorObject } from '@vector-editor/core';
+import { SessionService } from '@vector-editor/core';
 import { SharedModule } from '@vector-editor/shared';
 import { ColorTarget } from '../../../color/services/color-target';
 import { gradientBackground } from '../../../../viewport/utils/scene';
+import { VectorObject } from '@vector-editor/modules/types';
+import { nextSeriesName } from '@vector-editor/modules/document-edits';
 
 @Component({
   imports: [SharedModule],

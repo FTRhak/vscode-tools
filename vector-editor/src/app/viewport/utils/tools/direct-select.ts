@@ -1,4 +1,4 @@
-import { ObjectTransform, Vec2, VectorObject } from '@vector-editor/core';
+import { ObjectTransform, Vec2, VectorObject } from '@vector-editor/modules/types';
 import { Command, TranslateGesture } from '../../../commands/models/command';
 import { AnchorHit, anchorHitRadius, hitTestAnchor } from '../anchor-hit';
 import { documentDeltaToLocal } from '../hit-test';

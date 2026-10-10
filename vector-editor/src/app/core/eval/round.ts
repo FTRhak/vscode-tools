@@ -1,4 +1,4 @@
-import { Anchor, Modifier, Segment, SourcePath, Subpath, Vec2 } from '../model/types';
+import { Anchor, Modifier, Segment, SourcePath, Subpath, Vec2 } from '@vector-editor/modules/types';
 import { collectPoints } from './flatten';
 
 type RoundModifier = Extract<Modifier, { type: 'round' }>;

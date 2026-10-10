@@ -1,5 +1,5 @@
 import { EndType, inflatePaths, JoinType } from 'clipper2-ts';
-import { Modifier, SourcePath } from '../model/types';
+import { Modifier, SourcePath } from '@vector-editor/modules/types';
 import { CLIPPER_SCALE, flattenSource, sourceFromPaths } from './flatten';
 
 type BevelModifier = Extract<Modifier, { type: 'bevel' }>;

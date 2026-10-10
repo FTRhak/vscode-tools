@@ -1,4 +1,4 @@
-export { createId } from './create-id';
+export { createId } from '../core/utils/create-id';
 export { createNewDocument, defaultDocumentHeight, defaultDocumentWidth } from './create-document';
 export type { DocumentSize } from './create-document';
 export {

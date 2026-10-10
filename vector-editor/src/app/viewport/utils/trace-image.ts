@@ -1,11 +1,9 @@
+import { TRACE_SAMPLE_LIMIT, traceRaster, TraceSettings } from '@vector-editor/modules/image-trace';
 import {
   ImageContent,
-  TRACE_SAMPLE_LIMIT,
   TraceFault,
   TraceRegion,
-  TraceSettings,
-  traceRaster,
-} from '@vector-editor/core';
+} from '@vector-editor/modules/types';
 
 export interface TraceImageResult {
   readonly regions: readonly TraceRegion[];

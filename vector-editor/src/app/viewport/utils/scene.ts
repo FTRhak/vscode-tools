@@ -1,19 +1,17 @@
+import { ClipperHold, evaluateDocument } from '@vector-editor/core';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { isImage } from '@vector-editor/modules/image';
+import { enabledTrace, tracePreview } from '@vector-editor/modules/image-trace';
+import { objectsInPaintOrder } from '@vector-editor/modules/paint-order';
+import { sourceToPathData } from '@vector-editor/modules/path-data';
 import {
-  ClipperHold,
   Document,
-  enabledTrace,
-  evaluateDocument,
   Gradient,
-  isEmptyPoint,
-  isImage,
-  tracePreview,
   ObjectTransform,
-  objectsInPaintOrder,
-  sourceToPathData,
   Style,
   Subpath,
   ViewBox,
-} from '@vector-editor/core';
+} from '@vector-editor/modules/types';
 
 export type SceneSurface = 'viewport' | 'preview';
 

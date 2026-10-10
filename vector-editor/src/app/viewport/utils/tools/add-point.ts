@@ -1,4 +1,5 @@
-import { INSERT_POINT_MARGIN, ObjectTransform, SourcePath, Vec2 } from '@vector-editor/core';
+import { INSERT_POINT_MARGIN } from '@vector-editor/modules/edit-path';
+import { ObjectTransform, SourcePath, Vec2 } from '@vector-editor/modules/types';
 
 export const ADD_POINT_HIT_PX = 8;
 

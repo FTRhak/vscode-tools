@@ -1,4 +1,4 @@
-import { createId } from './create-id';
+import { createId } from '../core/utils/create-id';
 import { Anchor, Document, Modifier, SourcePath, Subpath, VectorObject } from './types';
 
 export const DUPLICATE_OFFSET = 24;

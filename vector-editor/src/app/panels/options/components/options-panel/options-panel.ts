@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
-import { Anchor, SessionService } from '@vector-editor/core';
+import { SessionService } from '@vector-editor/core';
+import { Anchor } from '@vector-editor/modules/types';
 
 @Component({
   selector: 'app-options-panel',

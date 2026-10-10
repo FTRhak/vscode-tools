@@ -1,14 +1,10 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
-import { form, FormField } from '@angular/forms/signals';
+import { form } from '@angular/forms/signals';
 import { CommandBus } from '@vector-editor/commands';
-import {
-  Document,
-  isInteractionLocked,
-  ObjectTransform,
-  rotationOriginDocument,
-  SessionService,
-  VectorObject,
-} from '@vector-editor/core';
+import { SessionService } from '@vector-editor/core';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order';
+import { rotationOriginDocument } from '@vector-editor/modules/transform';
+import { Document, ObjectTransform, VectorObject } from '@vector-editor/modules/types';
 
 type TransformKey = 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY';
 type PivotAxis = 'x' | 'y';

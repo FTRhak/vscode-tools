@@ -2,24 +2,10 @@ import { Component, computed, DestroyRef, effect, ElementRef, inject, signal } f
 import { fromEvent } from 'rxjs';
 import { CommandBus, TranslateGesture } from '@vector-editor/commands';
 import {
-  clampShapeCount,
   Document,
-  isEmptyPoint,
-  isImage,
-  isInteractionLocked,
-  isShapeKind,
-  objectsInPaintOrder,
-  rotationOriginDocument,
-  SessionService,
-  SHAPE_NAMES,
-  ShapeDrag,
-  ShapeKind,
-  shapeSource,
-  shapeSourceFromDrag,
-  sourceToPathData,
   Vec2,
   VectorObject,
-} from '@vector-editor/core';
+} from '@vector-editor/modules/types';
 import { anchorsInRect } from '../../utils/anchor-hit';
 import { imageFrameAt, imageFrameFromDrag, ImageFrame } from '../../utils/image-frame';
 import { ArmedImage, ImagePlace } from '../../services/image-place.service';
@@ -64,6 +50,13 @@ import {
 } from '../../utils/tools/direct-select';
 import { addPointHitRadius, hitTestSegment } from '../../utils/tools/add-point';
 import { PenDrag, penPreviewData, startPen, updatePenDrag } from '../../utils/tools/pen';
+import { SessionService } from '@vector-editor/core';
+import { isInteractionLocked, objectsInPaintOrder } from '@vector-editor/modules/paint-order';
+import { isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { rotationOriginDocument } from '@vector-editor/modules/transform';
+import { isImage } from '@vector-editor/modules/image';
+import { clampShapeCount, isShapeKind, SHAPE_NAMES, ShapeDrag, ShapeKind, shapeSource, shapeSourceFromDrag } from '@vector-editor/modules/shapes';
+import { sourceToPathData } from '@vector-editor/modules/path-data';
 
 interface PanGesture {
   readonly pointerId: number;

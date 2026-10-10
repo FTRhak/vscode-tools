@@ -1,5 +1,5 @@
-import { remintSource } from '../eval/remint';
-import { createId } from './create-id';
+import { remintSource } from '../core/eval/remint';
+import { createId } from '@vector-editor/core/utils';
 import { nextSeriesName } from './document-edits';
 import { isImage } from './image';
 import { Document, svgStrokeDefaults, VectorObject } from './types';

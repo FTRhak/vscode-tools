@@ -1,4 +1,4 @@
-import { createId } from './create-id';
+import { createId } from '../core/utils/create-id';
 import { Anchor, Segment, SourcePath, Subpath, Vec2 } from './types';
 
 export type HandleSlot = 'in' | 'out';

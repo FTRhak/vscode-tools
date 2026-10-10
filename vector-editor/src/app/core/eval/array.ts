@@ -1,4 +1,4 @@
-import { Modifier, SourcePath } from '../model/types';
+import { Modifier, SourcePath } from '@vector-editor/modules/types';
 import { mapSubpath } from './copy-subpath';
 
 type ArrayModifier = Extract<Modifier, { type: 'array' }>;

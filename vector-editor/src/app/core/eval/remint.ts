@@ -1,5 +1,5 @@
-import { createId } from '../model/create-id';
-import { SourcePath } from '../model/types';
+import { createId } from '@vector-editor/core/utils';
+import { SourcePath } from '@vector-editor/modules/types';
 
 export function remintSource(source: SourcePath): SourcePath {
   return {

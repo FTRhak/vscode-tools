@@ -1,4 +1,4 @@
-import { createId } from './create-id';
+import { createId } from '@vector-editor/core/utils';
 import {
   Anchor,
   Document,
