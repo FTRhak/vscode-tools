@@ -1,7 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point';
-import { isImage } from '@vector-editor/modules/image';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { isImage } from '@vector-editor/modules/object-image';
 import { TraceSettings } from '@vector-editor/modules/image-trace';
 import { ModifierPatch } from '@vector-editor/modules/modifier-edits';
 import { Modifier, VectorObject } from '@vector-editor/modules/types';

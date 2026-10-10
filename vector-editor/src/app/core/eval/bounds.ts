@@ -1,6 +1,6 @@
 import { applyMatrix, matrixFromTransform } from '../io/matrix';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point';
-import { isImage } from '@vector-editor/modules/image';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { isImage } from '@vector-editor/modules/object-image';
 import { SourcePath, Vec2, VectorObject } from '@vector-editor/modules/types';
 import { collectPoints } from './flatten';
 

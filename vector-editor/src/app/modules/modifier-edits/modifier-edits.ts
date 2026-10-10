@@ -2,7 +2,7 @@
 import { createId } from '@vector-editor/core/utils';
 import { evaluateObjectPrefix } from '../../core/eval/evaluate';
 import { remintSource } from '../../core/eval/remint';
-import { isEmptyPoint } from '../empty-point';
+import { isEmptyPoint } from '../object-empty-point';
 import {
   clampTraceSettings,
   defaultTraceSettings,
@@ -10,7 +10,7 @@ import {
   traceFault,
   traceView,
 } from '../image-trace';
-import { isImage } from '../image';
+import { isImage } from '../object-image';
 import { Modifier, Style, TraceFault, TraceMode, TraceRegion, TraceView, VectorObject } from '../types';
 
 export interface ModifierPatch {

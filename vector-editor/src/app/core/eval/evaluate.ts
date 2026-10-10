@@ -1,5 +1,5 @@
-import { isEmptyPoint } from '@vector-editor/modules/empty-point';
-import { isImage } from '@vector-editor/modules/image';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { isImage } from '@vector-editor/modules/object-image';
 import { imageTraceDiagnostics } from '@vector-editor/modules/image-trace';
 import {
   Modifier,

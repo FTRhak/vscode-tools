@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { DestroyRef, effect, inject, Service, signal } from '@angular/core';
 import { SessionService } from '@vector-editor/core';
-import { imageObjectName, isImageMime } from '@vector-editor/modules/image';
+import { imageObjectName, isImageMime } from '@vector-editor/modules/object-image';
 import { ImageMime } from '@vector-editor/modules/types';
 import { FileActions } from '../../shell/services/file-actions.service';
 

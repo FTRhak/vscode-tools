@@ -5,9 +5,9 @@ import {
   evaluateDocument,
   SessionService,
 } from '@vector-editor/core';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { defaultTraceSettings } from '@vector-editor/modules/image-trace';
-import { isImage } from '@vector-editor/modules/image/image';
+import { isImage } from '@vector-editor/modules/object-image';
 import { ModifierKind } from '@vector-editor/modules/modifier-edits';
 import { Modifier } from '@vector-editor/modules/types';
 import { traceImageContent } from '@vector-editor/viewport';

@@ -1,5 +1,5 @@
 import { computed, Service, signal } from '@angular/core';
-import { alignObjects } from '@vector-editor/modules/align-objects';
+import { alignObjects } from '@vector-editor/modules/feature-align-objects';
 import { createNewDocument } from '../modules/create-document/create-document';
 import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
 import {
@@ -23,9 +23,9 @@ import {
   setAnchorPosition,
   translateAnchors,
 } from '@vector-editor/modules/edit-path';
-import { addEmptyPoint, isEmptyPoint } from '@vector-editor/modules/empty-point';
+import { addEmptyPoint, isEmptyPoint } from '@vector-editor/modules/object-empty-point';
 import { expandTrace } from '@vector-editor/modules/expand-trace';
-import { addImage, isImage } from '@vector-editor/modules/image';
+import { addImage, isImage } from '@vector-editor/modules/object-image';
 import {
   addModifier,
   applyAllModifiers,

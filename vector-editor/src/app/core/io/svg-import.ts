@@ -1,5 +1,5 @@
 import { createId } from '@vector-editor/core/utils';
-import { imageContent, isImageDataUrl, isImageMime } from '@vector-editor/modules/image';
+import { imageContent, isImageDataUrl, isImageMime } from '@vector-editor/modules/object-image';
 import { clampTraceSettings } from '@vector-editor/modules/image-trace';
 import {
   Anchor,

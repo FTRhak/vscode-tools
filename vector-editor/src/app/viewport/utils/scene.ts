@@ -1,6 +1,6 @@
 import { ClipperHold, evaluateDocument } from '@vector-editor/core';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point';
-import { isImage } from '@vector-editor/modules/image';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { isImage } from '@vector-editor/modules/object-image';
 import { enabledTrace, tracePreview } from '@vector-editor/modules/image-trace';
 import { objectsInPaintOrder } from '@vector-editor/modules/paint-order';
 import { sourceToPathData } from '@vector-editor/modules/path-data';

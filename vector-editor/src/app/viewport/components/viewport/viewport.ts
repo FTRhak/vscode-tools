@@ -52,9 +52,9 @@ import { addPointHitRadius, hitTestSegment } from '../../utils/tools/add-point';
 import { PenDrag, penPreviewData, startPen, updatePenDrag } from '../../utils/tools/pen';
 import { SessionService } from '@vector-editor/core';
 import { isInteractionLocked, objectsInPaintOrder } from '@vector-editor/modules/paint-order/paint-order';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point/empty-point';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point/empty-point';
 import { rotationOriginDocument } from '@vector-editor/modules/transform/transform';
-import { isImage } from '@vector-editor/modules/image/image';
+import { isImage } from '@vector-editor/modules/object-image';
 import { clampShapeCount, isShapeKind, SHAPE_NAMES, ShapeDrag, ShapeKind, shapeSource, shapeSourceFromDrag } from '@vector-editor/modules/shapes/shapes';
 import { sourceToPathData } from '@vector-editor/modules/path-data/path-data';
 

@@ -1,7 +1,7 @@
 import { createId } from '@vector-editor/core/utils';
 import { remintSource } from '../../core/eval/remint';
 import { nextSeriesName } from '../document-edits';
-import { isImage } from '../image';
+import { isImage } from '../object-image';
 import { Document, svgStrokeDefaults, VectorObject } from '../types';
 
 export function expandTrace(

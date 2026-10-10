@@ -1,11 +1,10 @@
 import { Component, computed, ElementRef, inject, signal } from '@angular/core';
 import { CommandBus } from '@vector-editor/commands';
-
-import { OutlinerLayer, OutlinerObject, TreeRow } from '../../models';
 import { SessionService } from '@vector-editor/core';
-import { layersFrontToBack, objectsOnLayer } from '@vector-editor/modules/paint-order/paint-order';
-import { isEmptyPoint } from '@vector-editor/modules/empty-point/empty-point';
-import { deletableObjectIds } from '@vector-editor/modules/delete-objects/delete-objects';
+import { deletableObjectIds } from '@vector-editor/modules/delete-objects';
+import { isEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { layersFrontToBack, objectsOnLayer } from '@vector-editor/modules/paint-order';
+import { OutlinerLayer, OutlinerObject, TreeRow } from '../../models';
 
 @Component({
   selector: 'app-outliner-panel',
