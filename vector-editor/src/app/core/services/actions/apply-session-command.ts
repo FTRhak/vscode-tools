@@ -16,9 +16,12 @@ import { SessionSlice } from '@vector-editor/modules/types';
 import { DocumentCommand } from '../../models';
 import { applyAddLayer } from './apply-add-layer';
 import { applyAddPath } from './apply-add-path';
+import { applyAlign } from './apply-align';
 import { applyAnchorSelect } from './apply-anchor-select';
+import { applyDelete } from './apply-delete';
 import { applyDeleteAnchors } from './apply-delete-anchors';
-import { applyPenBegin } from './apply-delete-layer';
+import { applyDeleteLayer } from './apply-delete-layer';
+import { applyDuplicate } from './apply-duplicate';
 import { applyEditSelectionKind } from './apply-edit-selection-kind';
 import { applyImageAdd } from './apply-image-add';
 import { applyImagePlacement } from './apply-image-placement';
@@ -27,6 +30,7 @@ import { applyMode } from './apply-mode';
 import { applyModifierCommand } from './apply-modifier-command';
 import { applyObjectChange } from './apply-object-change';
 import { applyPenAddPoint } from './apply-pen-add-point';
+import { applyPenBegin } from './apply-pen-begin';
 import { applyPenFinish } from './apply-pen-finish';
 import { applyPenSetHandles } from './apply-pen-set-handles';
 import { applyPointAdd } from './apply-point-add';
@@ -35,18 +39,12 @@ import { applySelectLayer } from './apply-select-layer';
 import { applyShapeAdd } from './apply-shape-add';
 import { applyTool } from './apply-tool';
 import { applyDocument, defaultLayerId } from './document-helpers';
-import {
-  applyAlign,
-  applyBakedTransform,
-  applyDelete,
-  applyDeleteLayer,
-  applyDuplicate,
-  applyFlags,
-  applyRotationOrigin,
-  applyTransform,
-  applyTranslate,
-} from './object-actions';
 import { replaceSource } from './replace-source';
+import { applyFlags } from './apply-flags';
+import { applyBakedTransform } from './apply-baked-transform';
+import { applyRotationOrigin } from './apply-rotation-origin';
+import { applyTransform } from './apply-transform';
+import { applyTranslate } from './apply-translate';
 
 export function applySessionCommand(state: SessionSlice, command: DocumentCommand): SessionSlice {
   switch (command.type) {

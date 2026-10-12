@@ -1,21 +1,15 @@
 import { Command } from "@vector-editor/commands";
-import { beginPenObject } from "@vector-editor/modules/pen-path";
+import { deleteLayer } from "@vector-editor/modules/delete-objects";
 import { SessionSlice } from "@vector-editor/modules/types";
-import { penSelection } from "./state-helpers";
+import { withoutRemovedObjects } from "./state-helpers";
 
-export function applyPenBegin(state: SessionSlice, command: Extract<Command, { type: 'pen.begin' }>): SessionSlice {
+export function applyDeleteLayer(state: SessionSlice, command: Extract<Command, { type: 'layer.delete' }>): SessionSlice {
   if (!state.document) {
     return state;
   }
-  const created = beginPenObject(state.document, command.position, state.selectedLayerId ?? undefined);
-  if (!created) {
+  const result = deleteLayer(state.document, command.id);
+  if (!result) {
     return state;
   }
-  return new SessionSlice({
-    ...state,
-    mode: 'edit',
-    document: created.document,
-    penObjectId: created.objectId,
-    selection: penSelection(state.selection, created.objectId, created.anchorId, true),
-  });
+  return withoutRemovedObjects(state, result.document, result.removedIds);
 }
