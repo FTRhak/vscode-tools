@@ -1,3 +1,4 @@
+import { emptySelection } from '@vector-editor/commands';
 import { createNewDocument } from '@vector-editor/modules/create-document';
 import {
   addSwatch,
@@ -12,37 +13,36 @@ import {
 import { setAnchorHandle, setAnchorPointType, setAnchorPosition, translateAnchors } from '@vector-editor/modules/edit-path';
 import { addModifier, removeModifier, reorderModifier, updateModifier } from '@vector-editor/modules/modifier-edits';
 import { SessionSlice } from '@vector-editor/modules/types';
-import { emptySelection } from '@vector-editor/commands';
 import { DocumentCommand } from '../../models';
+import { applyAddLayer } from './apply-add-layer';
+import { applyAddPath } from './apply-add-path';
 import { applyAnchorSelect } from './apply-anchor-select';
 import { applyDeleteAnchors } from './apply-delete-anchors';
 import { applyEditSelectionKind } from './apply-edit-selection-kind';
+import { applyImageAdd } from './apply-image-add';
 import { applyImagePlacement } from './apply-image-placement';
 import { applyInsertPoint } from './apply-insert-point';
 import { applyMode } from './apply-mode';
+import { applyPointAdd } from './apply-point-add';
 import { applySelect } from './apply-select';
+import { applyShapeAdd } from './apply-shape-add';
 import { applyTool } from './apply-tool';
 import { applyDocument, defaultLayerId } from './document-helpers';
 import {
-  applyAddLayer,
-  applyAddPath,
   applyAlign,
   applyBakedTransform,
   applyDelete,
   applyDeleteLayer,
   applyDuplicate,
   applyFlags,
-  applyImageAdd,
   applyModifierCommand,
   applyObjectChange,
   applyPenAddPoint,
   applyPenBegin,
   applyPenFinish,
   applyPenSetHandles,
-  applyPointAdd,
   applyRotationOrigin,
   applySelectLayer,
-  applyShapeAdd,
   applyTransform,
   applyTranslate,
 } from './object-actions';

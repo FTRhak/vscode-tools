@@ -1,8 +1,7 @@
 ﻿import { computed, Service, signal } from '@angular/core';
-import { Command } from '@vector-editor/commands';
+import { Command, emptyHistory, emptySelection } from '@vector-editor/commands';
 import { captureClipperHold, ClipperHold } from '@vector-editor/modules/eval';
 import { SessionSlice } from '@vector-editor/modules/types';
-import { emptyHistory, emptySelection } from '../../commands/models/history';
 import { commitSession } from './actions/commit-session';
 
 const initialSession = new SessionSlice({
