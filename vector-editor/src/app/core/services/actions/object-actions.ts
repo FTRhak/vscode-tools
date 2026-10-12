@@ -1,21 +1,14 @@
 import { Command } from '@vector-editor/commands';
 import { deleteLayer, deleteObjects } from '@vector-editor/modules/delete-objects';
-import { addLayer, addPath } from '@vector-editor/modules/document-edits';
 import { duplicateObjects } from '@vector-editor/modules/duplicate-objects';
-import { expandTrace } from '@vector-editor/modules/expand-trace';
 import { alignObjects } from '@vector-editor/modules/feature-align-objects';
 import { identityTransform, matrixFromTransform, transformSource } from '@vector-editor/modules/io';
-import { applyAllModifiers, applyModifier } from '@vector-editor/modules/modifier-edits/modifier-edits';
-import { addEmptyPoint } from '@vector-editor/modules/object-empty-point';
-import { addImage, isImage } from '@vector-editor/modules/object-image';
+import { isImage } from '@vector-editor/modules/object-image';
 import { isInteractionLocked } from '@vector-editor/modules/paint-order';
-import { addPenPoint, beginPenObject, finishPen, setPenHandles } from '@vector-editor/modules/pen-path';
-import { addShape } from '@vector-editor/modules/shapes/shapes';
 import { rotationOriginDocument, transformWithRotationOrigin } from '@vector-editor/modules/transform';
 import { ObjectTransform, SessionSlice, VectorObject } from '@vector-editor/modules/types';
 import { applyDocument, mapObjects } from './document-helpers';
-import { replaceSource } from './replace-source';
-import { penSelection, withFlags, withTransform, withoutRemovedObjects } from './state-helpers';
+import { withFlags, withTransform, withoutRemovedObjects } from './state-helpers';
 
 export function applyTranslate(state: SessionSlice, command: Extract<Command, { type: 'object.translate' }>): SessionSlice {
   const current = state.document;
@@ -181,129 +174,6 @@ export function applyDeleteLayer(state: SessionSlice, command: Extract<Command, 
   return withoutRemovedObjects(state, result.document, result.removedIds);
 }
 
-export function applyPenBegin(state: SessionSlice, command: Extract<Command, { type: 'pen.begin' }>): SessionSlice {
-  if (!state.document) {
-    return state;
-  }
-  const created = beginPenObject(state.document, command.position, state.selectedLayerId ?? undefined);
-  if (!created) {
-    return state;
-  }
-  return {
-    ...state,
-    mode: 'edit',
-    document: created.document,
-    penObjectId: created.objectId,
-    selection: penSelection(state.selection, created.objectId, created.anchorId, true),
-  };
-}
 
-export function applyPenAddPoint(state: SessionSlice, command: Extract<Command, { type: 'pen.addPoint' }>): SessionSlice {
-  if (!state.document) {
-    return state;
-  }
-  const object = state.document.objects.find((item) => item.id === command.objectId);
-  if (!object || isInteractionLocked(state.document, object)) {
-    return state;
-  }
-  const added = addPenPoint(object.source, command.position);
-  if (!added) {
-    return state;
-  }
-  return {
-    ...state,
-    document: mapObjects(state.document, [command.objectId], (item) => ({
-      ...item,
-      source: added.source,
-    })),
-    penObjectId: command.objectId,
-    selection: penSelection(state.selection, command.objectId, added.anchorId, false),
-  };
-}
 
-export function applyPenSetHandles(state: SessionSlice, command: Extract<Command, { type: 'pen.setHandles' }>): SessionSlice {
-  if (!state.document) {
-    return state;
-  }
-  return replaceSource(state, command.objectId, (source) => setPenHandles(source, command.anchorId, command.handleOut, command.breakLink));
-}
-
-export function applyPenFinish(state: SessionSlice, command: Extract<Command, { type: 'pen.finish' }>): SessionSlice {
-  const cleared = state.penObjectId === null ? state : { ...state, penObjectId: null };
-  if (!command.closed || !state.document) {
-    return cleared;
-  }
-  const object = state.document.objects.find((item) => item.id === command.objectId);
-  if (!object || isInteractionLocked(state.document, object)) {
-    return cleared;
-  }
-  const source = finishPen(object.source, true);
-  if (source === object.source) {
-    return cleared;
-  }
-  return {
-    ...cleared,
-    document: mapObjects(state.document, [command.objectId], (item) => ({ ...item, source })),
-  };
-}
-
-export function applyObjectChange(state: SessionSlice, objectId: string, update: (object: VectorObject) => VectorObject): SessionSlice {
-  return applyDocument(state, (document) => mapObjects(document, [objectId], update));
-}
-
-export function applyModifierCommand(state: SessionSlice, objectId: string, modifierId?: string): SessionSlice {
-  const document = state.document;
-  if (!document) {
-    return state;
-  }
-  const expanded = expandTrace(document, objectId, modifierId);
-  if (expanded) {
-    if (expanded.document === document) {
-      return state;
-    }
-    return {
-      ...state,
-      document: expanded.document,
-      selection: {
-        ...state.selection,
-        activeObjectId: expanded.newIds.at(-1) ?? null,
-        selectedObjectIds: expanded.newIds,
-        selectedAnchorIds: [],
-        selectedSegmentIds: [],
-      },
-    };
-  }
-  if (modifierId === undefined) {
-    return applyBakedModifier(state, objectId, (object) => applyAllModifiers(object, document.objects));
-  }
-  return applyBakedModifier(state, objectId, (object) => applyModifier(object, modifierId, document.objects));
-}
-
-export function applyBakedModifier(state: SessionSlice, objectId: string, update: (object: VectorObject) => VectorObject): SessionSlice {
-  const next = applyObjectChange(state, objectId, update);
-  if (next === state || next.selection.activeObjectId !== objectId) {
-    return next;
-  }
-  if (next.selection.selectedAnchorIds.length === 0 && next.selection.selectedSegmentIds.length === 0) {
-    return next;
-  }
-  return {
-    ...next,
-    selection: {
-      ...next.selection,
-      selectedAnchorIds: [],
-      selectedSegmentIds: [],
-    },
-  };
-}
-
-export function applySelectLayer(state: SessionSlice, id: string): SessionSlice {
-  if (state.selectedLayerId === id) {
-    return state;
-  }
-  if (!state.document?.layers.some((layer) => layer.id === id)) {
-    return state;
-  }
-  return { ...state, selectedLayerId: id };
-}
 

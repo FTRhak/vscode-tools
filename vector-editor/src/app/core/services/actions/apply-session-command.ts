@@ -18,13 +18,20 @@ import { applyAddLayer } from './apply-add-layer';
 import { applyAddPath } from './apply-add-path';
 import { applyAnchorSelect } from './apply-anchor-select';
 import { applyDeleteAnchors } from './apply-delete-anchors';
+import { applyPenBegin } from './apply-delete-layer';
 import { applyEditSelectionKind } from './apply-edit-selection-kind';
 import { applyImageAdd } from './apply-image-add';
 import { applyImagePlacement } from './apply-image-placement';
 import { applyInsertPoint } from './apply-insert-point';
 import { applyMode } from './apply-mode';
+import { applyModifierCommand } from './apply-modifier-command';
+import { applyObjectChange } from './apply-object-change';
+import { applyPenAddPoint } from './apply-pen-add-point';
+import { applyPenFinish } from './apply-pen-finish';
+import { applyPenSetHandles } from './apply-pen-set-handles';
 import { applyPointAdd } from './apply-point-add';
 import { applySelect } from './apply-select';
+import { applySelectLayer } from './apply-select-layer';
 import { applyShapeAdd } from './apply-shape-add';
 import { applyTool } from './apply-tool';
 import { applyDocument, defaultLayerId } from './document-helpers';
@@ -35,14 +42,7 @@ import {
   applyDeleteLayer,
   applyDuplicate,
   applyFlags,
-  applyModifierCommand,
-  applyObjectChange,
-  applyPenAddPoint,
-  applyPenBegin,
-  applyPenFinish,
-  applyPenSetHandles,
   applyRotationOrigin,
-  applySelectLayer,
   applyTransform,
   applyTranslate,
 } from './object-actions';
