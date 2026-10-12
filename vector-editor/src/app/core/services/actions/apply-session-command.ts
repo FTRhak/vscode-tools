@@ -1,4 +1,3 @@
-import { emptySelection } from '@vector-editor/commands';
 import {
   addSwatch,
   applySwatch,
@@ -22,6 +21,7 @@ import { applyDelete } from './apply-delete';
 import { applyDeleteAnchors } from './apply-delete-anchors';
 import { applyDeleteLayer } from './apply-delete-layer';
 import { applyDocumentNew } from './apply-document-new';
+import { applyDocumentReplace } from './apply-document-replace';
 import { applyDuplicate } from './apply-duplicate';
 import { applyEditSelectionKind } from './apply-edit-selection-kind';
 import { applyFlags } from './apply-flags';
@@ -39,11 +39,12 @@ import { applyPointAdd } from './apply-point-add';
 import { applyRotationOrigin } from './apply-rotation-origin';
 import { applySelect } from './apply-select';
 import { applySelectLayer } from './apply-select-layer';
+import { applySessionSetViewport } from './apply-session-set-viewport';
 import { applyShapeAdd } from './apply-shape-add';
 import { applyTool } from './apply-tool';
 import { applyTransform } from './apply-transform';
 import { applyTranslate } from './apply-translate';
-import { applyDocument, defaultLayerId } from './document-helpers';
+import { applyDocument } from './document-helpers';
 import { replaceSource } from './replace-source';
 
 export function applySessionCommand(state: SessionSlice, command: DocumentCommand): SessionSlice {
@@ -56,23 +57,12 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
       return applyImagePlacement(state, command.placement);
     case 'session.setEditSelectionKind':
       return applyEditSelectionKind(state, command.kind);
-    case 'document.new': {
+    case 'document.new':
       return applyDocumentNew(state, command);
-    }
     case 'document.replace':
-      return new SessionSlice({
-        ...state,
-        document: command.document,
-        mode: 'object',
-        selection: emptySelection,
-        penObjectId: null,
-        selectedLayerId: defaultLayerId(command.document),
-      });
+      return applyDocumentReplace(state, command);
     case 'session.setViewport':
-      return new SessionSlice({
-        ...state,
-        viewport: { panX: command.panX, panY: command.panY, zoom: command.zoom },
-      });
+      return applySessionSetViewport(state, command);
     case 'session.select':
       return command.target === 'anchor' ? applyAnchorSelect(state, command) : applySelect(state, command);
     case 'session.selectLayer':
