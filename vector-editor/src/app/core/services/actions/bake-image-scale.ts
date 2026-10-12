@@ -1,4 +1,4 @@
-import { VectorObject } from "@vector-editor/modules/types";
+import { VectorObject } from '@vector-editor/modules/types';
 
 export function bakeImageScale(object: VectorObject): VectorObject {
   const image = object.image;

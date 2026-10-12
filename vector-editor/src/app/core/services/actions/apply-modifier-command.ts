@@ -1,7 +1,7 @@
-import { expandTrace } from "@vector-editor/modules/expand-trace";
-import { applyAllModifiers, applyModifier } from "@vector-editor/modules/modifier-edits";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { applyBakedModifier } from "./apply-baked-modifier";
+import { expandTrace } from '@vector-editor/modules/expand-trace';
+import { applyAllModifiers, applyModifier } from '@vector-editor/modules/modifier-edits';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { applyBakedModifier } from './apply-baked-modifier';
 
 export function applyModifierCommand(state: SessionSlice, objectId: string, modifierId?: string): SessionSlice {
   const document = state.document;
@@ -13,7 +13,7 @@ export function applyModifierCommand(state: SessionSlice, objectId: string, modi
     if (expanded.document === document) {
       return state;
     }
-    return new SessionSlice( {
+    return new SessionSlice({
       ...state,
       document: expanded.document,
       selection: {

@@ -1,9 +1,9 @@
-import { Command } from "@vector-editor/commands";
-import { isInteractionLocked } from "@vector-editor/modules/paint-order";
-import { addPenPoint } from "@vector-editor/modules/pen-path";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { mapObjects } from "./document-helpers";
-import { penSelection } from "./state-helpers";
+import { Command } from '@vector-editor/commands';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order';
+import { addPenPoint } from '@vector-editor/modules/pen-path';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { mapObjects } from './document-helpers';
+import { penSelection } from './state-helpers';
 
 export function applyPenAddPoint(state: SessionSlice, command: Extract<Command, { type: 'pen.addPoint' }>): SessionSlice {
   if (!state.document) {

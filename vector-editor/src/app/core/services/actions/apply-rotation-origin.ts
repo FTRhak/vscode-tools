@@ -1,8 +1,8 @@
-import { Command } from "@vector-editor/commands";
-import { isInteractionLocked } from "@vector-editor/modules/paint-order";
-import { rotationOriginDocument, transformWithRotationOrigin } from "@vector-editor/modules/transform";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { mapObjects } from "./document-helpers";
+import { Command } from '@vector-editor/commands';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order';
+import { rotationOriginDocument, transformWithRotationOrigin } from '@vector-editor/modules/transform';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { mapObjects } from './document-helpers';
 
 export function applyRotationOrigin(state: SessionSlice, command: Extract<Command, { type: 'object.setRotationOrigin' }>): SessionSlice {
   const current = state.document;

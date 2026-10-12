@@ -1,5 +1,5 @@
-import { addPath } from "@vector-editor/modules/document-edits";
-import { SessionSlice } from "@vector-editor/modules/types";
+import { addPath } from '@vector-editor/modules/document-edits';
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function applyAddPath(state: SessionSlice, layerId: string): SessionSlice {
   if (!state.document) {

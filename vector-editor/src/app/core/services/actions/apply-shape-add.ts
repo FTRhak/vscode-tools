@@ -1,6 +1,6 @@
-import { Command } from "@vector-editor/commands";
-import { addShape } from "@vector-editor/modules/shapes";
-import { SessionSlice } from "@vector-editor/modules/types";
+import { Command } from '@vector-editor/commands';
+import { addShape } from '@vector-editor/modules/shapes';
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function applyShapeAdd(state: SessionSlice, command: Extract<Command, { type: 'shape.add' }>): SessionSlice {
   if (!state.document) {
@@ -23,4 +23,3 @@ export function applyShapeAdd(state: SessionSlice, command: Extract<Command, { t
     },
   };
 }
-

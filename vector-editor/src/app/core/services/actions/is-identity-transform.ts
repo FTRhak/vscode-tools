@@ -1,5 +1,5 @@
-import { identityTransform } from "@vector-editor/modules/io";
-import { ObjectTransform } from "@vector-editor/modules/types";
+import { identityTransform } from '@vector-editor/modules/io';
+import { ObjectTransform } from '@vector-editor/modules/types';
 
 export function isIdentityTransform(transform: ObjectTransform): boolean {
   return (
@@ -12,4 +12,3 @@ export function isIdentityTransform(transform: ObjectTransform): boolean {
     transform.originY === identityTransform.originY
   );
 }
-

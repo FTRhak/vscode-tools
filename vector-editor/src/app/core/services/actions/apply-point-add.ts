@@ -1,6 +1,6 @@
-import { Command } from "@vector-editor/commands";
-import { addEmptyPoint } from "@vector-editor/modules/object-empty-point";
-import { SessionSlice } from "@vector-editor/modules/types";
+import { Command } from '@vector-editor/commands';
+import { addEmptyPoint } from '@vector-editor/modules/object-empty-point';
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function applyPointAdd(state: SessionSlice, command: Extract<Command, { type: 'point.add' }>): SessionSlice {
   if (!state.document) {
@@ -23,5 +23,3 @@ export function applyPointAdd(state: SessionSlice, command: Extract<Command, { t
     },
   });
 }
-
-

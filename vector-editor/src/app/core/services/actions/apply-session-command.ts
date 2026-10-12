@@ -1,5 +1,4 @@
 import { emptySelection } from '@vector-editor/commands';
-import { createNewDocument } from '@vector-editor/modules/create-document';
 import {
   addSwatch,
   applySwatch,
@@ -18,11 +17,14 @@ import { applyAddLayer } from './apply-add-layer';
 import { applyAddPath } from './apply-add-path';
 import { applyAlign } from './apply-align';
 import { applyAnchorSelect } from './apply-anchor-select';
+import { applyBakedTransform } from './apply-baked-transform';
 import { applyDelete } from './apply-delete';
 import { applyDeleteAnchors } from './apply-delete-anchors';
 import { applyDeleteLayer } from './apply-delete-layer';
+import { applyDocumentNew } from './apply-document-new';
 import { applyDuplicate } from './apply-duplicate';
 import { applyEditSelectionKind } from './apply-edit-selection-kind';
+import { applyFlags } from './apply-flags';
 import { applyImageAdd } from './apply-image-add';
 import { applyImagePlacement } from './apply-image-placement';
 import { applyInsertPoint } from './apply-insert-point';
@@ -34,17 +36,15 @@ import { applyPenBegin } from './apply-pen-begin';
 import { applyPenFinish } from './apply-pen-finish';
 import { applyPenSetHandles } from './apply-pen-set-handles';
 import { applyPointAdd } from './apply-point-add';
+import { applyRotationOrigin } from './apply-rotation-origin';
 import { applySelect } from './apply-select';
 import { applySelectLayer } from './apply-select-layer';
 import { applyShapeAdd } from './apply-shape-add';
 import { applyTool } from './apply-tool';
-import { applyDocument, defaultLayerId } from './document-helpers';
-import { replaceSource } from './replace-source';
-import { applyFlags } from './apply-flags';
-import { applyBakedTransform } from './apply-baked-transform';
-import { applyRotationOrigin } from './apply-rotation-origin';
 import { applyTransform } from './apply-transform';
 import { applyTranslate } from './apply-translate';
+import { applyDocument, defaultLayerId } from './document-helpers';
+import { replaceSource } from './replace-source';
 
 export function applySessionCommand(state: SessionSlice, command: DocumentCommand): SessionSlice {
   switch (command.type) {
@@ -57,14 +57,7 @@ export function applySessionCommand(state: SessionSlice, command: DocumentComman
     case 'session.setEditSelectionKind':
       return applyEditSelectionKind(state, command.kind);
     case 'document.new': {
-      const document = createNewDocument({ width: command.width, height: command.height });
-      return new SessionSlice({
-        ...state,
-        document,
-        selection: emptySelection,
-        penObjectId: null,
-        selectedLayerId: defaultLayerId(document),
-      });
+      return applyDocumentNew(state, command);
     }
     case 'document.replace':
       return new SessionSlice({

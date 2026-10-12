@@ -1,6 +1,5 @@
-import { SessionSlice, VectorObject } from "@vector-editor/modules/types";
-import { applyObjectChange } from "./apply-object-change";
-
+import { SessionSlice, VectorObject } from '@vector-editor/modules/types';
+import { applyObjectChange } from './apply-object-change';
 
 export function applyBakedModifier(state: SessionSlice, objectId: string, update: (object: VectorObject) => VectorObject): SessionSlice {
   const next = applyObjectChange(state, objectId, update);
@@ -10,7 +9,7 @@ export function applyBakedModifier(state: SessionSlice, objectId: string, update
   if (next.selection.selectedAnchorIds.length === 0 && next.selection.selectedSegmentIds.length === 0) {
     return next;
   }
-  return new SessionSlice( {
+  return new SessionSlice({
     ...next,
     selection: {
       ...next.selection,

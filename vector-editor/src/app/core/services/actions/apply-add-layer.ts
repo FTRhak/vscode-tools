@@ -1,5 +1,5 @@
-import { addLayer } from "@vector-editor/modules/document-edits";
-import { SessionSlice } from "@vector-editor/modules/types";
+import { addLayer } from '@vector-editor/modules/document-edits';
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function applyAddLayer(state: SessionSlice): SessionSlice {
   if (!state.document) {
@@ -13,4 +13,3 @@ export function applyAddLayer(state: SessionSlice): SessionSlice {
   }
   return new SessionSlice({ ...state, document, selectedLayerId: added.id });
 }
-

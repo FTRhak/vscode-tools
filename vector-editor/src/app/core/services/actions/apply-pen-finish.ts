@@ -1,8 +1,8 @@
-import { Command } from "@vector-editor/commands";
-import { isInteractionLocked } from "@vector-editor/modules/paint-order";
-import { finishPen } from "@vector-editor/modules/pen-path";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { mapObjects } from "./document-helpers";
+import { Command } from '@vector-editor/commands';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order';
+import { finishPen } from '@vector-editor/modules/pen-path';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { mapObjects } from './document-helpers';
 
 export function applyPenFinish(state: SessionSlice, command: Extract<Command, { type: 'pen.finish' }>): SessionSlice {
   const cleared = state.penObjectId === null ? state : { ...state, penObjectId: null };

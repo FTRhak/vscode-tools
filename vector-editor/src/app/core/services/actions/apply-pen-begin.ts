@@ -1,7 +1,7 @@
-import { Command } from "@vector-editor/commands";
-import { beginPenObject } from "@vector-editor/modules/pen-path";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { penSelection } from "./state-helpers";
+import { Command } from '@vector-editor/commands';
+import { beginPenObject } from '@vector-editor/modules/pen-path';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { penSelection } from './state-helpers';
 
 export function applyPenBegin(state: SessionSlice, command: Extract<Command, { type: 'pen.begin' }>): SessionSlice {
   if (!state.document) {

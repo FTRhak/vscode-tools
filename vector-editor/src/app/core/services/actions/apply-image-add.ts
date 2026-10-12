@@ -1,6 +1,6 @@
-import { Command } from "@vector-editor/commands";
-import { addImage } from "@vector-editor/modules/object-image";
-import { SessionSlice } from "@vector-editor/modules/types";
+import { Command } from '@vector-editor/commands';
+import { addImage } from '@vector-editor/modules/object-image';
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function applyImageAdd(state: SessionSlice, command: Extract<Command, { type: 'image.add' }>): SessionSlice {
   if (!state.document) {

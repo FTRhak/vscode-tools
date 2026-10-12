@@ -1,11 +1,11 @@
-import { Command } from "@vector-editor/commands";
-import { identityTransform, matrixFromTransform, transformSource } from "@vector-editor/modules/io";
-import { isImage } from "@vector-editor/modules/object-image";
-import { isInteractionLocked } from "@vector-editor/modules/paint-order";
-import { SessionSlice } from "@vector-editor/modules/types";
-import { bakeImageScale } from "./bake-image-scale";
-import { mapObjects } from "./document-helpers";
-import { isIdentityTransform } from "./is-identity-transform";
+import { Command } from '@vector-editor/commands';
+import { identityTransform, matrixFromTransform, transformSource } from '@vector-editor/modules/io';
+import { isImage } from '@vector-editor/modules/object-image';
+import { isInteractionLocked } from '@vector-editor/modules/paint-order';
+import { SessionSlice } from '@vector-editor/modules/types';
+import { bakeImageScale } from './bake-image-scale';
+import { mapObjects } from './document-helpers';
+import { isIdentityTransform } from './is-identity-transform';
 
 export function applyBakedTransform(state: SessionSlice, command: Extract<Command, { type: 'object.applyTransform' }>): SessionSlice {
   const current = state.document;

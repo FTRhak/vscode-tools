@@ -1,4 +1,4 @@
-import { SessionSlice } from "@vector-editor/modules/types";
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function applySelectLayer(state: SessionSlice, id: string): SessionSlice {
   if (state.selectedLayerId === id) {
@@ -9,4 +9,3 @@ export function applySelectLayer(state: SessionSlice, id: string): SessionSlice 
   }
   return new SessionSlice({ ...state, selectedLayerId: id });
 }
-

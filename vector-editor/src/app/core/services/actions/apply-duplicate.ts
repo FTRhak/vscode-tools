@@ -1,6 +1,6 @@
-import { Command } from "@vector-editor/commands";
-import { duplicateObjects } from "@vector-editor/modules/duplicate-objects";
-import { SessionSlice } from "@vector-editor/modules/types";
+import { Command } from '@vector-editor/commands';
+import { duplicateObjects } from '@vector-editor/modules/duplicate-objects';
+import { SessionSlice } from '@vector-editor/modules/types';
 
 export function applyDuplicate(state: SessionSlice, command: Extract<Command, { type: 'object.duplicate' }>): SessionSlice {
   if (!state.document || command.ids.length === 0) {

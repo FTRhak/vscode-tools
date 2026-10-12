@@ -27,4 +27,3 @@ export * from './vec2.model';
 export * from './vector-object.model';
 export * from './view-box.model';
 export * from './viewport-camera.model';
-
